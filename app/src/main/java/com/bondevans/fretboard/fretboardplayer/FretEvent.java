@@ -1,16 +1,21 @@
 package com.bondevans.fretboard.fretboardplayer;
 
+import java.util.List;
+
 /**
- * Created by Paul on 8/7/2015.
+ * A FretEvent is a collection of notes all played at the same time
  */
 public class FretEvent {
-    int     note;
-    int     type;         // 0=off, 1=on,
-    int     deltaTime;  // Time delay in ticks before firing this event
+    long    timeDelay;
+    List<FretNote> fretNotes;
 
-    public FretEvent(int note, int type, int deltaTime) {
-        this.note = note;
-        this.type = type;
-        this.deltaTime = deltaTime;
+    /**
+     * Constructor
+     * @param timeDelay
+     * @param fretNotes
+     */
+    public FretEvent(long timeDelay, List<FretNote> fretNotes){
+        this.timeDelay = timeDelay;
+        this.fretNotes = fretNotes;
     }
 }
