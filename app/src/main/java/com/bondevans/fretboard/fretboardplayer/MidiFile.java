@@ -159,6 +159,7 @@ public class MidiFile {
 
             switch (noteEventType) {
                 case MidiEvent.NOTE_EVENT_TYPE_NOTE_OFF:
+                    Log.d(TAG, "NOTE OFF");
                 case MidiEvent.NOTE_EVENT_TYPE_NOTE_ON:
                     // 1st byte is note, 2nd byte is velocity
                     param2 = in.read();
@@ -240,7 +241,15 @@ public class MidiFile {
             }
             this.mFormat = buffer[9] & 0xFF;
             this.mTracks = buffer[11] & 0xFF;
-            this.mTicksPerBeat = buffer[13] & 0xFF;
+            if( (buffer[12] & 0x80) == 0){
+                // Time division is ticks per beat
+                this.mTicksPerBeat = (buffer[12] << 8)+ (buffer[13] & 0xFF);
+            }
+            else{
+                // Time division is frames per second
+                // TODO - not sure what to do.....
+                Log.d(TAG, "OOPS - time division is frames per sec");
+            }
             Log.d(TAG, "format=" + mFormat + " tracks=" + mTracks + " ticksperbeat=" + mTicksPerBeat);
 
 //            this.mTrackNameOld = new String[mTracks];

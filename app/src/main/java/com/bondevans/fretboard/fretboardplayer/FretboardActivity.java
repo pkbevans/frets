@@ -1,19 +1,50 @@
 package com.bondevans.fretboard.fretboardplayer;
 
-import android.support.v7.app.ActionBarActivity;
+import android.Manifest;
+import android.annotation.TargetApi;
+import android.app.Activity;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.media.midi.MidiDevice;
+import android.media.midi.MidiDeviceInfo;
+import android.media.midi.MidiInputPort;
+import android.media.midi.MidiManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import java.io.IOException;
 
-public class FretboardActivity extends ActionBarActivity {
+public class FretboardActivity extends Activity {
+
+    private static final String TAG = "FretboardActivity";
+    private static final int REQUEST_CODE_READ_STORAGE_PERMISSION = 4522;
 
     @Override
+    @TargetApi(23)
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        checkFileAccessPermission();
         setContentView(R.layout.activity_main);
     }
 
+    private void checkFileAccessPermission() {
+        Log.d(TAG, "checkFileAccessPermission 1");
+        if(checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED){
+            Log.d(TAG, "checkFileAccessPermission 2");
+            // Need to request permission from the user
+            String [] perms = new String[] {Manifest.permission.READ_EXTERNAL_STORAGE};
+            requestPermissions(perms, REQUEST_CODE_READ_STORAGE_PERMISSION);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        // TODO need to handle user not allowing access.
+        Log.d(TAG, "onRequestPermissionsResult");
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -35,5 +66,35 @@ public class FretboardActivity extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.d(TAG,"onStart");
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        Log.d(TAG, "onRestart");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.d(TAG, "onStop");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "onDestroy");
     }
 }

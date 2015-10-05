@@ -6,16 +6,16 @@ import java.util.List;
  * A FretEvent is a collection of notes all played at the same time
  */
 public class FretEvent {
-    long    timeDelay;
+    int deltaTime;
     List<FretNote> fretNotes;
 
     /**
      * Constructor
-     * @param timeDelay
+     * @param deltaTime
      * @param fretNotes
      */
-    public FretEvent(long timeDelay, List<FretNote> fretNotes){
-        this.timeDelay = timeDelay;
+    public FretEvent(int deltaTime, List<FretNote> fretNotes){
+        this.deltaTime = deltaTime;
         this.fretNotes = fretNotes;
     }
 }
