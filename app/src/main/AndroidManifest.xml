@@ -21,6 +21,27 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <intent-filter>
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <action android:name="android.intent.action.VIEW" />
+            <action android:name="android.intent.action.EDIT" />
+            <action android:name="android.intent.action.PICK" />
+            <data android:scheme="file" />
+            <data android:mimeType="audio/midi" />
+            <data android:host="*" />
+            <data android:pathPattern=".*\\.mid" />
+            <data android:pathPattern=".*\\..*\\.mid" />
+            <data android:pathPattern=".*\\..*\\..*\\.mid" />
+            <data android:pathPattern=".*\\..*\\..*\\..*\\.mid" />
+            <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.mid" />
+            <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.mid" />
+            <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.mid" />
+            <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\.mid" />
+            <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\.mid" />
+            <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\.mid" />
+        </intent-filter>
+
         </activity>
     </application>
 

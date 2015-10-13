@@ -3,30 +3,44 @@ package com.bondevans.fretboard.fretboardplayer;
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.media.midi.MidiDevice;
-import android.media.midi.MidiDeviceInfo;
-import android.media.midi.MidiInputPort;
-import android.media.midi.MidiManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import java.io.IOException;
-
 public class FretboardActivity extends Activity {
 
     private static final String TAG = "FretboardActivity";
     private static final int REQUEST_CODE_READ_STORAGE_PERMISSION = 4522;
+    private static final String KEY_FILENAME = "MidiFileName";
+    private String mFileName;
+    private FretboardFragment fragment;
 
     @Override
     @TargetApi(23)
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         checkFileAccessPermission();
+        //  See if we got a file name int he intent
         setContentView(R.layout.activity_main);
+        fragment = (FretboardFragment) getFragmentManager()
+                .findFragmentById(R.id.fragment);
+        Intent intent = getIntent();
+        if(intent != null) {
+            if( savedInstanceState == null ) {
+                Uri x = intent.getData();
+                if(x != null) {
+                    mFileName = x.getPath();
+                }
+            }
+            else {
+                mFileName = savedInstanceState.getString(KEY_FILENAME);
+            }
+            fragment.setFileName(mFileName);
+        }
     }
 
     private void checkFileAccessPermission() {
@@ -97,4 +111,11 @@ public class FretboardActivity extends Activity {
         super.onDestroy();
         Log.d(TAG, "onDestroy");
     }
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        Log.d(TAG, "HELLO on SaveInstanceState");
+        outState.putString(KEY_FILENAME, mFileName);
+        super.onSaveInstanceState(outState);
+    }
+
 }

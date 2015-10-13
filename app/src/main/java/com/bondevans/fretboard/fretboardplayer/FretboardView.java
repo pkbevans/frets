@@ -49,12 +49,12 @@ public class FretboardView extends View {//implements View.OnTouchListener {
     private int mSpaceBeforeNut;
     private int mStringSpace;
     private List<FretEvent> mFretEvents;
-    private int mDefaultTempo;
+    private int mTicksPerQtrNote;
+    private int mDefaultTempo=120;
     private int mCurrentTempo;
     private boolean mPlayEnabled = false;
     private boolean mPlaying = false;
     private GestureDetector gestureDetector;
-    private View.OnTouchListener gestureListener;
     private FretEventHandler mFretEventHandler;
     private int mCurrentFretEvent;
     private MidiInputPort mInputPort;
@@ -85,9 +85,8 @@ public class FretboardView extends View {//implements View.OnTouchListener {
      */
     private void initialiseView(Context context) {
         gestureDetector = new GestureDetector(context, new MyGestureListener());
-        gestureListener = new View.OnTouchListener() {
+        View.OnTouchListener gestureListener = new View.OnTouchListener() {
             public boolean onTouch(View v, MotionEvent event) {
-//                Log.d(TAG, "onTouch");
                 return gestureDetector.onTouchEvent(event);
             }
         };
@@ -136,6 +135,9 @@ public class FretboardView extends View {//implements View.OnTouchListener {
     }
 
     private void drawTempo(Canvas g) {
+        if(mCurrentTempo==0){
+            mCurrentTempo = mDefaultTempo;  // Set it to default tempo first time
+        }
         String text = mCurrentTempo+" ("+mDefaultTempo+")BPM";
         g.drawText(text, 10, getHeight() - mPaintText.getTextSize(), mPaintText);
     }
@@ -145,12 +147,7 @@ public class FretboardView extends View {//implements View.OnTouchListener {
     private void drawPlayPauseButton(Canvas g) {
         //  Draw the button centred in a square 2xmStringSpace high
         buttonRect = new Rect((getWidth()/2)-mStringSpace,(getHeight()/2)-mStringSpace,(getWidth()/2)+mStringSpace,(getHeight()/2)+mStringSpace);
-        Log.d(TAG, "width=[" + getWidth() +
-                "] height=[" + getHeight() +
-                "] left=[" + buttonRect.left +
-                "] top=[" + buttonRect.top +
-                "] bottom=[" + buttonRect.bottom +
-                "] right=[" + buttonRect.right + "]");
+//        Log.d(TAG, "width=[" + getWidth() +"] height=[" + getHeight() +"] left=[" + buttonRect.left +"] top=[" + buttonRect.top +"] bottom=[" + buttonRect.bottom +"] right=[" + buttonRect.right + "]");
         if (mPlaying) {
             // Draw Pause button
             buttonBitmap = BitmapFactory.decodeResource(
@@ -230,7 +227,7 @@ public class FretboardView extends View {//implements View.OnTouchListener {
     }
 
     private void drawNotes(Canvas g) {
-        int radius=0;
+        int radius;
         if (mFretNotes != null) {
 //            Log.d(TAG, "drawNotes ["+mFretNotes.size()+"]");
             for (int i = 0; i < mFretNotes.size(); i++) {
@@ -308,7 +305,7 @@ public class FretboardView extends View {//implements View.OnTouchListener {
         public LoadTrackTask(MidiFile mf, int track) {
             this.mMidiFile = mf;
             this.track = track;
-            mCurrentTempo = mDefaultTempo = mMidiFile.getTicksPerBeat();
+//            mCurrentTempo = mDefaultTempo = mMidiFile.getTicksPerQtrNote();
         }
 
         @Override
@@ -318,7 +315,7 @@ public class FretboardView extends View {//implements View.OnTouchListener {
             // Disable Play
             mPlayEnabled = false;
             // send notes off
-            sendNotesOff();
+            sendMidiNotesOff2();
             if(mFretEvents != null) {
                 mFretEvents.clear();
             }
@@ -351,28 +348,35 @@ public class FretboardView extends View {//implements View.OnTouchListener {
             List<FretNote> fretNotes = new ArrayList<>();
             int count = 0;
             int deltaTime = 0;
+            int tempo=0;
             for (NoteEvent ev : noteEvents) {
                 if (!first && ev.deltaTime > 0) {
                     // If we get an event with a delay then get fret positions for the previous set,
                     // reset count to zero and start building the next set.
                     Log.d(TAG, "Getting positions for [" + count + "] notes");
                     fretNotes = fp.getFretPositions(fretNotes);
-                    mFretEvents.add(new FretEvent(deltaTime, fretNotes));
+                    mFretEvents.add(new FretEvent(deltaTime, fretNotes, tempo));
                     // calculate delay time and save for later
                     deltaTime = ev.deltaTime;
                     //reset the list of notes
                     fretNotes = new ArrayList<>();
                     count = 0;
+                    tempo=0;
                 }
-                Log.d(TAG, "Got event [" + ev.on + "][" + ev.deltaTime + "][" + ev.note + "]");
+                Log.d(TAG, "Got event [" + ev.on + "][" + ev.deltaTime + "][" + ev.note + "]["+ev.tempo+"]");
                 first = false;
-                fretNotes.add(new FretNote(ev.note, ev.on));
+                if(ev.type == NoteEvent.TYPE_NOTE) {
+                    fretNotes.add(new FretNote(ev.note, ev.on));
+                }
+                else{
+                    tempo = ev.tempo;
+                }
                 count++;
             }
-            // Don't forget the last one
+            // Don't forget the last one - and dont add one if there weren't any events (first=true)
             if (!first) {
                 Log.d(TAG, "Getting positions for [" + count + "] notes (Last one)");
-                mFretEvents.add(new FretEvent(deltaTime, fp.getFretPositions(fretNotes)));
+                mFretEvents.add(new FretEvent(deltaTime, fp.getFretPositions(fretNotes), 0));
             }
             Log.d(TAG, "Got [" + mFretEvents.size() + "] FretEvents");
             return null;
@@ -383,8 +387,10 @@ public class FretboardView extends View {//implements View.OnTouchListener {
             Log.d(TAG, "Loading track onPostExecute");
             super.onPostExecute(aVoid);
             mCurrentFretEvent = 0;
+            mTicksPerQtrNote = mMidiFile.getTicksPerQtrNote();
             if (mFretEvents.size() > 0) {
                 // Enable Play
+                sendMidiProgramChange();
                 mPlayEnabled = true;
                 invalidate();   // Force redraw to display Play button
             } else {
@@ -397,7 +403,7 @@ public class FretboardView extends View {//implements View.OnTouchListener {
     private byte[] midiBuffer = new byte[3];
     private void sendMidiNote(FretNote fretNote) {
         if(mInputPort != null) {
-            Log.d(TAG, fretNote.on?"NOTE ON": "NOTE OFF");
+            Log.d(TAG, (fretNote.on?"NOTE ON": "NOTE OFF")+ " ["+fretNote.name+"]");
             midiBuffer[0] = (byte) (fretNote.on ? (0x90 | mChannel) : (0x80 | mChannel));
             // Note value
             midiBuffer[1] = (byte) fretNote.note;
@@ -412,9 +418,24 @@ public class FretboardView extends View {//implements View.OnTouchListener {
         }
     }
 
-    private void sendNotesOff() {
+    private void sendMidiNotesOff2(){
         if(mInputPort != null) {
-            Log.d(TAG, "sendNotesOff");
+            Log.d(TAG, "Sending ALL NOTES OFF");
+            midiBuffer[0] = (byte) (0xB | mChannel);
+            // Note value
+            midiBuffer[1] = (byte) 0x7B;
+            // Velocity - TODO Hardcoded volume
+            try {
+                mInputPort.send(midiBuffer, 0, 2);
+            } catch (IOException e) {
+                e.printStackTrace();
+                Log.d(TAG, "OOPS Midi sendNotesOffdidn't work");
+            }
+        }
+    }
+    private void sendMidiNotesOff() {
+        if(mInputPort != null) {
+            Log.d(TAG, "sendMidiNotesOff");
             for(int channel=0;channel<16;channel++) {
                 for (int i = 0; i < 128; i++) {
                     midiBuffer[0] = (byte) (0x80 | channel);
@@ -433,27 +454,30 @@ public class FretboardView extends View {//implements View.OnTouchListener {
         }
     }
 
+    private void sendMidiProgramChange(){
+        if(mInputPort != null) {
+            Log.d(TAG, "sendMidiProgramChange");
+                    midiBuffer[0] = (byte) (0xC | mChannel);
+                    // Note value
+                    midiBuffer[1] = 0x1D;
+                    // Velocity - TODO Hardcoded volume
+                    midiBuffer[2] = (byte) 0;
+                    try {
+                        mInputPort.send(midiBuffer, 0, 3);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        Log.d(TAG, "OOPS Midi send didn't work");
+                    }
+        }
+    }
     class FretEventHandler extends Handler {
-        long delay = 0;
 
         @Override
         public void handleMessage(Message msg) {
-            Log.d(TAG, "handleMessage fretEvent[" + mCurrentFretEvent + "]");
+//            Log.d(TAG, "handleMessage fretEvent[" + mCurrentFretEvent + "]");
             if (mPlaying) {
-                // Send next set of notes to Fretboard View
-                setNotes(mFretEvents.get(mCurrentFretEvent).fretNotes);
-                // Force redraw
-                invalidate();
-                if (++mCurrentFretEvent >= mFretEvents.size()) {
-                    Log.d(TAG, "No more fretEvents - restting to zero");
-                    mCurrentFretEvent = 0;
-                }
-                delay = delayFromClicks(mCurrentTempo, mFretEvents.get(mCurrentFretEvent).deltaTime);
-                Log.d(TAG, "setting up fretEvent :" + mCurrentFretEvent + " delay: " + delay);
-                sleep(delay);
-            } else {
-                // Paused
-//                Log.d(TAG, "Handle message - PAUSED");
+                // Handle event
+                handleEvent(mFretEvents.get(mCurrentFretEvent));
             }
         }
 
@@ -463,6 +487,22 @@ public class FretboardView extends View {//implements View.OnTouchListener {
         }
     }
 
+    private void handleEvent(FretEvent fretEvent){
+        // Send next set of notes to Fretboard View
+        if(fretEvent.tempo>0){
+            mDefaultTempo = fretEvent.tempo;
+        }
+        setNotes(fretEvent.fretNotes);
+        // Force redraw
+        invalidate();
+        if (++mCurrentFretEvent >= mFretEvents.size()) {
+            Log.d(TAG, "No more fretEvents - resetting to zero");
+            mCurrentFretEvent = 0;
+        }
+        long delay = delayFromClicks(mFretEvents.get(mCurrentFretEvent).deltaTime);
+        Log.d(TAG, "setting up fretEvent :" + mCurrentFretEvent + " delay: " + delay);
+        mFretEventHandler.sleep(delay);
+    }
 
     /**
      * Plays/pauses the current track
@@ -477,7 +517,7 @@ public class FretboardView extends View {//implements View.OnTouchListener {
         } else {
             // Pause
             Log.d(TAG, "PAUSE");
-            sendNotesOff();
+            sendMidiNotesOff2();
         }
         invalidate();   // Force redraw with correct play/pause button
     }
@@ -494,19 +534,22 @@ public class FretboardView extends View {//implements View.OnTouchListener {
      * Calculates the time between FretEvents from the delta time (clicks) and the mTicks per beat setting
      * in the file
      *
-     * @param ticksPerBeat Number of ticks per beat
-     * @param deltaTime    The delta time in ticks for this event
-     * @return Returns the actual delay in milli-secs for this event
+     * @param deltaTicks    The delta time in ticks for this event
+     * @return Returns the actual delay in millisecs for this event
      */
-    private long delayFromClicks(int ticksPerBeat, int deltaTime) {
+    private long delayFromClicks(int deltaTicks) {
         long ret=0;
 
-        if(ticksPerBeat>0 && deltaTime>0){
+        if(mTicksPerQtrNote >0 && deltaTicks>0){
             // Avoid divide by zero error
-            ret = 60000 / (ticksPerBeat * deltaTime);
-        }
+            double x = ((60*1000)/mCurrentTempo);
+            double y = x/mTicksPerQtrNote;
+            double z = deltaTicks * y;
+            Log.d(TAG, "x="+x+" y="+y+" z="+z);
+            ret = (long) z;
+    }
 
-        Log.d(TAG, "deltaTime=[" + ret + "]");
+        Log.d(TAG, "ticksPerQtrNote["+ mTicksPerQtrNote + "] deltaTicks[" + deltaTicks+ "] millisecs["+ret+"]");
         return ret;
     }
 

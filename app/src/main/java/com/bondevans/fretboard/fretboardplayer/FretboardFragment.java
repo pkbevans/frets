@@ -18,6 +18,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -144,6 +145,16 @@ public class FretboardFragment extends Fragment {
 
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        try {
+            mOpenDevice.close();
+        } catch (IOException e) {
+            Log.d(TAG,"ERROR: " + e.getMessage());
+        }
+    }
+
     private void setUpMidi(){
         if (getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_MIDI)) {
             Log.d(TAG, "MIDI Supported");
@@ -182,7 +193,7 @@ public class FretboardFragment extends Fragment {
                             else{
                                 Log.d(TAG, "Port "+ port+ " opened.");
                                 if(mFretboardView != null){
-                                    mFretboardView.setInputPort(inputPort, 0);
+                                    mFretboardView.setInputPort(inputPort, 1);
                                 }
                             }
                         }
@@ -192,5 +203,9 @@ public class FretboardFragment extends Fragment {
         } else {
             Log.d(TAG, "MIDI NOT Supported!!");
         }
+    }
+
+    public void setFileName(String fileName) {
+        this.mFileName = fileName;
     }
 }

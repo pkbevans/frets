@@ -28,6 +28,9 @@ public class FretPosition {
     }
 
     public List<FretNote> getFretPositions(List<FretNote> fretNotes) {
+        if(fretNotes == null){
+            return null;
+        }
         List<FretNote> mFretNotes;
         Log.d(TAG, "getFretPositions");
         mFretNotes = fretNotes;
@@ -50,7 +53,10 @@ public class FretPosition {
                         fretNote.string = j;
                         fretNote.fret = fretNote.note - tuning[j];
                         fretNote.name = setName(fretNote.note);
-                        stringAvailable[j] = false;
+                        if(fretNote.on) {
+                            // Only use up a string for ON notes
+                            stringAvailable[j] = false;
+                        }
                         Log.d(TAG, "Found position for note[" + i + "] [" + fretNote.note + "] string[" +
                                 stringNames[fretNote.string] + "] fret [" + fretNote.fret +
                                 "] name [" + fretNote.name + "]");
