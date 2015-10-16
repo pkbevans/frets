@@ -7,4 +7,8 @@
     <string name="sdcard">/sdcard</string>
     <string name="external_card">ext_card/</string>
     <string name="share_file">Share...</string>
+    <string name="search_hint">Search for something</string>
+    <string name="up">Up</string>
+    <string name="search_files">Search</string>
+    <string name="refresh">Refresh</string>
 </resources>
