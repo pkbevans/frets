@@ -152,7 +152,7 @@ public class FileBrowserFragment extends ListFragment {
         ArrayList<String> midiFiles = new ArrayList<>();
         Log.d(TAG, "HELLO SDCARDROOT=[" + mSdCardRoot + "] CURRENT FOLDER=[" + folder.getPath() + "]");
 
-        if (folder.getName().equalsIgnoreCase("/")) {
+        if (folder.getPath().equalsIgnoreCase("/")) {
             mCurrentFolder.setText("/");
             fileSelectedListener.enableUp(false);
         } else {
@@ -173,6 +173,9 @@ public class FileBrowserFragment extends ListFragment {
                     midiFiles.add(currentFile.getName());
                 }
             }
+        }
+        else{
+            Log.d(TAG, "No files");
         }
         // Sort the files,
         Collections.sort(midiFiles, new FileNameComparator());

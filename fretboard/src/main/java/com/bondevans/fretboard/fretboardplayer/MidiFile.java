@@ -91,9 +91,9 @@ public class MidiFile {
         int runningTicks = 0;
 
         while (!ev.isEndOfTrack()) {
-            Log.d(TAG, "Got event");
+//            Log.d(TAG, "Got event");
             if (ev.isNoteOnOrOff()) {
-                Log.d(TAG, "Got Note event");
+//                Log.d(TAG, "Got Note event");
                 // If velocity is zero then this effectively a FretNote Off message, so we'll store it as such
                 if(ev.mParam2 == 0 && MidiEvent.NOTE_EVENT_TYPE_NOTE_ON == ev.mNoteEventType){
                     ev.mNoteEventType = MidiEvent.NOTE_EVENT_TYPE_NOTE_OFF;
@@ -128,7 +128,7 @@ public class MidiFile {
         int channel;
         int ticks = getTimeTicks(in);
         int type = in.read();
-        Log.d(TAG, "TYPE["+iToHex(type)+"]");
+//        Log.d(TAG, "TYPE["+iToHex(type)+"]");
         // What sort of event is it?
         if (type == 0xff) {
             int len;
@@ -136,14 +136,14 @@ public class MidiFile {
             int metaType = in.read();
             len = getVariableLen(in);
             if (metaType == MidiEvent.META_EVENT_TYPE_END_OF_TRACK) {
-                Log.d(TAG, "END OF TRACK");
+//                Log.d(TAG, "END OF TRACK");
             }
             else if (metaType == MidiEvent.META_EVENT_TYPE_SET_TEMPO) {
-                Log.d(TAG, "SET TEMPO"+ " mLen["+len+"]");
+//                Log.d(TAG, "SET TEMPO"+ " mLen["+len+"]");
             }
             else
             {
-                Log.d(TAG, "META EVENT=mNoteEventType[" + metaType + "] mLen["+len+"]");
+//                Log.d(TAG, "META EVENT=mNoteEventType[" + metaType + "] mLen["+len+"]");
             }
             return new MidiEvent(MidiEvent.TYPE_META_EVENT, metaType, len, in);
         } else if (type == 0xf0) {
@@ -159,7 +159,7 @@ public class MidiFile {
                 param1 = type;
                 noteEventType = mRunningStatus;
                 channel = mRunningChannel;
-                Log.d(TAG, "Running status [" + noteEventType + "]");
+//                Log.d(TAG, "Running status [" + noteEventType + "]");
             } else {
                 // mChannel = bottom 4 bits
                 channel = type & 0x0f;
@@ -171,20 +171,20 @@ public class MidiFile {
                 case MidiEvent.NOTE_EVENT_TYPE_NOTE_ON:
                     // 1st byte is note, 2nd byte is velocity
                     param2 = in.read();
-                    Log.d(TAG, (noteEventType == MidiEvent.NOTE_EVENT_TYPE_NOTE_OFF?"NOTE_OFF [":"NOTE_ON [") + noteEventType + "]["+iToHex(param1)+"]["+iToHex(param2)+"]["+noteName(param1)+"] TICKS ["+ticks+"]");
+//                    Log.d(TAG, (noteEventType == MidiEvent.NOTE_EVENT_TYPE_NOTE_OFF?"NOTE_OFF [":"NOTE_ON [") + noteEventType + "]["+iToHex(param1)+"]["+iToHex(param2)+"]["+noteName(param1)+"] TICKS ["+ticks+"]");
                     break;
                 case MidiEvent.NOTE_EVENT_TYPE_NOTE_AFTER_TOUCH:
                 case MidiEvent.NOTE_EVENT_TYPE_CONTROLLER:
                 case MidiEvent.NOTE_EVENT_TYPE_PITCHBEND:
                     param2 = in.read();
-                    Log.d(TAG, "NOTE_AFTER_TOUCH/CONTROLLER/PICTHBEND [" + noteEventType + "]["+iToHex(param1)+"]["+iToHex(param2)+"]");
+//                    Log.d(TAG, "NOTE_AFTER_TOUCH/CONTROLLER/PICTHBEND [" + noteEventType + "]["+iToHex(param1)+"]["+iToHex(param2)+"]");
                     break;
                 case MidiEvent.NOTE_EVENT_TYPE_PROGRAM_CHANGE:
                 case MidiEvent.NOTE_EVENT_TYPE_CHANNEL_AFTERTOUCH:
-                    Log.d(TAG, "PROGRAM_CHANGE/AFTERTOUCH [" + noteEventType + "]["+iToHex(param1)+"]");
+//                    Log.d(TAG, "PROGRAM_CHANGE/AFTERTOUCH [" + noteEventType + "]["+iToHex(param1)+"]");
                     break;
                 default:
-                    Log.d(TAG, "OOPS - SOMETHING WENT WRONG [" + noteEventType + "]");
+                    Log.e(TAG, "OOPS - SOMETHING WENT WRONG [" + noteEventType + "]");
                     break;
             }
             mRunningStatus = noteEventType;
@@ -258,9 +258,9 @@ public class MidiFile {
             else{
                 // Time division is frames per second
                 // TODO - not sure what to do.....
-                Log.d(TAG, "OOPS - time division is frames per sec");
+                Log.e(TAG, "OOPS - time division is frames per sec");
             }
-            Log.d(TAG, "format=" + format + " tracks=" + tracks + " ticksPerQtrBeat=" + mTicksPerQtrNote);
+//            Log.d(TAG, "format=" + format + " tracks=" + tracks + " ticksPerQtrBeat=" + mTicksPerQtrNote);
 
             this.mTrackNames = new ArrayList<>();
             this.mTrackChunkLength = new int[tracks];
@@ -274,7 +274,7 @@ public class MidiFile {
                     throw new FretBoardException("Error - Reading track header");
                 }
                 int trackLen = ((buffer[4] & 0xFF) << 24) + ((buffer[5] & 0xFF) << 16) + ((buffer[6] & 0xFF) << 8) + ((buffer[7] & 0xFF));
-                Log.d(TAG, "Track: " + t + " mLen: " + trackLen);
+//                Log.d(TAG, "Track: " + t + " mLen: " + trackLen);
                 // Get Track name
                 in.mark(BUF_LEN);
 //                mTrackNameOld[t] = getTrackName(in);

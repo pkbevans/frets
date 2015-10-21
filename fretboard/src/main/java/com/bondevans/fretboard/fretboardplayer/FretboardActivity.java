@@ -28,27 +28,29 @@ public class FretboardActivity extends Activity {
         setContentView(R.layout.activity_main);
         fragment = (FretboardFragment) getFragmentManager()
                 .findFragmentById(R.id.fragment);
-        Intent intent = getIntent();
-        if(intent != null) {
-            if( savedInstanceState == null ) {
+
+        if (savedInstanceState == null) {
+            Intent intent = getIntent();
+            if (intent != null) {
                 Uri x = intent.getData();
-                if(x != null) {
+                if (x != null) {
                     mFileName = x.getPath();
+                    fragment.setFileName(mFileName);
                 }
             }
-            else {
-                mFileName = savedInstanceState.getString(KEY_FILENAME);
-            }
-            fragment.setFileName(mFileName);
+        }
+        else {
+            mFileName = savedInstanceState.getString(KEY_FILENAME);
+            Log.d(TAG, "Got savedInstanceState: "+mFileName);
         }
     }
 
     private void checkFileAccessPermission() {
         Log.d(TAG, "checkFileAccessPermission 1");
-        if(checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED){
+        if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             Log.d(TAG, "checkFileAccessPermission 2");
             // Need to request permission from the user
-            String [] perms = new String[] {Manifest.permission.READ_EXTERNAL_STORAGE};
+            String[] perms = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE};
             requestPermissions(perms, REQUEST_CODE_READ_STORAGE_PERMISSION);
         }
     }
@@ -85,7 +87,7 @@ public class FretboardActivity extends Activity {
     @Override
     protected void onStart() {
         super.onStart();
-        Log.d(TAG,"onStart");
+        Log.d(TAG, "onStart");
     }
 
     @Override
@@ -111,10 +113,11 @@ public class FretboardActivity extends Activity {
         super.onDestroy();
         Log.d(TAG, "onDestroy");
     }
+
     @Override
     public void onSaveInstanceState(Bundle outState) {
         Log.d(TAG, "HELLO on SaveInstanceState");
-        outState.putString(KEY_FILENAME, mFileName);
+//        outState.putString(KEY_FILENAME, mFileName);
         super.onSaveInstanceState(outState);
     }
 
