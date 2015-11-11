@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -16,7 +17,7 @@ public class FretboardActivity extends Activity {
     private static final String TAG = "FretboardActivity";
     private static final int REQUEST_CODE_READ_STORAGE_PERMISSION = 4522;
     private static final String KEY_FILENAME = "MidiFileName";
-    private String mFileName;
+//    private String mFileName;
     private FretboardFragment fragment;
 
     @Override
@@ -34,24 +35,26 @@ public class FretboardActivity extends Activity {
             if (intent != null) {
                 Uri x = intent.getData();
                 if (x != null) {
-                    mFileName = x.getPath();
-                    fragment.setFileName(mFileName);
+//                    mFileName = x.getPath();
+                    fragment.setFileName(x.getPath());
                 }
             }
         }
-        else {
-            mFileName = savedInstanceState.getString(KEY_FILENAME);
-            Log.d(TAG, "Got savedInstanceState: "+mFileName);
-        }
+//        else {//
+//            mFileName = savedInstanceState.getString(KEY_FILENAME);
+//            Log.d(TAG, "Got savedInstanceState: "+mFileName);
+//        }
     }
 
     private void checkFileAccessPermission() {
-        Log.d(TAG, "checkFileAccessPermission 1");
-        if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            Log.d(TAG, "checkFileAccessPermission 2");
-            // Need to request permission from the user
-            String[] perms = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE};
-            requestPermissions(perms, REQUEST_CODE_READ_STORAGE_PERMISSION);
+        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.M) {
+            Log.d(TAG, "checkFileAccessPermission 1");
+            if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                Log.d(TAG, "checkFileAccessPermission 2");
+                // Need to request permission from the user
+                String[] perms = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE};
+                requestPermissions(perms, REQUEST_CODE_READ_STORAGE_PERMISSION);
+            }
         }
     }
 

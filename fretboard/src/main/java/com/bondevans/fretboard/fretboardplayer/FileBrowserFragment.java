@@ -1,10 +1,12 @@
 package com.bondevans.fretboard.fretboardplayer;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
@@ -22,6 +24,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -30,10 +33,12 @@ public class FileBrowserFragment extends ListFragment {
     private static final String KEY_CURDIR = "KEY7";
     private static final String PREF_KEY_FILEDIR = "fileDir";
     private static final String DEFAULT_FILEDIR = "/";
+    private static final String MIDI_FILE_EXTN = ".mid";
     public File mCurrentDirectory;
     private OnFileSelectedListener fileSelectedListener;
     private TextView mCurrentFolder;
     private String mSdCardRoot;
+    ArrayList<String> midiFiles;
 
     public interface OnFileSelectedListener {
         void onFileSelected(boolean inSet, File songFile);
@@ -42,7 +47,20 @@ public class FileBrowserFragment extends ListFragment {
     }
 
     @Override
+    public void onAttach(Activity activity) {
+        Log.d(TAG, "HELLO onAttach (deprecated)");
+        super.onAttach(activity);
+        try {
+            fileSelectedListener = (OnFileSelectedListener) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString()
+                    + " must implement OnFileSelectedListener");
+        }
+    }
+
+    @Override
     public void onAttach(Context context) {
+        Log.d(TAG, "HELLO onAttach");
         super.onAttach(context);
         try {
             fileSelectedListener = (OnFileSelectedListener) context;
@@ -127,10 +145,12 @@ public class FileBrowserFragment extends ListFragment {
             // If file doesn't exist (for some bizarre reason) just default to /sdcard
             Log.d(TAG, "HELLO file doesn't exist");
             mCurrentDirectory = new File(mSdCardRoot);
-            listFilesinFolder(mCurrentDirectory);
+            ListFilesTask task = new ListFilesTask(mCurrentDirectory);// Do this in background
+            task.execute();
         } else if (aFile.isDirectory()) {
             mCurrentDirectory = aFile;// Remember current folder
-            listFilesinFolder(aFile);
+            ListFilesTask task = new ListFilesTask(aFile);// Do this in background
+            task.execute();
         } else {
             // Save file path in preferences so we come back here next time
             saveCurrentDir();
@@ -143,50 +163,64 @@ public class FileBrowserFragment extends ListFragment {
         fileSelectedListener.onFileSelected(false, theFile);
     }
 
-    /**
-     * lists all files and folders in a given directory
-     *
-     * @param folder     folder
-     */
-    private void listFilesinFolder(File folder) {
-        ArrayList<String> midiFiles = new ArrayList<>();
-        Log.d(TAG, "HELLO SDCARDROOT=[" + mSdCardRoot + "] CURRENT FOLDER=[" + folder.getPath() + "]");
+    class ListFilesTask extends AsyncTask<Void, String, Void>{
+        File folder;
 
-        if (folder.getPath().equalsIgnoreCase("/")) {
-            mCurrentFolder.setText("/");
-            fileSelectedListener.enableUp(false);
-        } else {
-            mCurrentFolder.setText(folder.getPath());
-            fileSelectedListener.enableUp(true);
-        }
-        // Now add the midi files
-        if (folder.listFiles() != null) {
-            for (File currentFile : folder.listFiles()) {
-                Log.d(TAG, "HELLO FILENAME: [" + currentFile.getName() + "]");
-                if (currentFile.getName().startsWith(".")) {
-                    // Don't add anything starting with a . (i.e. hidden folders and files)
-                    Log.d(TAG,"Ignoring DOT files");
-                } else if (currentFile.isDirectory()) {
-                    // Add folder name - with slash on the end, so that the folder image is shown
-                    midiFiles.add(currentFile.getName() + File.separator);
-                } else {
-                    midiFiles.add(currentFile.getName());
+        public ListFilesTask(File folder) {
+            this.folder = folder;
+            if (folder.getPath().equalsIgnoreCase("/")) {
+                mCurrentFolder.setText("/");
+                if(fileSelectedListener != null) {
+                    fileSelectedListener.enableUp(false);
+                }
+            } else {
+                mCurrentFolder.setText(folder.getPath());
+                if(fileSelectedListener != null) {
+                    fileSelectedListener.enableUp(true);
                 }
             }
         }
-        else{
-            Log.d(TAG, "No files");
-        }
-        // Sort the files,
-        Collections.sort(midiFiles, new FileNameComparator());
-        FileArrayAdapter fileArrayAdapter = new FileArrayAdapter(getActivity(), midiFiles);
-        setListAdapter(fileArrayAdapter);
-        final ListView lv = getListView();
-        registerForContextMenu(lv);
 
-        lv.setTextFilterEnabled(true);
-        lv.setItemsCanFocus(false);
-        lv.setLongClickable(true);
+        @Override
+        protected Void doInBackground(Void... params) {
+            midiFiles = new ArrayList<>();
+            Log.d(TAG, "HELLO ASYNCTASK SDCARDROOT=[" + mSdCardRoot + "] CURRENT FOLDER=[" + folder.getPath() + "]");
+
+            // Now add the midi files
+            if (folder.listFiles(new MidiFileFilter()) != null) {
+                for (File currentFile : folder.listFiles()) {
+                    Log.d(TAG, "HELLO FILENAME: [" + currentFile.getName() + "]");
+                    if (currentFile.getName().startsWith(".")) {
+                        // Don't add anything starting with a . (i.e. hidden folders and files)
+                        Log.d(TAG,"Ignoring DOT files");
+                    } else if (currentFile.isDirectory()) {
+                        // Add folder name - with slash on the end, so that the folder image is shown
+                        midiFiles.add(currentFile.getName() + File.separator);
+                    } else {
+                        midiFiles.add(currentFile.getName());
+                    }
+                }
+            } else {
+                Log.d(TAG, "No files");
+            }
+            // Sort the files,
+            Collections.sort(midiFiles, new FileNameComparator());
+            return null;
+        }
+
+        class MidiFileFilter implements FileFilter{
+
+            @Override
+            public boolean accept(File pathname) {
+                return(pathname.getName().endsWith(MIDI_FILE_EXTN));
+            }
+        }
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            FileArrayAdapter fileArrayAdapter = new FileArrayAdapter(getActivity(), midiFiles);
+            setListAdapter(fileArrayAdapter);
+        }
     }
 
     @Override

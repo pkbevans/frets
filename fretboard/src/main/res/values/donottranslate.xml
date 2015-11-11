@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="divider_colour">#30B3E4</color>
+    <string name="firebase_url">https://fretboardplayer.firebaseio.com</string>
+    <string name="forgotten_pwd_url">TBC</string>
 </resources>

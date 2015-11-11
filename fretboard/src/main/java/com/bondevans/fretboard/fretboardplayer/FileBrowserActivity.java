@@ -3,40 +3,193 @@ package com.bondevans.fretboard.fretboardplayer;
 import android.Manifest;
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
+
+import com.firebase.client.AuthData;
+import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
 
 import java.io.File;
 
 public class FileBrowserActivity extends Activity implements
         FileBrowserFragment.OnFileSelectedListener {
-    private static final String TAG = "SongBrowserActivity";
+    private static final String TAG = "FileBrowserActivity";
     private static final int REFRESH_ID = Menu.FIRST + 16;
     private static final int UP_ID = Menu.FIRST + 17;
     private static final int REQUEST_CODE_READ_STORAGE_PERMISSION = 4523;
+    private static final String SETTINGS_KEY_PASSWORD = "pwd";
+    private static final String SETTINGS_KEY_EMAIL = "email";
 
     private FileBrowserFragment fileBrowserFragment = null;
     private boolean mUpEnabled = false;
     private Menu mMenu = null;
+    /* A reference to the Firebase */
+    private Firebase mFirebaseRef;
+    private Firebase.AuthStateListener mAuthStateListener;
+    private String mAuthID; // Unique User ID
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "HELLO onCreate");
         checkFileAccessPermission();
+        firebaseStuff();
         setContentView(R.layout.file_browser_activity_main);// This is the xml with all the different frags
         ActionBar x = getActionBar();
         if(x==null)Log.d(TAG, "HELLO NO ACTION BAR");
         FragmentManager fm = getFragmentManager();
         fileBrowserFragment = (FileBrowserFragment) fm.findFragmentById(R.id.browser_fragment);
+    }
+
+    void firebaseStuff(){
+        Log.d(TAG, "HELLO firebaseStuff");
+        Firebase.setAndroidContext(this);
+        /* Create the Firebase ref that is used for all authentication with Firebase */
+        mFirebaseRef = new Firebase(getResources().getString(R.string.firebase_url));
+                /* Setup the progress dialog that is displayed later when authenticating with Firebase */
+
+//        mAuthStateListener = new Firebase.AuthStateListener() {
+//            @Override
+//            public void onAuthStateChanged(AuthData authData) {
+//                Log.d(TAG, "HELLO - OnAuthStateChanged");
+//                setAuthenticatedUser(authData, "", "");
+//            }
+//        };
+        /* Check if the user is authenticated with Firebase already. If this is the case we can set the authenticated
+         * user and hide hide any login buttons */
+        mFirebaseRef.addAuthStateListener(mAuthStateListener);
+
+        // See if we have stored the pwd for this user yet
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = settings.edit();
+        String email = settings.getString(SETTINGS_KEY_EMAIL, "");
+        String pwd = settings.getString(SETTINGS_KEY_PASSWORD, "");
+        if( pwd.isEmpty()){
+            Log.d(TAG, "HELLO No stored pwd - launching login dialog");
+            // First time, so show login/registration dialog
+            showLoginDialog(email, pwd);
+        }
+        else{
+            Log.d(TAG, "Authenticating with existing details");
+            // Use the email/pwd to login
+            mFirebaseRef.authWithPassword(email, pwd, new AuthResultHandler("password", email, pwd));
+        }
+
+        editor.apply(); // Use apply rather than commit to do it in background
+    }
+
+    void showLoginDialog(String email, String pwd){
+        LoginDialog dialog = LoginDialog.newInstance(email, pwd);
+        dialog.setFirebase(mFirebaseRef);
+        dialog.setLoginListener(new LoginDialog.LoginListener() {
+            @Override
+            public void OnLoginDetailsEntered(AuthData authData, String email, String pwd) {
+                Log.d(TAG, "HELLO OnLoginDetailsEntered");
+                // Use the email/pwd to login
+                mAuthID = authData.getUid();
+//                mFirebaseRef.authWithPassword(email, pwd, new AuthResultHandler("password", email, pwd));
+            }
+
+            @Override
+            public void OnReset(String email) {
+                mFirebaseRef.resetPassword(email, new Firebase.ResultHandler() {
+                    @Override
+                    public void onSuccess() {
+                        Log.d(TAG, "resetUser - SUCCESS");
+                        Toast.makeText(FileBrowserActivity.this, R.string.reset_msg, Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onError(FirebaseError firebaseError) {
+                        // TODO - Do Something
+                        Toast.makeText(FileBrowserActivity.this, firebaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, "resetUser - ERROR"+firebaseError.getMessage());
+                    }
+                });
+            }
+        });
+        dialog.show(getFragmentManager(), "dialog");
+
+    }
+    /**
+     * Once a user is logged in, take the mAuthData provided from Firebase and "use" it.
+     */
+    private void setAuthenticatedUser(AuthData authData, String email, String pwd) {
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = settings.edit();
+        if (authData != null) {
+            Log.d(TAG, "HELLO - authdata NOT null");
+            /* show a provider specific status text */
+            Toast.makeText(this,"Authenticated",Toast.LENGTH_SHORT).show();
+            if (authData.getProvider().equals("anonymous")
+                    || authData.getProvider().equals("password")) {
+                editor.putString(SETTINGS_KEY_EMAIL, email);
+                editor.putString(SETTINGS_KEY_PASSWORD, pwd);
+            } else {
+                Log.e(TAG, "Invalid provider: " + authData.getProvider());
+            }
+        } else {
+            Log.d(TAG, "HELLO - authdata null - TODO");
+            // Delete the pwd to force login dialog again
+            editor.remove(SETTINGS_KEY_PASSWORD);
+            // Not authenticated - show the Login/registration screen
+//            showLoginDialog(email, "");
+        }
+        editor.apply(); // Use apply rather than commit to do it in background
+    }
+
+    /**
+     * Utility class for authentication results
+     */
+    private class AuthResultHandler implements Firebase.AuthResultHandler{
+        private final String provider;
+        private String email;
+        private String pwd;
+
+        public AuthResultHandler(String provider, String email, String pwd ) {
+            this.provider = provider;
+            this.email = email;
+            this.pwd = pwd;
+        }
+
+        @Override
+        public void onAuthenticated(AuthData authData) {
+            Log.d(TAG, provider + " auth successful");
+            setAuthenticatedUser(authData, email, pwd);
+        }
+
+        @Override
+        public void onAuthenticationError(FirebaseError firebaseError) {
+            Log.d(TAG, provider + " auth ERROR:"+firebaseError.toString());
+            showErrorDialog(firebaseError.toString());
+            Log.d(TAG, "HELLO showing login dialog");
+            showLoginDialog(email, "");
+        }
+    }
+    /**
+     * Show errors to users
+     */
+    private void showErrorDialog(String message) {
+        new AlertDialog.Builder(this)
+                .setTitle("Error")
+                .setMessage(message)
+                .setPositiveButton(android.R.string.ok, null)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .show();
     }
 
     /* (non-Javadoc)
@@ -136,12 +289,14 @@ public class FileBrowserActivity extends Activity implements
     }
 
     private void checkFileAccessPermission() {
-        android.util.Log.d(TAG, "checkFileAccessPermission 1");
-        if(checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED){
-            android.util.Log.d(TAG, "checkFileAccessPermission 2");
-            // Need to request permission from the user
-            String [] perms = new String[] {Manifest.permission.READ_EXTERNAL_STORAGE};
-            requestPermissions(perms, REQUEST_CODE_READ_STORAGE_PERMISSION);
+        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.M) {
+            android.util.Log.d(TAG, "checkFileAccessPermission 1");
+            if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                android.util.Log.d(TAG, "checkFileAccessPermission 2");
+                // Need to request permission from the user
+                String[] perms = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE};
+                requestPermissions(perms, REQUEST_CODE_READ_STORAGE_PERMISSION);
+            }
         }
     }
 
@@ -151,5 +306,10 @@ public class FileBrowserActivity extends Activity implements
         // TODO need to handle user not allowing access.
         Log.d(TAG, "onRequestPermissionsResult");
     }
-
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // if changing configurations, stop tracking firebase session.
+        mFirebaseRef.removeAuthStateListener(mAuthStateListener);
+    }
 }

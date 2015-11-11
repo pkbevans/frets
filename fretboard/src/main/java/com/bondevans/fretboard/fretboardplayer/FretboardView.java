@@ -9,6 +9,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.media.midi.MidiInputPort;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.util.AttributeSet;
@@ -36,7 +37,9 @@ public class FretboardView extends View {//implements View.OnTouchListener {
     private static final String[] GUITAR_STANDARD_TUNING_STRING_NAMES = new String[]{"Top E", "B", "G", "D", "A", "Low E"};
     private static final int MAX_FRETS_GUITAR = 20;
     private static final int MINIMUM_TEMPO = 10;
-    private int mFrets = 12;
+    private static final int NUT_WIDTH = 5;
+    private static final float RANDOM_VALUE = 2;
+    private int mFrets = 6;
     private int mStrings = 6;
     //    private int mBottomFret = 5;
     private Paint mPaint;
@@ -56,9 +59,29 @@ public class FretboardView extends View {//implements View.OnTouchListener {
     private boolean mPlaying = false;
     private GestureDetector gestureDetector;
     private FretEventHandler mFretEventHandler;
-    private int mCurrentFretEvent;
+    private int mCurrentFretEvent=0;
     private MidiInputPort mInputPort = null;
     int mChannel = 0; // TODO hardcoded channel
+    private float mRadius;
+    private ProgressListener progressListener;
+    private TempoChangeListener tempoChangeListener;
+    private TrackLoadedListener trackLoadedListener;
+
+    public interface ProgressListener{
+        void OnProgressUpdated(int progress);
+    }
+
+    public void setProgressListener(ProgressListener progressListener) {
+        this.progressListener = progressListener;
+    }
+
+    public interface TempoChangeListener{
+        void OnTempoChanged(int tempo);
+    }
+
+    public void setTempoChangeListener(TempoChangeListener tempoChangeListener) {
+        this.tempoChangeListener = tempoChangeListener;
+    }
 
     public FretboardView(Context context) {
         super(context);
@@ -118,8 +141,9 @@ public class FretboardView extends View {//implements View.OnTouchListener {
 
         // various constants...
         mStringSpace = getHeight() / (mStrings + 1);
-        mSpaceBeforeNut = getWidth() / SPACE_B4_NUT_DIVISOR;
+        mSpaceBeforeNut = getWidth() / mFrets;
         mFretWidth = (getWidth() - (mSpaceBeforeNut * 2)) / mFrets;
+        mRadius = mFretWidth/4;
     }
 
     @Override
@@ -131,15 +155,13 @@ public class FretboardView extends View {//implements View.OnTouchListener {
         if(mPlayEnabled) {
             drawPlayPauseButton(g);
         }
-        drawTempo(g);
+        doTempo(g);
     }
 
-    private void drawTempo(Canvas g) {
+    private void doTempo(Canvas g) {
         if(mCurrentTempo==0){
             mCurrentTempo = mDefaultTempo;  // Set it to default tempo first time
         }
-        String text = mCurrentTempo+" ("+mDefaultTempo+")BPM";
-        g.drawText(text, 10, getHeight() - mPaintText.getTextSize(), mPaintText);
     }
 
     Rect buttonRect;
@@ -147,7 +169,6 @@ public class FretboardView extends View {//implements View.OnTouchListener {
     private void drawPlayPauseButton(Canvas g) {
         //  Draw the button centred in a square 2xmStringSpace high
         buttonRect = new Rect((getWidth()/2)-mStringSpace,(getHeight()/2)-mStringSpace,(getWidth()/2)+mStringSpace,(getHeight()/2)+mStringSpace);
-//        Log.d(TAG, "width=[" + getWidth() +"] height=[" + getHeight() +"] left=[" + buttonRect.left +"] top=[" + buttonRect.top +"] bottom=[" + buttonRect.bottom +"] right=[" + buttonRect.right + "]");
         if (mPlaying) {
             // Draw Pause button
             buttonBitmap = BitmapFactory.decodeResource(
@@ -168,27 +189,22 @@ public class FretboardView extends View {//implements View.OnTouchListener {
      * @param g Canvas to draw on
      */
     private void drawStrings(Canvas g) {
-//        Log.d(TAG, "drawStrings");
         int string = 1, stringY = 0, textHeight=0;
         // Set up mPaintText for String text
         mPaintText.setTextSize(getHeight() / STRING_TEXT_DIVISOR);
         mPaintText.setColor(Color.BLUE);
         mPaintText.setAlpha(TEXT_ALPHA);
 
-//        Log.d(TAG, "getHeight=" + getHeight() + " mStringSpace=" + mStringSpace);
         // Blank out area above top string and below bottom
         g.drawRect(0, 0, getWidth(), mStringSpace - 1, mPaintBackground);
         while (string <= mStrings) {
             // Draw string
             stringY = string * mStringSpace;
-//            Log.d(TAG, "stringY=" + stringY + " getWidth=" + getWidth());
             g.drawLine(0, stringY, getWidth(), stringY, mPaint);
             // Write String note
-//            Log.d(TAG, "mStringText="+mStringText[string-1]+" textSize="+mPaintText.getTextSize()+" y="+(stringY+ mPaintText.getTextSize()/2));
             mPaintText.getTextBounds(mStringText[string - 1], 0, 1, mRect);
             textHeight = mRect.height();
             g.drawText(mStringText[string - 1], 0, stringY + textHeight / 2, mPaintText);
-//            g.drawText(mStringText[string-1],0,stringY+ mPaintText.getTextSize()/2, mPaintText);
             ++string;
         }
         // Blank out area below bottom string
@@ -202,7 +218,6 @@ public class FretboardView extends View {//implements View.OnTouchListener {
      * @param g Canvas to draw on
      */
     private void drawFrets(Canvas g) {
-//        Log.d(TAG, "drawFrets");
         //get width and divide by number of frets
         int fret = 0;
         // Allow a bit of space before and after the first fret (the nut) and the last one
@@ -216,12 +231,20 @@ public class FretboardView extends View {//implements View.OnTouchListener {
         while (fret <= mFrets) {
             //Draw vertical line - from top to bottom string
             fretX = mSpaceBeforeNut + (fret * mFretWidth);
-            g.drawLine(fretX, mStringSpace, fretX, getHeight() - mStringSpace, mPaint);
+            if(fret == 0){
+                // If fret=0 - i.e. this is the nut then do a dboule line
+                g.drawRect(fretX-NUT_WIDTH, mStringSpace, fretX, getHeight() - mStringSpace, mPaint);
+            }
+            else {
+                g.drawLine(fretX, mStringSpace, fretX, getHeight() - mStringSpace, mPaint);
+            }
             // Set up mPaint for the Fret number text
             textWidth = (int) mPaintText.measureText("" + (fret + 1));
-            // Write fret number above the top string
-            float y = (mStringSpace / 2);
-            g.drawText(fret + "", fretX - (mFretWidth / 2) - (textWidth / 2), y, mPaintText);
+            // Write fret number above the top string (but not zero)
+            if( fret>0) {
+                float y = (mStringSpace / 2);
+                g.drawText(fret + "", fretX - (mFretWidth / 2) - (textWidth / 2), y, mPaintText);
+            }
             ++fret;
         }
     }
@@ -236,12 +259,14 @@ public class FretboardView extends View {//implements View.OnTouchListener {
 //                Log.d(TAG, "note ["+mFretNotes.get(i).note+"] string ["+mFretNotes.get(i).string+
 //                        "] fret["+mFretNotes.get(i).fret+"] name ["+mFretNotes.get(i).name+"]");
                     if (mFretNotes.get(i).fret == 0) {
-                        // TODO for open strings, just draw much smaller dot
-                        radius = mStringSpace / 8;
+                        // TODO for open strings, draw an un-filled cicle behind the nut
+                        mPaintNote.setStyle(Paint.Style.STROKE);
+//                        radius = mStringSpace / 8;
                     } else {
-                        radius = mStringSpace / 4;
+//                        radius = mStringSpace / 4;
+                        mPaintNote.setStyle(Paint.Style.FILL);
                     }
-                    g.drawCircle(getNoteX(mFretNotes.get(i)), getNoteY(mFretNotes.get(i)), radius, mPaintNote);
+                    g.drawCircle(getNoteX(mFretNotes.get(i)), getNoteY(mFretNotes.get(i)), mRadius, mPaintNote);
                 }
                 // Send the MIDI note to the Input Port
                 sendMidiNote(mFretNotes.get(i));
@@ -261,7 +286,8 @@ public class FretboardView extends View {//implements View.OnTouchListener {
         if (note.fret > 0) {
             ret = (float) (mSpaceBeforeNut + ((note.fret - 1 + 0.5) * mFretWidth));
         } else {
-            ret = (float) mSpaceBeforeNut;
+            // If its an open string then we place a Circle just being the nut
+            ret = (float) mSpaceBeforeNut - (mRadius*2) - RANDOM_VALUE;
         }
 //        Log.d(TAG, "getNoteX ["+ret+"]");
         return ret;
@@ -290,21 +316,54 @@ public class FretboardView extends View {//implements View.OnTouchListener {
      * @param track Track to load
      */
     public void loadTrack(MidiFile mf, int track) {
-        LoadTrackTask loadtrack = new LoadTrackTask(mf, track);// Do this in background
-        loadtrack.execute();
+        LoadTrackTask loadTrack = new LoadTrackTask(mf, track);// Do this in background
+        loadTrack.execute();
     }
 
+    public void loadTrack(MidiFile mf, int track, int tempo, int progress) {
+        LoadTrackTask loadTrack = new LoadTrackTask(mf, track, tempo, progress);// Do this in background
+        loadTrack.execute();
+    }
+
+    /**
+     * Moves to new position in the midi event list - in response to user moving the see bar
+     * @param progress - percentage through the song
+     */
+    public void moveTo(int progress) {
+        mCurrentFretEvent = (mFretEvents.size()*progress/100)-1;
+        if (mCurrentFretEvent<0){
+            mCurrentFretEvent = 0;
+        }
+        Log.d(TAG, "mCurrentFretEvent [" + mCurrentFretEvent+"]");
+    }
+
+    public interface TrackLoadedListener{
+        void OnTrackLoaded();
+        void OnEmptyTrack();
+    }
+
+    public void setTrackLoadedListener(TrackLoadedListener trackLoadedListener){
+        this.trackLoadedListener  = trackLoadedListener;
+    }
     /**
      * Loads up the note events for the selected track.
      */
     class LoadTrackTask extends AsyncTask<Void, Integer, Void> {
+        private static final int NOT_SET = -1;
         int track;
         MidiFile mMidiFile;
+        int mTempo=NOT_SET;
+        int mProgress=NOT_SET;
 
         public LoadTrackTask(MidiFile mf, int track) {
             this.mMidiFile = mf;
             this.track = track;
-//            mCurrentTempo = mDefaultTempo = mMidiFile.getTicksPerQtrNote();
+        }
+        public LoadTrackTask(MidiFile mf, int track, int tempo, int progress) {
+            this.mMidiFile = mf;
+            this.track = track;
+            this.mProgress = progress;
+            this.mTempo = tempo;
         }
 
         @Override
@@ -385,88 +444,122 @@ public class FretboardView extends View {//implements View.OnTouchListener {
         protected void onPostExecute(Void aVoid) {
 //            Log.d(TAG, "Loading track onPostExecute");
             super.onPostExecute(aVoid);
-            mCurrentFretEvent = 0;
+            if( mTempo != NOT_SET ){
+                mCurrentTempo = mTempo;
+            }
+
+            if(mProgress == NOT_SET) {
+                mCurrentFretEvent = 0;
+            }
+            else{
+                moveTo(mProgress);
+            }
             mTicksPerQtrNote = mMidiFile.getTicksPerQtrNote();
             if (mFretEvents.size() > 0) {
                 // Enable Play
                 sendMidiProgramChange();
                 mPlayEnabled = true;
                 invalidate();   // Force redraw to display Play button
+                if( trackLoadedListener != null) {
+                    trackLoadedListener.OnTrackLoaded();
+                }
+                if(tempoChangeListener!= null) {
+                    tempoChangeListener.OnTempoChanged(mCurrentTempo);
+                }
             } else {
                 Log.d(TAG, "onPostExecute - No notes in this track");
-                // TODO - Notify user that there are no notes
+                // Notify user that there are no notes
+                if( trackLoadedListener != null){
+                    trackLoadedListener.OnEmptyTrack();
+                }
             }
         }
     }
 
     private byte[] midiBuffer = new byte[3];
     private void sendMidiNote(FretNote fretNote) {
-        if(mInputPort != null) {
+        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.M) {
+            if (mInputPort != null) {
 //            Log.d(TAG, (fretNote.on?"NOTE ON": "NOTE OFF")+ " ["+fretNote.name+"]");
-            midiBuffer[0] = (byte) (fretNote.on ? (0x90 | mChannel) : (0x80 | mChannel));
-            // Note value
-            midiBuffer[1] = (byte) fretNote.note;
-            // Velocity - TODO Hardcoded volume
-            midiBuffer[2] = (byte) 0x60;
-            try {
-                mInputPort.send(midiBuffer, 0, 3);
-            } catch (IOException e) {
-                e.printStackTrace();
-                Log.e(TAG, "OOPS Midi send didn't work");
+                midiBuffer[0] = (byte) (fretNote.on ? (0x90 | mChannel) : (0x80 | mChannel));
+                // Note value
+                midiBuffer[1] = (byte) fretNote.note;
+                // Velocity - TODO Hardcoded volume
+                midiBuffer[2] = (byte) 0x60;
+                try {
+                    mInputPort.send(midiBuffer, 0, 3);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Log.e(TAG, "OOPS Midi send didn't work");
+                }
+            } else {
+                Log.e(TAG, "OOPs - Midi Port NULL 4");
             }
         }
     }
 
     private void sendMidiNotesOff2(){
-        if(mInputPort != null) {
-            Log.d(TAG, "Sending ALL NOTES OFF");
-            midiBuffer[0] = (byte) (0xB | mChannel);
-            // Note value
-            midiBuffer[1] = (byte) 0x7B;
-            // Velocity - TODO Hardcoded volume
-            try {
-                mInputPort.send(midiBuffer, 0, 2);
-            } catch (IOException e) {
-                e.printStackTrace();
-                Log.e(TAG, "OOPS Midi sendNotesOffdidn't work");
+        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.M) {
+            if (mInputPort != null) {
+                Log.d(TAG, "Sending ALL NOTES OFF");
+                midiBuffer[0] = (byte) (0xB | mChannel);
+                // Note value
+                midiBuffer[1] = (byte) 0x7B;
+                // Velocity - TODO Hardcoded volume
+                try {
+                    mInputPort.send(midiBuffer, 0, 2);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Log.e(TAG, "OOPS Midi sendNotesOffdidn't work");
+                }
+            } else {
+                Log.e(TAG, "OOPs - Midi Port NULL 3");
             }
         }
     }
     private void sendMidiNotesOff() {
-        if(mInputPort != null) {
+        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.M) {
+            if (mInputPort != null) {
 //            Log.d(TAG, "sendMidiNotesOff");
-            for(int channel=0;channel<16;channel++) {
-                for (int i = 0; i < 128; i++) {
-                    midiBuffer[0] = (byte) (0x80 | channel);
-                    // Note value
-                    midiBuffer[1] = (byte) i;
-                    // Velocity - TODO Hardcoded volume
-                    midiBuffer[2] = (byte) 0;
-                    try {
-                        mInputPort.send(midiBuffer, 0, 3);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        Log.e(TAG, "OOPS Midi send didn't work");
+                for (int channel = 0; channel < 16; channel++) {
+                    for (int i = 0; i < 128; i++) {
+                        midiBuffer[0] = (byte) (0x80 | channel);
+                        // Note value
+                        midiBuffer[1] = (byte) i;
+                        // Velocity - TODO Hardcoded volume
+                        midiBuffer[2] = (byte) 0;
+                        try {
+                            mInputPort.send(midiBuffer, 0, 3);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            Log.e(TAG, "OOPS Midi send didn't work");
+                        }
                     }
                 }
+            } else {
+                Log.e(TAG, "OOPs - Midi Port NULL 1");
             }
         }
     }
 
     private void sendMidiProgramChange(){
-        if(mInputPort != null) {
-            Log.d(TAG, "sendMidiProgramChange");
-                    midiBuffer[0] = (byte) (0xC | mChannel);
-                    // Note value
-                    midiBuffer[1] = 0x1D;
-                    // Velocity - TODO Hardcoded volume
-                    midiBuffer[2] = (byte) 0;
-                    try {
-                        mInputPort.send(midiBuffer, 0, 3);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        Log.e(TAG, "OOPS Midi send didn't work");
-                    }
+        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.M) {
+            if (mInputPort != null) {
+                Log.d(TAG, "sendMidiProgramChange");
+                midiBuffer[0] = (byte) (0xC | mChannel);
+                // Note value
+                midiBuffer[1] = 0x1D;
+                // Velocity - TODO Hardcoded volume
+                midiBuffer[2] = (byte) 0;
+                try {
+                    mInputPort.send(midiBuffer, 0, 3);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Log.e(TAG, "OOPS Midi send didn't work");
+                }
+            } else {
+                Log.e(TAG, "OOPs - Midi Port NULL 2");
+            }
         }
     }
     class FretEventHandler extends Handler {
@@ -500,6 +593,11 @@ public class FretboardView extends View {//implements View.OnTouchListener {
         }
         long delay = delayFromClicks(mFretEvents.get(mCurrentFretEvent).deltaTime);
 //        Log.d(TAG, "setting up fretEvent :" + mCurrentFretEvent + " delay: " + delay);
+
+        // Update progress listener (so it can update the seekbar (or whatever)
+        if(progressListener != null){
+            progressListener.OnProgressUpdated(mCurrentFretEvent*100/mFretEvents.size());
+        }
         mFretEventHandler.sleep(delay);
     }
 
@@ -544,7 +642,6 @@ public class FretboardView extends View {//implements View.OnTouchListener {
             double x = ((60*1000)/mCurrentTempo);
             double y = x/mTicksPerQtrNote;
             double z = deltaTicks * y;
-            Log.d(TAG, "x="+x+" y="+y+" z="+z);
             ret = (long) z;
         }
 
@@ -607,5 +704,24 @@ public class FretboardView extends View {//implements View.OnTouchListener {
         }
 //        Log.d(TAG, "updateTempo ["+b+"] currentTempo ["+mCurrentTempo+"]");
         invalidate();
+        if(tempoChangeListener != null){
+            tempoChangeListener.OnTempoChanged(mCurrentTempo);
+        }
+    }
+
+    /**
+     * Increment current fret by +ve or -ve value
+     * @param value value to add or subtract from current fret event
+     */
+    @Deprecated
+    public void incFretEvent(int value) {
+        mCurrentFretEvent+=value;
+        if(mCurrentFretEvent > mFretEvents.size() ){
+            mCurrentFretEvent=mFretEvents.size()-1;
+        }
+        else if(mCurrentFretEvent < 0 ){
+            mCurrentFretEvent = 0;
+        }
+        Log.d(TAG, "mCurrentFretEvent ["+mCurrentFretEvent+"]");
     }
 }

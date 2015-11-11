@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "com.bondevans.fretboard.fretboardplayer"
-        minSdkVersion 23
+        minSdkVersion 19
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
@@ -17,9 +17,16 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    android{
+        packagingOptions{
+            exclude 'META-INF/LICENSE'
+            exclude 'META-INF/NOTICE'
+        }
+    }
 }
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:23.0.0'
+    compile 'com.firebase:firebase-client-android:2.4.0+'
 }

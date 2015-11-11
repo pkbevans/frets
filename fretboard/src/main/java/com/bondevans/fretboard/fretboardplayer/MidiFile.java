@@ -23,7 +23,7 @@ public class MidiFile {
 
     private String mMidiFilePath;
     private int mTicksPerQtrNote;
-    private List<String> mTrackNames;
+    private List<MidiTrack> mTracks;
     private int[] mTrackChunkLength;
     private boolean mHeaderLoaded = false;
     private List<NoteEvent> mNoteEvents = new ArrayList<>();
@@ -39,11 +39,11 @@ public class MidiFile {
         mHeaderLoaded = true;
     }
 
-    public List<String> getTrackNames() throws FretBoardException {
+    public List<MidiTrack> getTracks() throws FretBoardException {
         if (!mHeaderLoaded) {
             throw new FretBoardException("ERRROR - Header not loaded");
         }
-        return mTrackNames;
+        return mTracks;
     }
 
     /**
@@ -139,7 +139,7 @@ public class MidiFile {
 //                Log.d(TAG, "END OF TRACK");
             }
             else if (metaType == MidiEvent.META_EVENT_TYPE_SET_TEMPO) {
-//                Log.d(TAG, "SET TEMPO"+ " mLen["+len+"]");
+                Log.d(TAG, "SET TEMPO"+ " mLen["+len+"]");
             }
             else
             {
@@ -217,7 +217,6 @@ public class MidiFile {
      * @throws IOException
      */
     private int getTimeTicks(InputStream in) throws IOException {
-        int loop = 0;
         int ticks=0;
         int trackByte = in.read();
         while ((trackByte & 0x80) > 0) {
@@ -239,7 +238,7 @@ public class MidiFile {
         Log.d(TAG, "loadHeader");
         BufferedInputStream in;
         byte[] buffer = new byte[BUF_LEN];
-        int format; //  0=single track, 1=multiple Tracks
+//        int format; //  0=single track, 1=multiple Tracks
         int tracks; //  Number of tracks in this file
 
         // Open up the file and read the header
@@ -249,7 +248,7 @@ public class MidiFile {
                 //error - abort
                 throw new FretBoardException("Error - Reading file header");
             }
-            format = buffer[9] & 0xFF;
+//            format = buffer[9] & 0xFF;
             tracks = buffer[11] & 0xFF;
             if( (buffer[12] & 0x80) == 0){
                 // Time division is ticks per beat
@@ -262,7 +261,7 @@ public class MidiFile {
             }
 //            Log.d(TAG, "format=" + format + " tracks=" + tracks + " ticksPerQtrBeat=" + mTicksPerQtrNote);
 
-            this.mTrackNames = new ArrayList<>();
+            this.mTracks = new ArrayList<>();
             this.mTrackChunkLength = new int[tracks];
 
             // For each track
@@ -279,8 +278,13 @@ public class MidiFile {
                 in.mark(BUF_LEN);
 //                mTrackNameOld[t] = getTrackName(in);
                 String tn = getTrackName(in);
-                Log.d(TAG, "Adding track: "+tn);
-                mTrackNames.add(tn);
+                if(tn.equals(UNKNOWN_TRACKNAME)) {
+                    Log.d(TAG, "Ignoring track: " + tn);
+                }
+                else {
+                    Log.d(TAG, "Adding track: " + tn);
+                    mTracks.add(new MidiTrack(tn, t));
+                }
                 in.reset();
                 // SKIP track mData
                 if (in.skip(trackLen) != trackLen) {
@@ -335,6 +339,21 @@ public class MidiFile {
     }
 }
 
+/**
+ * Track name and number
+ */
+class MidiTrack {
+    public String name;
+    public int index;
+
+    public MidiTrack(String name, int index) {
+        this.name = name;
+        this.index = index;
+    }
+    public String toString(){
+        return name;
+    }
+}
 class MidiEvent {
     public static final int TYPE_META_EVENT = 1;
     public static final int TYPE_SYSEX_EVENT = 2;

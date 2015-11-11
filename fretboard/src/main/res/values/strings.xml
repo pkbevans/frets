@@ -11,4 +11,24 @@
     <string name="up">Up</string>
     <string name="search_files">Search</string>
     <string name="refresh">Refresh</string>
+    <string name="bpm">BPM:</string>
+    <string name="no_notes">This track has no Notes, please select another</string>
+    <string name="track_loaded">Track loaded.</string>
+    <string name="login">Login</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="forgot_password">Reset Password</string>
+    <string name="register">Register</string>
+    <string name="reset_msg">A reset email will be sent...</string>
+    <string name="create_user_success">New User Created</string>
+    <string name="enter_email_txt">Please enter a valid email address</string>
+    <string name="enter_pwd_txt">Please enter a password</string>
+    <string name="login_txt">Please enter a valid email address and a password to login.</string>
+    <string name="create_user_txt">Please enter a valid email address and a password to register.</string>
+    <string name="login_register">Login/Register</string>
+    <string name="invalid_pwd">Incorrect password - please try again</string>
+    <string name="authenticating">Authenticating...</string>
+    <string name="connection_error">Network connection failed. Please try again when you are connected.</string>
+    <string name="max_retries_reached">Sorry - maximum retries reached.</string>
+    <string name="oops">Oops!! Something went wrong. Soz</string>
 </resources>
