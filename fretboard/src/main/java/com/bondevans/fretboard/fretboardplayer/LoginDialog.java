@@ -4,9 +4,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -56,12 +54,11 @@ public class LoginDialog extends DialogFragment {
         final EditText email;
         final EditText pwd;
         Button reset;
-//        Button register;
         Button login;
         final TextView status;
 
-        LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View layout = inflater.inflate(R.layout.login_dialog, null);
+//        LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View layout = View.inflate(getActivity(), R.layout.login_dialog, null);
         /* Setup the progress dialog that is displayed later when authenticating with Firebase */
         mAuthProgressDialog = new ProgressDialog(getActivity());
         mAuthProgressDialog.setTitle("Please wait");
@@ -70,7 +67,7 @@ public class LoginDialog extends DialogFragment {
 
         status = (TextView) layout.findViewById(R.id.statusText);
         email = (EditText) layout.findViewById(R.id.email);
-        pwd = (EditText) layout.findViewById(R.id.password);
+        pwd = (EditText) layout.findViewById(R.id.password1);
         email.setText(getArguments().getString(KEY_EMAIL));
         pwd.setText(getArguments().getString(KEY_PWD));
 
@@ -90,6 +87,7 @@ public class LoginDialog extends DialogFragment {
                     mFirebase.authWithPassword(email.getText().toString().trim(), pwd.getText().toString().trim(), new Firebase.AuthResultHandler() {
                         @Override
                         public void onAuthenticated(AuthData authData) {
+                            mAuthProgressDialog.hide();
                             Log.d(TAG, "HELLO Authentication OK");
                             loginListener.OnLoginDetailsEntered(authData, email.getText().toString().trim(), pwd.getText().toString().trim());
                             dismiss();
@@ -133,26 +131,9 @@ public class LoginDialog extends DialogFragment {
                 }
             }
         });
-//        register = (Button) layout.findViewById(R.id.registerButton);
-//        register.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                 Create a new user
-//                Log.d(TAG, "New User");
-//                if (email.getText().toString().isEmpty() ||
-//                        pwd.getText().toString().isEmpty()) {
-//                    status.setText(getString(R.string.create_user_txt));
-//                } else {
-//                    loginListener.OnRegistrationDetailsEntered(email.getText().toString().trim(),
-//                            pwd.getText().toString().trim());
-//                     Close dialog
-//                    dismiss();
-//                }
-//            }
-//        });
 
         return new AlertDialog.Builder(getActivity())
-                .setTitle(R.string.login_register)
+                .setTitle(R.string.login)
                 .setView(layout)
                 .setCancelable(false)
                 .create();

@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.DialogFragment;
 import android.app.FragmentManager;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
@@ -33,13 +34,15 @@ public class FileBrowserActivity extends Activity implements
     private static final int REQUEST_CODE_READ_STORAGE_PERMISSION = 4523;
     private static final String SETTINGS_KEY_PASSWORD = "pwd";
     private static final String SETTINGS_KEY_EMAIL = "email";
+    private static final String TAG_LOGINSIGNUP = "LoginSignUpDialog";
+    private static final String TAG_LOGIN = "Login";
+    private static final String TAG_SIGNUP = "SignUp";
 
     private FileBrowserFragment fileBrowserFragment = null;
     private boolean mUpEnabled = false;
     private Menu mMenu = null;
     /* A reference to the Firebase */
     private Firebase mFirebaseRef;
-    private Firebase.AuthStateListener mAuthStateListener;
     private String mAuthID; // Unique User ID
 
     @Override
@@ -60,18 +63,8 @@ public class FileBrowserActivity extends Activity implements
         Firebase.setAndroidContext(this);
         /* Create the Firebase ref that is used for all authentication with Firebase */
         mFirebaseRef = new Firebase(getResources().getString(R.string.firebase_url));
-                /* Setup the progress dialog that is displayed later when authenticating with Firebase */
-
-//        mAuthStateListener = new Firebase.AuthStateListener() {
-//            @Override
-//            public void onAuthStateChanged(AuthData authData) {
-//                Log.d(TAG, "HELLO - OnAuthStateChanged");
-//                setAuthenticatedUser(authData, "", "");
-//            }
-//        };
         /* Check if the user is authenticated with Firebase already. If this is the case we can set the authenticated
          * user and hide hide any login buttons */
-        mFirebaseRef.addAuthStateListener(mAuthStateListener);
 
         // See if we have stored the pwd for this user yet
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
@@ -81,7 +74,7 @@ public class FileBrowserActivity extends Activity implements
         if( pwd.isEmpty()){
             Log.d(TAG, "HELLO No stored pwd - launching login dialog");
             // First time, so show login/registration dialog
-            showLoginDialog(email, pwd);
+            showLoginSignUpDialog();
         }
         else{
             Log.d(TAG, "Authenticating with existing details");
@@ -92,6 +85,41 @@ public class FileBrowserActivity extends Activity implements
         editor.apply(); // Use apply rather than commit to do it in background
     }
 
+    void showLoginSignUpDialog(){
+        LoginSignUpDialog dialog = new LoginSignUpDialog();
+        dialog.show(getFragmentManager(), TAG_LOGINSIGNUP);
+    }
+    public void showSignUp(View v){
+        Log.d(TAG, "HELLO - showSignUp");
+        showSignUpDialog();
+        // Kill the LoginSignUp dialog
+        killDialog(TAG_LOGINSIGNUP);
+    }
+    public void showLogin(View v) {
+        Log.d(TAG, "HELLO - showLogin");
+        showLoginDialog("", "");
+        // Kill the LoginSignUp dialog
+        killDialog(TAG_LOGINSIGNUP);
+    }
+    void killDialog(String tag){
+        DialogFragment dialog = (DialogFragment) getFragmentManager().findFragmentByTag(tag);
+        if(dialog != null)dialog.dismiss();
+    }
+
+    void showSignUpDialog(){
+        SignUpDialog dialog = SignUpDialog.newInstance();
+        dialog.setFirebase(mFirebaseRef);
+        dialog.setNewUserListener(new SignUpDialog.NewUserListener() {
+            @Override
+            public void OnNewUser(AuthData authData, String email, String pwd) {
+                // Store the details
+                Log.d(TAG, "Got new User details");
+                setAuthenticatedUser(authData,email,pwd);
+            }
+        });
+        dialog.show(getFragmentManager(), TAG_SIGNUP);
+
+    }
     void showLoginDialog(String email, String pwd){
         LoginDialog dialog = LoginDialog.newInstance(email, pwd);
         dialog.setFirebase(mFirebaseRef);
@@ -99,9 +127,8 @@ public class FileBrowserActivity extends Activity implements
             @Override
             public void OnLoginDetailsEntered(AuthData authData, String email, String pwd) {
                 Log.d(TAG, "HELLO OnLoginDetailsEntered");
-                // Use the email/pwd to login
-                mAuthID = authData.getUid();
-//                mFirebaseRef.authWithPassword(email, pwd, new AuthResultHandler("password", email, pwd));
+                // Store the details
+                setAuthenticatedUser(authData,email,pwd);
             }
 
             @Override
@@ -117,12 +144,12 @@ public class FileBrowserActivity extends Activity implements
                     public void onError(FirebaseError firebaseError) {
                         // TODO - Do Something
                         Toast.makeText(FileBrowserActivity.this, firebaseError.getMessage(), Toast.LENGTH_SHORT).show();
-                        Log.d(TAG, "resetUser - ERROR"+firebaseError.getMessage());
+                        Log.d(TAG, "resetUser - ERROR" + firebaseError.getMessage());
                     }
                 });
             }
         });
-        dialog.show(getFragmentManager(), "dialog");
+        dialog.show(getFragmentManager(), TAG_LOGIN);
 
     }
     /**
@@ -137,6 +164,7 @@ public class FileBrowserActivity extends Activity implements
             Toast.makeText(this,"Authenticated",Toast.LENGTH_SHORT).show();
             if (authData.getProvider().equals("anonymous")
                     || authData.getProvider().equals("password")) {
+                mAuthID = authData.getUid();
                 editor.putString(SETTINGS_KEY_EMAIL, email);
                 editor.putString(SETTINGS_KEY_PASSWORD, pwd);
             } else {
@@ -310,6 +338,6 @@ public class FileBrowserActivity extends Activity implements
     protected void onDestroy() {
         super.onDestroy();
         // if changing configurations, stop tracking firebase session.
-        mFirebaseRef.removeAuthStateListener(mAuthStateListener);
+//        mFirebaseRef.removeAuthStateListener(mAuthStateListener);
     }
 }
