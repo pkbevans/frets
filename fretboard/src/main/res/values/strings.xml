@@ -36,4 +36,5 @@
     <string name="password_mismatch">Passwords do not match</string>
     <string name="email_taken">This email is already registered.  Please login instead.</string>
     <string name="invalid_email">Please enter a valid email address.</string>
+    <string name="user_does_not_exist">Please enter a valid email address.  We don\'t have this one on our system</string>
 </resources>

@@ -16,8 +16,7 @@ public class FretboardActivity extends Activity {
 
     private static final String TAG = "FretboardActivity";
     private static final int REQUEST_CODE_READ_STORAGE_PERMISSION = 4522;
-    private static final String KEY_FILENAME = "MidiFileName";
-//    private String mFileName;
+//    private static final String KEY_FILENAME = "MidiFileName";
     private FretboardFragment fragment;
 
     @Override
@@ -35,15 +34,10 @@ public class FretboardActivity extends Activity {
             if (intent != null) {
                 Uri x = intent.getData();
                 if (x != null) {
-//                    mFileName = x.getPath();
                     fragment.setFileName(x.getPath());
                 }
             }
         }
-//        else {//
-//            mFileName = savedInstanceState.getString(KEY_FILENAME);
-//            Log.d(TAG, "Got savedInstanceState: "+mFileName);
-//        }
     }
 
     private void checkFileAccessPermission() {
@@ -120,8 +114,6 @@ public class FretboardActivity extends Activity {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         Log.d(TAG, "HELLO on SaveInstanceState");
-//        outState.putString(KEY_FILENAME, mFileName);
         super.onSaveInstanceState(outState);
     }
-
 }

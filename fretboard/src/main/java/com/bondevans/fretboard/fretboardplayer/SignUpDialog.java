@@ -52,8 +52,6 @@ public class SignUpDialog extends DialogFragment {
         Button signupButton;
         final TextView status;
 
-//        LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-//        View layout = inflater.inflate(R.layout.signup_dialog, null);
         View layout = View.inflate(getActivity(), R.layout.signup_dialog, null);
         /* Setup the progress dialog that is displayed later when authenticating with Firebase */
         mAuthProgressDialog = new ProgressDialog(getActivity());
@@ -149,7 +147,6 @@ public class SignUpDialog extends DialogFragment {
         return new AlertDialog.Builder(getActivity())
                 .setTitle(R.string.sign_up)
                 .setView(layout)
-                .setCancelable(false)
                 .create();
     }
 }

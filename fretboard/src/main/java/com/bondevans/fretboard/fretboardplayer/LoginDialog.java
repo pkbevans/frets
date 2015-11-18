@@ -43,6 +43,7 @@ public class LoginDialog extends DialogFragment {
         args.putString(KEY_EMAIL, email);
         args.putString(KEY_PWD, pwd);
         frag.setArguments(args);
+        frag.setRetainInstance(true);
         return frag;
     }
 
@@ -57,7 +58,6 @@ public class LoginDialog extends DialogFragment {
         Button login;
         final TextView status;
 
-//        LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View layout = View.inflate(getActivity(), R.layout.login_dialog, null);
         /* Setup the progress dialog that is displayed later when authenticating with Firebase */
         mAuthProgressDialog = new ProgressDialog(getActivity());
@@ -101,6 +101,10 @@ public class LoginDialog extends DialogFragment {
                                 case FirebaseError.INVALID_PASSWORD:
                                     Log.d(TAG, "HELLO INVALID PASSWORD");
                                     status.setText(R.string.invalid_pwd);
+                                    break;
+                                case FirebaseError.USER_DOES_NOT_EXIST:
+                                    Log.d(TAG, "HELLO INVALID USER");
+                                    status.setText(R.string.user_does_not_exist);
                                     break;
                                 case FirebaseError.DISCONNECTED:
                                 case FirebaseError.NETWORK_ERROR:
