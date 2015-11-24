@@ -1,212 +1,343 @@
-//////////////////////////////////////////////////////////////////////////////
-//	Copyright 2011 Alex Leffelman
-//	
-//	Licensed under the Apache License, Version 2.0 (the "License");
-//	you may not use this file except in compliance with the License.
-//	You may obtain a copy of the License at
-//	
-//	http://www.apache.org/licenses/LICENSE-2.0
-//	
-//	Unless required by applicable law or agreed to in writing, software
-//	distributed under the License is distributed on an "AS IS" BASIS,
-//	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//	See the License for the specific language governing permissions and
-//	limitations under the License.
-//////////////////////////////////////////////////////////////////////////////
-
 package com.bondevans.fretboard.midi;
 
 import android.util.Log;
 
+import com.bondevans.fretboard.exception.FretboardException;
+import com.bondevans.fretboard.fretview.MidiNoteEvent;
+
 import java.io.BufferedInputStream;
-import java.io.File;
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
 
-import com.bondevans.fretboard.midi.util.MidiUtil;
-
-public class MidiFile
-{
-    public static final int HEADER_SIZE = 14;
-    public static final byte[] IDENTIFIER = { 'M', 'T', 'h', 'd' };
-
-    public static final int DEFAULT_RESOLUTION = 480;
+/**
+ * Loads and parses midi file mData
+ */
+public class MidiFile {
     private static final String TAG = "MidiFile";
+    private static final int FILE_HEADER_LENGTH = 14;
+    private static final int BUF_LEN = 8192;
+    private static final int TRACK_HEADER_LENGTH = 8;
+    private static final String UNKNOWN_TRACKNAME = "<UNKNOWN>";
 
-    private int mType;
-    private int mTrackCount;
-    private int mResolution;
+    private String mMidiFilePath;
+    private int mTicksPerQtrNote;
+    private List<MidiTrack> mTracks;
+    private int[] mTrackChunkLength;
+    private boolean mHeaderLoaded = false;
+    private List<MidiNoteEvent> mNoteEvents = new ArrayList<>();
+    private int mRunningStatus = 0;
+    private int mRunningChannel = 0;
 
-    private ArrayList<com.bondevans.fretboard.midi.MidiTrack> mTracks;
 
-    public MidiFile()
-    {
-        this(DEFAULT_RESOLUTION);
+    public MidiFile(String midiFile) throws FretboardException {
+        // Open up file and load header and track details
+        this.mMidiFilePath = midiFile;
+
+        loadHeader(mMidiFilePath);
+        mHeaderLoaded = true;
     }
 
-    public MidiFile(int resolution)
-    {
-        this(resolution, new ArrayList<MidiTrack>());
-    }
-
-    public MidiFile(int resolution, ArrayList<MidiTrack> tracks)
-    {
-        mResolution = resolution >= 0 ? resolution : DEFAULT_RESOLUTION;
-
-        mTracks = tracks != null ? tracks : new ArrayList<MidiTrack>();
-        mTrackCount = tracks.size();
-        mType = mTrackCount > 1 ? 1 : 0;
-    }
-
-    public MidiFile(File fileIn) throws FileNotFoundException, IOException
-    {
-        this(new FileInputStream(fileIn));
-    }
-
-    public MidiFile(InputStream rawIn) throws IOException
-    {
-        BufferedInputStream in = new BufferedInputStream(rawIn);
-
-        byte[] buffer = new byte[HEADER_SIZE];
-        in.read(buffer);
-
-        initFromBuffer(buffer);
-
-        mTracks = new ArrayList<MidiTrack>();
-        for(int i = 0; i < mTrackCount; i++)
-        {
-            mTracks.add(new MidiTrack(in));
+    public List<MidiTrack> getTracks() throws FretboardException {
+        if (!mHeaderLoaded) {
+            throw new FretboardException("ERRROR - Header not loaded");
         }
-    }
-
-    public void setType(int type)
-    {
-        if(type < 0)
-        {
-            type = 0;
-        }
-        else if(type > 2)
-        {
-            type = 1;
-        }
-        else if(type == 0 && mTrackCount > 1)
-        {
-            type = 1;
-        }
-        mType = type;
-    }
-
-    public int getType()
-    {
-        return mType;
-    }
-
-    public int getTrackCount()
-    {
-        return mTrackCount;
-    }
-
-    public void setResolution(int res)
-    {
-        if(res >= 0)
-        {
-            mResolution = res;
-        }
-    }
-
-    public int getResolution()
-    {
-        return mResolution;
-    }
-
-    public long getLengthInTicks()
-    {
-        long length = 0;
-        for(MidiTrack T : mTracks)
-        {
-            long l = T.getLengthInTicks();
-            if(l > length)
-            {
-                length = l;
-            }
-        }
-        return length;
-    }
-
-    public ArrayList<MidiTrack> getTracks()
-    {
         return mTracks;
     }
 
-    public void addTrack(MidiTrack T)
-    {
-        addTrack(T, mTracks.size());
+    /**
+     * Loads the specified track into a byte array
+     *
+     * @param track Track number (1st = 0)
+     * @return Returns byte buffer containing track mData
+     */
+    private byte[] loadTrack(int track) throws FretboardException {
+        Log.d(TAG, "loadTrack [" + track + "]");
+        BufferedInputStream in;
+        byte[] buffer = new byte[mTrackChunkLength[track]];
+        // Work out the offset to the specified track mData
+        long skip = FILE_HEADER_LENGTH;
+        int t = 0;
+        while (t < track) {
+            skip += TRACK_HEADER_LENGTH + mTrackChunkLength[t];
+            ++t;
+        }
+        skip += TRACK_HEADER_LENGTH;
+        // Read the track mData
+        try {
+            in = new BufferedInputStream(new FileInputStream(mMidiFilePath), BUF_LEN);
+        } catch (FileNotFoundException e) {
+            throw new FretboardException("ERROR-reading track");
+        }
+        try {
+            if (in.skip(skip) != skip) {
+                throw new FretboardException("ERROR-skipping");
+            }
+            if (in.read(buffer, 0, mTrackChunkLength[t]) != mTrackChunkLength[t]) {
+                throw new FretboardException("ERROR-reading track");
+            }
+            in.close();
+        } catch (IOException e) {
+            throw new FretboardException(e.getMessage());
+        }
+        return buffer;
     }
 
-    public void addTrack(MidiTrack T, int pos)
-    {
+    public List<MidiNoteEvent> loadNoteEvents(int track) throws FretboardException, IOException {
+        Log.d(TAG, "loadNoteEvents");
+        InputStream in = new ByteArrayInputStream(loadTrack(track));
+        MidiEvent ev = getEvent(in);
+        int runningTicks = 0;
 
-        if(pos > mTracks.size())
-        {
-            pos = mTracks.size();
+        while (!ev.isEndOfTrack()) {
+//            Log.d(TAG, "Got event");
+            if (ev.isNoteOnOrOff()) {
+//                Log.d(TAG, "Got Note event");
+                // If velocity is zero then this effectively a FretNote Off message, so we'll store it as such
+                if(ev.mParam2 == 0 && MidiEvent.NOTE_EVENT_TYPE_NOTE_ON == ev.mNoteEventType){
+                    ev.mNoteEventType = MidiEvent.NOTE_EVENT_TYPE_NOTE_OFF;
+                }
+                mNoteEvents.add(new MidiNoteEvent(ev.mParam1, ev.mNoteEventType == MidiEvent.NOTE_EVENT_TYPE_NOTE_ON, ev.mTicks + runningTicks));
+                runningTicks = 0;
+            }
+            else if(ev.mMetaEventType == MidiEvent.META_EVENT_TYPE_SET_TEMPO) {
+                // Turn 3 bytes of description into new instrument
+                Log.d(TAG, "TEMPO="+ev.getTempo());
+                mNoteEvents.add(new MidiNoteEvent(ev.getTempo(), ev.mTicks + runningTicks));
+                runningTicks=0;
+            }
+            else
+            {
+                // need to keep running total of mTicks for events that we ignore.
+                runningTicks += ev.mTicks;
+            }
+            ev = getEvent(in);
         }
-        else if(pos < 0)
-        {
-            pos = 0;
-        }
-
-        mTracks.add(pos, T);
-        mTrackCount = mTracks.size();
-        mType = mTrackCount > 1 ? 1 : 0;
+        return mNoteEvents;
     }
 
-    public void removeTrack(int pos)
-    {
-        if(pos < 0 || pos >= mTracks.size())
-        {
-            return;
+    /**
+     * Gets the next event in the midi track
+     * @param in Track InputStream
+     * @return MidiEvent
+     * @throws IOException
+     */
+    private MidiEvent getEvent(InputStream in) throws IOException {
+        int param1, param2 = 0;
+        int channel;
+        int ticks = getTimeTicks(in);
+        int type = in.read();
+//        Log.d(TAG, "TYPE["+iToHex(type)+"]");
+        // What sort of event is it?
+        if (type == 0xff) {
+            int len;
+            // Meta event (or END OF TRACK)
+            int metaType = in.read();
+            len = getVariableLen(in);
+            if (metaType == MidiEvent.META_EVENT_TYPE_END_OF_TRACK) {
+//                Log.d(TAG, "END OF TRACK");
+            }
+            else if (metaType == MidiEvent.META_EVENT_TYPE_SET_TEMPO) {
+                Log.d(TAG, "SET TEMPO"+ " mLen["+len+"]");
+            }
+            else
+            {
+//                Log.d(TAG, "META EVENT=mNoteEventType[" + metaType + "] mLen["+len+"]");
+            }
+            return new MidiEvent(MidiEvent.TYPE_META_EVENT, metaType, len, in);
+        } else if (type == 0xf0) {
+            Log.d(TAG, "SYSEX - OOPS TODO TODO TODO");
+            int len = getVariableLen(in);
+            return new MidiEvent(MidiEvent.TYPE_SYSEX_EVENT, 0, len, in);
+        } else {
+            // Must be a FretNote event - mNoteEventType is top 4 bits
+            int noteEventType = (type & 0xf0) >> 4;
+            // Check whether its a running status
+            if (noteEventType < MidiEvent.NOTE_EVENT_TYPE_NOTE_OFF) {
+                // Must be running status, so this on is actually mParam1
+                param1 = type;
+                noteEventType = mRunningStatus;
+                channel = mRunningChannel;
+//                Log.d(TAG, "Running status [" + noteEventType + "]");
+            } else {
+                // mChannel = bottom 4 bits
+                channel = type & 0x0f;
+                param1 = in.read();
+            }
+
+            switch (noteEventType) {
+                case MidiEvent.NOTE_EVENT_TYPE_NOTE_OFF:
+                case MidiEvent.NOTE_EVENT_TYPE_NOTE_ON:
+                    // 1st byte is note, 2nd byte is velocity
+                    param2 = in.read();
+//                    Log.d(TAG, (noteEventType == MidiEvent.NOTE_EVENT_TYPE_NOTE_OFF?"NOTE_OFF [":"NOTE_ON [") + noteEventType + "]["+iToHex(param1)+"]["+iToHex(param2)+"]["+noteName(param1)+"] TICKS ["+ticks+"]");
+                    break;
+                case MidiEvent.NOTE_EVENT_TYPE_NOTE_AFTER_TOUCH:
+                case MidiEvent.NOTE_EVENT_TYPE_CONTROLLER:
+                case MidiEvent.NOTE_EVENT_TYPE_PITCHBEND:
+                    param2 = in.read();
+//                    Log.d(TAG, "NOTE_AFTER_TOUCH/CONTROLLER/PICTHBEND [" + noteEventType + "]["+iToHex(param1)+"]["+iToHex(param2)+"]");
+                    break;
+                case MidiEvent.NOTE_EVENT_TYPE_PROGRAM_CHANGE:
+                case MidiEvent.NOTE_EVENT_TYPE_CHANNEL_AFTERTOUCH:
+//                    Log.d(TAG, "PROGRAM_CHANGE/AFTERTOUCH [" + noteEventType + "]["+iToHex(param1)+"]");
+                    break;
+                default:
+                    Log.e(TAG, "OOPS - SOMETHING WENT WRONG [" + noteEventType + "]");
+                    break;
+            }
+            mRunningStatus = noteEventType;
+            mRunningChannel = channel;
+            return new MidiEvent(ticks, noteEventType, channel, param1, param2);
         }
-        mTracks.remove(pos);
-        mTrackCount = mTracks.size();
-        mType = mTrackCount > 1 ? 1 : 0;
     }
 
-    public void writeToFile(File outFile) throws FileNotFoundException, IOException
-    {
-        FileOutputStream fout = new FileOutputStream(outFile);
-
-        fout.write(IDENTIFIER);
-        fout.write(MidiUtil.intToBytes(6, 4));
-        fout.write(MidiUtil.intToBytes(mType, 2));
-        fout.write(MidiUtil.intToBytes(mTrackCount, 2));
-        fout.write(MidiUtil.intToBytes(mResolution, 2));
-
-        for(MidiTrack T : mTracks)
-        {
-            T.writeToFile(fout);
-        }
-
-        fout.flush();
-        fout.close();
+    /**
+     * Get musical note name from midi numnber
+     * @param note Midi Note
+     * @return Note name
+     */
+    private String noteName(int note) {
+        int div = note/12;
+        int mod = note%12;
+        String [] name = {"C", "C#","D","Eb", "E", "F", "F#", "G", "Ab", "A","B", "Bb"};
+        return name[mod]+"("+(div-1)+")";
     }
 
-    private void initFromBuffer(byte[] buffer)
-    {
-        if(!MidiUtil.bytesEqual(buffer, IDENTIFIER, 0, 4))
-        {
-            Log.d(TAG, "File identifier not MThd. Exiting");
-            mType = 0;
-            mTrackCount = 0;
-            mResolution = DEFAULT_RESOLUTION;
-            return;
-        }
+    private int getVariableLen(InputStream in) throws IOException {
+        // Actually same as mTicks...
+        return getTimeTicks(in);
+    }
 
-        mType = MidiUtil.bytesToInt(buffer, 8, 2);
-        mTrackCount = MidiUtil.bytesToInt(buffer, 10, 2);
-        mResolution = MidiUtil.bytesToInt(buffer, 12, 2);
+    /**
+     * Get the number of mTicks betfore the midi event - variable length 7bit/byte
+     * @param in track InputStream
+     * @return mTicks
+     * @throws IOException
+     */
+    private int getTimeTicks(InputStream in) throws IOException {
+        int ticks=0;
+        int trackByte = in.read();
+        while ((trackByte & 0x80) > 0) {
+            ticks = (ticks<<7) | (trackByte & 0x7F);
+//            Log.d(TAG, "getTimeTicks=[" + ticks + "]");
+            trackByte = in.read();
+        }
+        ticks = (ticks<<7) | (trackByte & 0x7F);
+        return ticks;
+    }
+
+    /**
+     * Load midi file header and set up the track names and lengths
+     *
+     * @param filePath Path to midi file
+     * @throws FretboardException
+     */
+    public void loadHeader(String filePath) throws FretboardException {
+        Log.d(TAG, "loadHeader");
+        BufferedInputStream in;
+        byte[] buffer = new byte[BUF_LEN];
+//        int format; //  0=single track, 1=multiple Tracks
+        int tracks; //  Number of tracks in this file
+
+        // Open up the file and read the header
+        try {
+            in = new BufferedInputStream(new FileInputStream(filePath), BUF_LEN);
+            if (in.read(buffer, 0, FILE_HEADER_LENGTH) != FILE_HEADER_LENGTH) {
+                //error - abort
+                throw new FretboardException("Error - Reading file header");
+            }
+//            format = buffer[9] & 0xFF;
+            tracks = buffer[11] & 0xFF;
+            if( (buffer[12] & 0x80) == 0){
+                // Time division is ticks per beat
+                this.mTicksPerQtrNote = (buffer[12] << 8)+ (buffer[13] & 0xFF);
+            }
+            else{
+                // Time division is frames per second
+                // TODO - not sure what to do.....
+                Log.e(TAG, "OOPS - time division is frames per sec");
+            }
+//            Log.d(TAG, "format=" + format + " tracks=" + tracks + " ticksPerQtrBeat=" + mTicksPerQtrNote);
+
+            this.mTracks = new ArrayList<>();
+            this.mTrackChunkLength = new int[tracks];
+
+            // For each track
+            // Now get the track details
+            int t = 0;
+            while (t < tracks) {
+                // read track header
+                if (in.read(buffer, 0, TRACK_HEADER_LENGTH) != TRACK_HEADER_LENGTH) {
+                    throw new FretboardException("Error - Reading track header");
+                }
+                int trackLen = ((buffer[4] & 0xFF) << 24) + ((buffer[5] & 0xFF) << 16) + ((buffer[6] & 0xFF) << 8) + ((buffer[7] & 0xFF));
+//                Log.d(TAG, "Track: " + t + " mLen: " + trackLen);
+                // Get Track name
+                in.mark(BUF_LEN);
+//                mTrackNameOld[t] = getTrackName(in);
+                String tn = getTrackName(in);
+                if(tn.equals(UNKNOWN_TRACKNAME)) {
+                    Log.d(TAG, "Ignoring track: " + tn);
+                }
+                else {
+                    Log.d(TAG, "Adding track: " + tn);
+                    mTracks.add(new MidiTrack(tn, t));
+                }
+                in.reset();
+                // SKIP track mData
+                if (in.skip(trackLen) != trackLen) {
+                    throw new FretboardException("Error - Reading track header");
+                }
+                mTrackChunkLength[t] = trackLen;
+                ++t;
+            }
+            in.close();
+        } catch (IOException e) {
+            throw new FretboardException(e.getMessage());
+        }
+    }
+
+    /**
+     * Searches for a Trackname meta-event in the given InputStream
+     *
+     * @param in BufferedInputStream containing track mData
+     * @return Track name or instrument name
+     * @throws IOException
+     */
+    private String getTrackName(BufferedInputStream in) throws IOException {
+        // Get the first event
+        MidiEvent ev = getEvent(in);
+        while (!ev.isEndOfTrack()) {
+            if (ev.mEventType == MidiEvent.TYPE_META_EVENT &&
+                    (ev.mMetaEventType == MidiEvent.META_EVENT_TYPE_TRACK_NAME ||
+                            ev.mMetaEventType == MidiEvent.META_EVENT_TYPE_INSTRUMENT_NAME)) {
+                return ev.getMetaDataString();
+            }
+            // Get the next event
+            ev = getEvent(in);
+        }
+        return UNKNOWN_TRACKNAME;
+    }
+
+    /**
+     * Convert Int to a hex string
+     * @param in Integer
+     * @return hex string
+     */
+    public static String iToHex(int in){
+        String hex = Integer.toHexString(in);
+        if( hex.length()<2){
+            hex = "0" + hex;
+        }
+        return hex;
+    }
+
+    public int getTicksPerQtrNote() {
+        return mTicksPerQtrNote;
     }
 }
