@@ -1,27 +1,23 @@
 package com.bondevans.fretboard.firebase.dao;
 
 /**
- * Simple Song Class for use with Firebase for retreiving and storing song details
+ * Simple Songs Class for use with Firebase for retreiving and storing song details
  */
-public class Song {
+public class Songs {
     String id;
     String name;
     String description;
 
     /**
-     * Empty constructir
+     * Empty constructor
      */
     @SuppressWarnings("unused")
-    public Song(){}
+    public Songs(){}
 
-    public Song(String id, String name, String description){
+    public Songs(String id, String name, String description){
         this.id = id;
         this.name = name;
         this.description = description;
-    }
-
-    public String getId() {
-        return id;
     }
 
     public String getName() {
@@ -30,5 +26,8 @@ public class Song {
 
     public String getDescription() {
         return description;
+    }
+    public String getId() {
+        return id;
     }
 }

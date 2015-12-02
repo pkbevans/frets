@@ -1,12 +1,8 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="@android:style/Theme.Material.Light">
+    <style name="AppTheme" parent="@android:style/Theme.Light">
         <!-- Customize your theme here. -->
-        <item name="android:colorAccent">@color/accent_material_light</item>
-        <item name="android:colorPrimaryDark">@color/primary_dark_material_light</item>
-        <item name="android:colorForeground">@color/foreground_material_light</item>
-        <item name="android:navigationBarColor">@color/black</item>
     </style>
 
 </resources>

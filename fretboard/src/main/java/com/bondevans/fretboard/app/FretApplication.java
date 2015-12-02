@@ -8,8 +8,8 @@ import com.firebase.client.Firebase;
  *
  * Initialize Firebase with the application context. This must happen before the client is used.
  */
-public class FretboardApplication extends android.app.Application {
-    private static final String TAG = "FretboardApplication";
+public class FretApplication extends android.app.Application {
+    private static final String TAG = FretApplication.class.getSimpleName();
     private String mAuthID; // Unique User ID
 
     @Override

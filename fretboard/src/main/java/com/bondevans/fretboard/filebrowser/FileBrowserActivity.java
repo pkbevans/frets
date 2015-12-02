@@ -5,7 +5,6 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.app.DialogFragment;
 import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -19,15 +18,17 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
-import com.bondevans.fretboard.firebase.FBWrite;
-import com.bondevans.fretboard.firebase.dao.Usage;
-import com.bondevans.fretboard.player.FretboardActivity;
-import com.bondevans.fretboard.app.FretboardApplication;
-import com.bondevans.fretboard.player.FretboardFragment;
+import com.bondevans.fretboard.R;
+import com.bondevans.fretboard.app.FretApplication;
 import com.bondevans.fretboard.auth.LoginDialog;
 import com.bondevans.fretboard.auth.LoginSignUpDialog;
-import com.bondevans.fretboard.R;
 import com.bondevans.fretboard.auth.SignUpDialog;
+import com.bondevans.fretboard.firebase.FBWrite;
+import com.bondevans.fretboard.firebase.dao.Usage;
+import com.bondevans.fretboard.fretview.FretSong;
+import com.bondevans.fretboard.fretview.FretSongLoader;
+import com.bondevans.fretboard.midi.MidiImporter;
+import com.bondevans.fretboard.player.FretViewActivity;
 import com.bondevans.fretboard.utils.Log;
 import com.firebase.client.AuthData;
 import com.firebase.client.Firebase;
@@ -115,29 +116,56 @@ public class FileBrowserActivity extends Activity implements
         super.onSaveInstanceState(outState);
     }
 
-    @Override
-    public void onFileSelected(boolean inSet, File midiFile) {
-        boolean useActivity = true;
-        // Record Usage
-        FBWrite.usage(mFirebaseRef, mUid, Usage.FEATURE_BROWSETO_FILE);
-        if (useActivity) {
-            // Open the file with the FretboardActivity
-            Intent intent = new Intent(this, FretboardActivity.class);
-            intent.setData(Uri.fromFile(midiFile));
+//    @Override
+    public void onFileSelected(File file) {
+        if(file.getName().endsWith("xml")){
+            // Record Usage
+            FBWrite.usage(mFirebaseRef, mUid, Usage.FEATURE_BROWSETO_FILE);
+            // Open the file with the FretViewActivity
+            Intent intent = new Intent(this, FretViewActivity.class);
+            intent.setData(Uri.fromFile(file));
             try {
                 startActivity(intent);
             } catch (ActivityNotFoundException e) {
-                Log.e(TAG, "NO ACTIVITY FOUND: FretboardActivity");
+                Log.e(TAG, "NO ACTIVITY FOUND: FretViewActivity");
             }
-        } else {
-            // Load fragment
-            FragmentTransaction ft = getFragmentManager().beginTransaction();
-            FretboardFragment fretboardFragment = new FretboardFragment();
-//            ft.add(fretboardFragment, "TODO");
-            ft.replace(R.id.container, fretboardFragment);
-            ft.addToBackStack(null);
-            ft.commit();
         }
+        else if(file.getName().endsWith("mid")) {
+            // Import the midi file into an instance of FretSong
+            // write out to file in cache (/sdcard/android.com.bondevans.fretplayer....)
+            MidiImporter midiImporter = new MidiImporter(file,
+                    new File(getExternalFilesDir(null), file.getName() + ".xml"));
+            midiImporter.setFileImportedListener(new MidiImporter.FileImportedListener() {
+                @Override
+                public void OnImportedLoaded(File file) {
+                    Toast.makeText(FileBrowserActivity.this, "Imported to file:"+file.getName(), Toast.LENGTH_SHORT).show();
+                    // Write to server
+                    writeSongToServer(file);
+                }
+
+                @Override
+                public void OnError(String msg) {
+                    Toast.makeText(FileBrowserActivity.this, msg, Toast.LENGTH_SHORT).show();
+                }
+            });
+            midiImporter.execute();
+        }
+    }
+
+    private void writeSongToServer(File file) {
+        FretSongLoader fretSongLoader = new FretSongLoader(file);
+        fretSongLoader.setSongLoadedListener(new FretSongLoader.SongLoadedListener() {
+            @Override
+            public void OnSongLoaded(FretSong fretSong) {
+                FBWrite.addSong(mFirebaseRef, fretSong);
+            }
+
+            @Override
+            public void OnError(String msg) {
+                Toast.makeText(FileBrowserActivity.this, msg, Toast.LENGTH_SHORT).show();
+            }
+        });
+        fretSongLoader.execute();
     }
 
     @Override
@@ -185,6 +213,7 @@ public class FileBrowserActivity extends Activity implements
     protected void onDestroy() {
         super.onDestroy();
     }
+
     void firebaseStuff() {
         Log.d(TAG, "HELLO firebaseStuff");
 //        Firebase.setAndroidContext(this);
@@ -299,7 +328,7 @@ public class FileBrowserActivity extends Activity implements
             Toast.makeText(this, "Authenticated", Toast.LENGTH_SHORT).show();
             if (authData.getProvider().equals("anonymous")
                     || authData.getProvider().equals("password")) {
-                FretboardApplication app = (FretboardApplication) getApplicationContext();
+                FretApplication app = (FretApplication) getApplicationContext();
                 app.setAuthID(authData.getUid());
                 editor.putString(SETTINGS_KEY_UID, authData.getUid());
                 editor.putString(SETTINGS_KEY_EMAIL, email);

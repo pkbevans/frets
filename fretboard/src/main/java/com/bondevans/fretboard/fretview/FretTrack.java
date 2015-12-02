@@ -15,34 +15,28 @@ public class FretTrack extends FretBase {
     public static final String ELEMENT_TRACK = "track";
     public static final String TRACK_ELEMENT_OPEN = "<"+ELEMENT_TRACK+">";
     public static final String TRACK_ELEMENT_CLOSE = "</"+ELEMENT_TRACK+">";
-    private static final String ATTR_ID = "id";
     private static final String ATTR_NAME = "na";
-    private static final String ATTR_INSTRUMENT = "in";
-    String id;
     String name;
-    String instrument;
     List<FretEvent> fretEvents;
 
     /**
      * Constructor
-     * @param id Unique ID for this track
-     * @param name Song name
-     * @param instrument Instrument
+     * @param name Songs name
      * @param fretEvents List of fret events
      */
-    public FretTrack(String id, String name, String instrument, List<FretEvent> fretEvents){
-        this.id = id;
+    public FretTrack(String name, List<FretEvent> fretEvents){
         this.name = name;
-        this.instrument = instrument;
         this.fretEvents = fretEvents;
     }
 
+    /**
+     * Constructor takes an XML-like string containing a complete track
+     * @param track XML representation of the class
+     */
     public FretTrack(String track) {
         Log.d(TAG, "ev=[" + track + "]");
         fretEvents = new ArrayList<>();
-        this.id = getTagString(track, ATTR_ID);
         this.name = getTagString(track, ATTR_NAME);
-        this.instrument = getTagString(track, ATTR_INSTRUMENT);
         loadFretEvents(track);
     }
 
@@ -68,9 +62,8 @@ public class FretTrack extends FretBase {
     @Override
     public String toString(){
         StringBuilder sb = new StringBuilder(TRACK_ELEMENT_OPEN
-                +attr(ATTR_ID, id)
                 +attr(ATTR_NAME, name)
-                +attr(ATTR_INSTRUMENT, instrument));
+                );
         for(FretEvent event: fretEvents){
             sb.append(event.toString());
         }

@@ -14,12 +14,11 @@ import android.view.MenuItem;
 
 import com.bondevans.fretboard.R;
 
-public class FretboardActivity extends Activity {
+public class FretViewActivity extends Activity {
 
-    private static final String TAG = "FretboardActivity";
+    private static final String TAG = "FretViewActivity";
     private static final int REQUEST_CODE_READ_STORAGE_PERMISSION = 4522;
-//    private static final String KEY_FILENAME = "MidiFileName";
-    private FretboardFragment fragment;
+    private FretViewFragment fragment;
 
     @Override
     @TargetApi(23)
@@ -28,7 +27,7 @@ public class FretboardActivity extends Activity {
         checkFileAccessPermission();
         //  See if we got a file name int he intent
         setContentView(R.layout.activity_main);
-        fragment = (FretboardFragment) getFragmentManager()
+        fragment = (FretViewFragment) getFragmentManager()
                 .findFragmentById(R.id.fragment);
 
         if (savedInstanceState == null) {
@@ -84,36 +83,6 @@ public class FretboardActivity extends Activity {
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        Log.d(TAG, "onStart");
-    }
-
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-        Log.d(TAG, "onRestart");
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Log.d(TAG, "onResume");
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        Log.d(TAG, "onStop");
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        Log.d(TAG, "onDestroy");
     }
 
     @Override

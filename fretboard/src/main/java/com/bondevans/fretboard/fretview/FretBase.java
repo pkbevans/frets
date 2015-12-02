@@ -19,23 +19,23 @@ public class FretBase {
     }
 
     protected String attr(String name, boolean value) {
-        return name + "=" + (value?"true":"false");
+        return name + "=" + "\"" + (value?"true":"false")+ "\" ";
     }
     protected String attr(String name, int value) {
-        return name + "=" + value;
+
+        return name + "=" + "\"" + value+"\" ";
     }
     protected String attr(String name, String value) {
-        return name + "=" + value;
+        return name + "=" + "\""+value+"\" ";
     }
     protected static String getTagString(String ev, String tag){
         String ret="";
-        Pattern tagPattern = Pattern.compile(tag+"=(.*?)[\\s<]",
+        Pattern tagPattern = Pattern.compile(tag+"=\"(.*?)[\"<]",
                 Pattern.DOTALL|Pattern.CASE_INSENSITIVE);
         Matcher m = tagPattern.matcher(ev);
-        if (m.find()) { // Find each match in turn; String can't do this.
-            ret = m.group(1); // Access a submatch group; String can't do this.
+        if (m.find()) { // Find each match in turn;
+            ret = m.group(1); // Access a submatch group;
         }
-        Log.d(TAG, "HELLO " + tag + "=[" + ret + "]");
         return ret;
     }
     protected static int getTagInt(String ev, String tag){
@@ -46,7 +46,6 @@ public class FretBase {
         catch (Exception e){
             ret = 0;
         }
-        Log.d(TAG, "HELLO "+tag+"=[" + ret+ "]");
         return ret;
     }
 

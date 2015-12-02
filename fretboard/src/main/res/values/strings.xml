@@ -1,12 +1,12 @@
 <resources>
-    <string name="app_name">FretboardPlayer</string>
+    <string name="app_name">FretPlayer</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="file">File:</string>
     <string name="play">Play</string>
     <string name="sdcard">/sdcard</string>
     <string name="external_card">ext_card/</string>
-    <string name="share_file">Share...</string>
+    <string name="share_file">Share…</string>
     <string name="search_hint">Search for something</string>
     <string name="up">Up</string>
     <string name="search_files">Search</string>
@@ -19,7 +19,7 @@
     <string name="password">Password</string>
     <string name="forgot_password">Reset Password</string>
     <string name="register">Register</string>
-    <string name="reset_msg">A reset email will be sent...</string>
+    <string name="reset_msg">A reset email will be sent…</string>
     <string name="create_user_success">New User Created</string>
     <string name="enter_email_txt">Please enter a valid email address</string>
     <string name="enter_pwd_txt">Please enter a password</string>
@@ -27,7 +27,7 @@
     <string name="create_user_txt">Please enter a valid email address and a password to register.</string>
     <string name="login_register">Login/Sign Up</string>
     <string name="invalid_pwd">Incorrect password - please try again</string>
-    <string name="authenticating">Authenticating...</string>
+    <string name="authenticating">Authenticating…</string>
     <string name="connection_error">Network connection failed. Please try again when you are connected.</string>
     <string name="max_retries_reached">Sorry - maximum retries reached.</string>
     <string name="oops">Oops!! Something went wrong. Soz</string>
@@ -37,6 +37,9 @@
     <string name="email_taken">This email is already registered.  Please login instead.</string>
     <string name="invalid_email">Please enter a valid email address.</string>
     <string name="user_does_not_exist">Please enter a valid email address.  We don\'t have this one on our system</string>
-    <string name="action_export">Export...</string>
+    <string name="action_export">Export…</string>
     <string name="no_track">No track selected. Please select track to export</string>
+    <string name="no_songs">No songs yet…</string>
+    <string name="import_midi">Import Midi File…</string>
+    <string name="buffering_msg">Please talk among yourselves…</string>
 </resources>

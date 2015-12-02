@@ -1,24 +1,39 @@
 package com.bondevans.fretboard.fretlist;
 
 import android.app.ListActivity;
+import android.app.ProgressDialog;
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
 import android.database.DataSetObserver;
+import android.net.Uri;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import com.bondevans.fretboard.firebase.dao.Song;
 import com.bondevans.fretboard.R;
+import com.bondevans.fretboard.filebrowser.FileBrowserActivity;
+import com.bondevans.fretboard.firebase.dao.SongContents;
+import com.bondevans.fretboard.firebase.dao.Songs;
+import com.bondevans.fretboard.player.FretViewActivity;
+import com.bondevans.fretboard.utils.FileWriterTask;
+import com.bondevans.fretboard.utils.Log;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
 
+import java.io.File;
+
 public class FretListActivity extends ListActivity {
-    private static final String FIREBASE_URL = "https://fretboardplayer.firebaseio.com";
+    private static final String TAG = FretListActivity.class.getSimpleName();
+    private static final int BROWSER_ID = Menu.FIRST;
     private Firebase mFirebaseRef;
     private ValueEventListener mConnectedListener;
     private FretListAdapter mFretListAdapter;
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,7 +41,42 @@ public class FretListActivity extends ListActivity {
         setContentView(R.layout.fretlist_activity_main);
 
         // Setup our Firebase mFirebaseRef
-        mFirebaseRef = new Firebase(FIREBASE_URL).child("songs");
+        mFirebaseRef = new Firebase(getString(R.string.firebase_url)).child("songs");
+        // TODO Need to get/set up user details
+        // Setup the progress dialog that is displayed later
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage(getString(R.string.buffering_msg));
+        progressDialog.setCancelable(false);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        menu.add(0, BROWSER_ID, 0, getString(R.string.import_midi))
+//                .setIcon(R.drawable.ai_refresh)
+                .setShowAsActionFlags(MenuItem.SHOW_AS_ACTION_ALWAYS);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        Log.d(TAG, "onOptionsItemSelected");
+        boolean handled=false;
+        switch (item.getItemId()) {
+            case BROWSER_ID:
+                launchBrowser();
+                handled=true;
+                break;
+        }
+        return handled;
+    }
+
+    private void launchBrowser() {
+        Intent intent = new Intent(this, FileBrowserActivity.class);
+        try {
+            startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            Log.e(TAG, "NO ACTIVITY FOUND: FileBrowserActivity");
+        }
     }
 
     @Override
@@ -73,7 +123,61 @@ public class FretListActivity extends ListActivity {
 
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
-        Song selectedSong = (Song) getListView().getItemAtPosition(position);
-        // TODO Load up the song into FretView
+        Songs song = (Songs) getListView().getItemAtPosition(position);
+        Log.d(TAG, "onListItemClick: " + song.getId());
+        // See if we've got this song in the cache
+        final File cacheFile = new File(getExternalFilesDir(null),song.getId());
+        if(cacheFile.exists()){
+            // Get the file
+            Log.d(TAG, "Got file in cache: " + cacheFile.getName());
+            showFretView(cacheFile);
+        }
+        else {
+            // Show progress bar
+            progressDialog.show();
+            // Get the SongContent from the server
+            Firebase songRef = new Firebase(getString(R.string.firebase_url)).child("songcontents").child(song.getId());
+            songRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    Log.d(TAG, "CHILD:" + dataSnapshot.toString());
+                    SongContents songContents = dataSnapshot.getValue(SongContents.class);
+                    // Write out to cache
+                    FileWriterTask fileWriterTask = new FileWriterTask(cacheFile, songContents.getContents());
+                    fileWriterTask.setFileWrittenListener(new FileWriterTask.FileWrittenListener() {
+                        @Override
+                        public void OnFileWritten() {
+                            // Start FretViewer
+                            progressDialog.dismiss();
+                            showFretView(cacheFile);
+                        }
+
+                        @Override
+                        public void OnError(String msg) {
+                            progressDialog.dismiss();
+                            Toast.makeText(FretListActivity.this,msg,Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                    fileWriterTask.execute();
+                }
+
+                @Override
+                public void onCancelled(FirebaseError firebaseError) {
+                    progressDialog.dismiss();
+                    Log.d(TAG, "OOPS " + firebaseError.getMessage());
+                    Toast.makeText(FretListActivity.this, firebaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+    }
+    private void showFretView(File file){
+//        FBWrite.usage(mFirebaseRef, mUid, Usage.FEATURE_BROWSETO_FILE);
+        Intent intent = new Intent(this, FretViewActivity.class);
+        intent.setData(Uri.fromFile(file));
+        try {
+            startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            Log.e(TAG, "NO ACTIVITY FOUND: FretViewActivity");
+        }
     }
 }

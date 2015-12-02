@@ -1,4 +1,4 @@
-package com.bondevans.fretboard.fretview;
+package com.bondevans.fretboard.midi;
 
 /**
  * MidiNoteEvent describes a midi NOTE ON or NOTE OFF event

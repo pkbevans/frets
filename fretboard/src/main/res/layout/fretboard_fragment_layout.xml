@@ -22,7 +22,7 @@
 
     <view
         android:id="@+id/fretboard"
-        class="com.bondevans.fretboard.fretview.FretboardView"
+        class="com.bondevans.fretboard.fretview.FretView"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:layout_weight="0.5" />

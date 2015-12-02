@@ -44,7 +44,7 @@ public class FileBrowserFragment extends ListFragment {
     ArrayList<String> midiFiles;
 
     public interface OnFileSelectedListener {
-        void onFileSelected(boolean inSet, File songFile);
+        void onFileSelected(File songFile);
         void upOneLevel(View v);
         void enableUp(boolean enabled);
     }
@@ -158,12 +158,8 @@ public class FileBrowserFragment extends ListFragment {
             // Save file path in preferences so we come back here next time
             saveCurrentDir();
             // Start an intent to View the file, that was clicked...
-            openFile(aFile);
+            fileSelectedListener.onFileSelected(aFile);
         }
-    }
-
-    private void openFile(File theFile) {
-        fileSelectedListener.onFileSelected(false, theFile);
     }
 
     class ListFilesTask extends AsyncTask<Void, String, Void>{
@@ -229,17 +225,7 @@ public class FileBrowserFragment extends ListFragment {
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
         // Get file+icon object from the list
-        String selectedFile = (String) getListView().getItemAtPosition(position);
-        openItem(selectedFile);
-    }
-
-    /**
-     * openItem - Opens the selected file
-     *
-     * @param selectedItem The item
-     */
-    private void openItem(String selectedItem) {
-        Log.L(TAG, "Item", selectedItem);
+        String selectedItem = (String) getListView().getItemAtPosition(position);
         browseFolder(new File(addDir(selectedItem)));
     }
 
@@ -253,7 +239,6 @@ public class FileBrowserFragment extends ListFragment {
     @Override
     public void onPause() {
         //		Log.d(TAG,"HELLO Pausing");
-        //
         super.onPause();
     }
 

@@ -1,5 +1,6 @@
 package com.bondevans.fretboard.fretview;
 
+import com.bondevans.fretboard.player.SongTrack;
 import com.bondevans.fretboard.utils.Log;
 
 import java.util.ArrayList;
@@ -17,20 +18,30 @@ public class FretSong extends FretBase {
     public static final String SONG_ELEMENT_CLOSE = "</"+ELEMENT_SONG+">";
     private static final String ATTR_ID = "id";
     private static final String ATTR_NAME = "na";
+    private static final String ATTR_TPQN = "tpqn";
+    private static final String ATTR_BPM = "bpm";
     String id;
     String name;
+    int tpqn;
+    int bpm;
     List<FretTrack> fretTracks;
 
     /**
      * Constructor
      * @param id Unique ID for this track
-     * @param name Song name
+     * @param name Songs name
+     * @param tpqn Ticks per quarter note
+     * @param bpm Beats Per Minute
      * @param fretTracks List of fret events
      */
-    public FretSong(String id, String name, List<FretTrack> fretTracks){
+    public FretSong(String id, String name, int tpqn, int bpm, List<FretTrack> fretTracks){
         this.id = id;
         this.name = name;
-        this.fretTracks = fretTracks;
+        this.tpqn = tpqn;
+        this.bpm = bpm;
+        if(fretTracks != null) {
+            this.fretTracks = fretTracks;
+        }
     }
 
     public FretSong(String song) {
@@ -38,6 +49,8 @@ public class FretSong extends FretBase {
         fretTracks = new ArrayList<>();
         this.id = getTagString(song, ATTR_ID);
         this.name = getTagString(song, ATTR_NAME);
+        this.tpqn = getTagInt(song, ATTR_TPQN);
+        this.bpm = getTagInt(song, ATTR_BPM);
         loadFretTracks(song);
     }
 
@@ -64,12 +77,57 @@ public class FretSong extends FretBase {
     public String toString(){
         StringBuilder sb = new StringBuilder(SONG_ELEMENT_OPEN
                 +attr(ATTR_ID, id)
-                +attr(ATTR_NAME, name));
+                +attr(ATTR_NAME, name)
+                +attr(ATTR_TPQN, tpqn)
+                +attr(ATTR_BPM, bpm)
+        );
         for(FretTrack track: fretTracks){
             sb.append(track.toString());
         }
         sb.append(SONG_ELEMENT_CLOSE);
+        Log.d(TAG, "XML: "+sb.toString());
         return sb.toString();
+    }
+
+    /**
+     * Add a new track to the song. Initialises list if not already done
+     * @param fretTrack tracvk to add
+     */
+    public void add(FretTrack fretTrack) {
+        if(fretTracks == null){
+            fretTracks = new ArrayList<>();
+        }
+        fretTracks.add(fretTrack);
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getTpqn() {
+        return tpqn;
+    }
+
+    public int getBpm() {
+        return bpm;
+    }
+
+    public List<SongTrack> getTrackNames() {
+        List<SongTrack> ret = new ArrayList<>();
+        int i=0;
+        for( FretTrack t: fretTracks){
+            ret.add(new SongTrack(t.name,i++));
+        }
+        return ret;
+    }
+
+    /**
+     * Get specified track
+     * @param index index of track
+     * @return FretTrack at given position
+     */
+    public FretTrack getTrack(int index){
+        return fretTracks.get(index);
     }
 }
 
