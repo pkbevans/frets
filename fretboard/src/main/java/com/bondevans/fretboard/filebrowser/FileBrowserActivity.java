@@ -47,6 +47,7 @@ public class FileBrowserActivity extends Activity implements
     private static final String TAG_LOGINSIGNUP = "LoginSignUpDialog";
     private static final String TAG_LOGIN = "Login";
     private static final String TAG_SIGNUP = "SignUp";
+    private static final String TAG_SONGDETAILS = "SongDets";
     private static final String SETTINGS_KEY_UID = "Uid";
 
     private FileBrowserFragment fileBrowserFragment = null;
@@ -118,29 +119,43 @@ public class FileBrowserActivity extends Activity implements
 
 //    @Override
     public void onFileSelected(File file) {
-        if(file.getName().endsWith("xml")){
+//        if(file.getName().endsWith("xml")){
             // Record Usage
-            FBWrite.usage(mFirebaseRef, mUid, Usage.FEATURE_BROWSETO_FILE);
+//            FBWrite.usage(mFirebaseRef, mUid, Usage.FEATURE_BROWSETO_FILE);
             // Open the file with the FretViewActivity
-            Intent intent = new Intent(this, FretViewActivity.class);
-            intent.setData(Uri.fromFile(file));
-            try {
-                startActivity(intent);
-            } catch (ActivityNotFoundException e) {
-                Log.e(TAG, "NO ACTIVITY FOUND: FretViewActivity");
-            }
-        }
-        else if(file.getName().endsWith("mid")) {
+//            Intent intent = new Intent(this, FretViewActivity.class);
+//            intent.setData(Uri.fromFile(file));
+//            try {
+//                startActivity(intent);
+//            } catch (ActivityNotFoundException e) {
+//                Log.e(TAG, "NO ACTIVITY FOUND: FretViewActivity");
+//            }
+//        }
+//        else
+        if(file.getName().endsWith("mid")) {
             // Import the midi file into an instance of FretSong
             // write out to file in cache (/sdcard/android.com.bondevans.fretplayer....)
             MidiImporter midiImporter = new MidiImporter(file,
                     new File(getExternalFilesDir(null), file.getName() + ".xml"));
             midiImporter.setFileImportedListener(new MidiImporter.FileImportedListener() {
                 @Override
-                public void OnImportedLoaded(File file) {
+                public void OnImportedLoaded(final File file) {
                     Toast.makeText(FileBrowserActivity.this, "Imported to file:"+file.getName(), Toast.LENGTH_SHORT).show();
-                    // Write to server
-                    writeSongToServer(file);
+                    // Get the Song name and description
+                    SongDetailsDialog songDetailsDialog = new SongDetailsDialog();
+                    songDetailsDialog.setSongDetailsListener(new SongDetailsDialog.SongDetailsListener() {
+                        @Override
+                        public void OnLoginDetailsEntered(String name, String description) {
+                            // Write to server
+                            writeSongToServer(file, name, description);
+                        }
+
+                        @Override
+                        public void OnCancel() {
+                            Toast.makeText(FileBrowserActivity.this, "Imported cancelled", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                    songDetailsDialog.show(getFragmentManager(), TAG_SONGDETAILS);
                 }
 
                 @Override
@@ -150,14 +165,18 @@ public class FileBrowserActivity extends Activity implements
             });
             midiImporter.execute();
         }
+        else{
+            Toast.makeText(FileBrowserActivity.this, R.string.invalid_file_type, Toast.LENGTH_SHORT).show();
+        }
     }
 
-    private void writeSongToServer(File file) {
+    private void writeSongToServer(File file, final String name, final String description) {
         FretSongLoader fretSongLoader = new FretSongLoader(file);
         fretSongLoader.setSongLoadedListener(new FretSongLoader.SongLoadedListener() {
             @Override
             public void OnSongLoaded(FretSong fretSong) {
-                FBWrite.addSong(mFirebaseRef, fretSong);
+                fretSong.setName(name);
+                FBWrite.addSong(mFirebaseRef, fretSong, description);
             }
 
             @Override

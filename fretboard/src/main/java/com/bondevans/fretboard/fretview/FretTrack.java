@@ -34,7 +34,7 @@ public class FretTrack extends FretBase {
      * @param track XML representation of the class
      */
     public FretTrack(String track) {
-        Log.d(TAG, "ev=[" + track + "]");
+//        Log.d(TAG, "track=[" + track + "]");
         fretEvents = new ArrayList<>();
         this.name = getTagString(track, ATTR_NAME);
         loadFretEvents(track);
@@ -50,7 +50,7 @@ public class FretTrack extends FretBase {
         // look for contents of <ev></ev>
         while (matcher.find()) {
             String ev = matcher.group(1);
-            Log.d(TAG, "HELLO found <ev> tag: [" + ev + "]");
+//            Log.d(TAG, "HELLO found <ev> tag: [" + ev + "]");
             fretEvents.add(new FretEvent(ev));
         }
     }

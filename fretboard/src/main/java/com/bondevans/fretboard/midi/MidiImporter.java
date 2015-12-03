@@ -78,12 +78,12 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
             Log.d(TAG, e.getMessage());
             return e.getMessage();
         }
-        return null;
+        return "";
     }
 
     @Override
     protected void onPostExecute(String errorMessage) {
-        if(errorMessage==null){
+        if(errorMessage.isEmpty()){
             fileImportedListener.OnImportedLoaded(mOutFile);
         }
         else{

@@ -32,7 +32,7 @@ public class FretPosition {
             return null;
         }
         List<FretNote> mFretNotes;
-        Log.d(TAG, "getFretPositions");
+//        Log.d(TAG, "getFretPositions");
         mFretNotes = fretNotes;
         // reset stringAvailable
         for (int i = 0; i < numStrings; i++) {
@@ -57,9 +57,9 @@ public class FretPosition {
                             // Only use up a string for ON notes
                             stringAvailable[j] = false;
                         }
-                        Log.d(TAG, "Found position for note[" + i + "] [" + fretNote.note + "] string[" +
-                                stringNames[fretNote.string] + "] fret [" + fretNote.fret +
-                                "] name [" + fretNote.name + "]");
+//                        Log.d(TAG, "Found position for note[" + i + "] [" + fretNote.note + "] string[" +
+//                                stringNames[fretNote.string] + "] fret [" + fretNote.fret +
+//                                "] name [" + fretNote.name + "]");
                         // Update FretNote list with updated element
                         mFretNotes.set(i,fretNote);
                         found = true;

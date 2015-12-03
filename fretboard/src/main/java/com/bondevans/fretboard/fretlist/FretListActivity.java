@@ -133,6 +133,7 @@ public class FretListActivity extends ListActivity {
             showFretView(cacheFile);
         }
         else {
+            Log.d(TAG, "NOT in cache: " + cacheFile.getName());
             // Show progress bar
             progressDialog.show();
             // Get the SongContent from the server
@@ -140,7 +141,7 @@ public class FretListActivity extends ListActivity {
             songRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
-                    Log.d(TAG, "CHILD:" + dataSnapshot.toString());
+//                    Log.d(TAG, "CHILD:" + dataSnapshot.toString());
                     SongContents songContents = dataSnapshot.getValue(SongContents.class);
                     // Write out to cache
                     FileWriterTask fileWriterTask = new FileWriterTask(cacheFile, songContents.getContents());

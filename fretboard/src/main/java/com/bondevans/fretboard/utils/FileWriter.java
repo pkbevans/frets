@@ -14,7 +14,7 @@ public class FileWriter {
     private static final String TAG = "FileWriter";
 
     public static void writeFile(File file, String contents) throws IOException {
-        Log.d(TAG, "Writing: " + file.getAbsolutePath());
+        Log.d(TAG, "Writing: " + file.getPath());
         byte[] utfHeader = {(byte) 0xef, (byte) 0xbb, (byte) 0xbf};
         BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file));
         byte[] utf8 = contents.getBytes("UTF-8");

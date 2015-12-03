@@ -119,7 +119,7 @@ public class FretViewFragment extends Fragment {
         mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                Log.d(TAG, "onProgressChanged [" + progress + "] " + (fromUser ? "FROM USER" : "" + ""));
+//                Log.d(TAG, "onProgressChanged [" + progress + "] " + (fromUser ? "FROM USER" : "" + ""));
                 // If user moves the position, then need to update current fretEvent in Fretboard view
                 // progress = a value between 0-100 - e.g. percent of way through the song
                 if (fromUser) {

@@ -42,4 +42,8 @@
     <string name="no_songs">No songs yet…</string>
     <string name="import_midi">Import Midi File…</string>
     <string name="buffering_msg">Please talk among yourselves…</string>
+    <string name="invalid_file_type">This is not a Midi file.</string>
+    <string name="description">Description</string>
+    <string name="song_name">Song Name</string>
+    <string name="song_details">Please enter the Song Details</string>
 </resources>

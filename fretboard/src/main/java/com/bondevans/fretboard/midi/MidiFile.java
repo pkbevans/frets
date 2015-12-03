@@ -285,15 +285,17 @@ public class MidiFile {
                 if(trackName.equals(UNKNOWN_TRACKNAME)) {
                     Log.d(TAG, "Ignoring track: " + trackName);
                 }
-                else if(track==0){
-                    // If this is the first track then assume that we have got the song title
-                    this.songTitle = trackName;
-                    // Lets get the tempo while we are at it.
-                    this.BPM = getTempo(in);
-                }
                 else {
                     Log.d(TAG, "Adding track: " + trackName);
+                    if(track==0) {
+                        // If this is the first track then assume that we have got the song title
+                        this.songTitle = trackName;
+                    }
                     mTracks.add(new SongTrack(trackName, track));
+                }
+                if(track==0){
+                    // Lets get the tempo from the first track.
+                    this.BPM = getTempo(in);
                 }
                 // SKIP track mData
                 if (in.skip(trackLen) != trackLen) {

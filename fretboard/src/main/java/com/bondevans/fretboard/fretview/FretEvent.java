@@ -34,7 +34,7 @@ public class FretEvent extends FretBase {
     }
 
     public FretEvent(String ev) {
-        Log.d(TAG, "ev=[" + ev + "]");
+//        Log.d(TAG, "ev=[" + ev + "]");
         fretNotes = new ArrayList<>();
         this.deltaTime = getTagInt(ev, ATTR_DELTATIME);
         this.tempo = getTagInt(ev, ATTR_TEMPO);
@@ -51,7 +51,7 @@ public class FretEvent extends FretBase {
         // look for contents of <ev></ev>
         while (matcher.find()) {
             String note = matcher.group(1);
-            Log.d(TAG, "HELLO found <"+FretNote.ELEMENT_NOTE+"> tag: [" + note + "]");
+//            Log.d(TAG, "HELLO found <"+FretNote.ELEMENT_NOTE+"> tag: [" + note + "]");
             fretNotes.add(new FretNote(note));
         }
 

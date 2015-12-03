@@ -20,7 +20,7 @@ public class FretSong extends FretBase {
     private static final String ATTR_NAME = "na";
     private static final String ATTR_TPQN = "tpqn";
     private static final String ATTR_BPM = "bpm";
-    String id;
+    @Deprecated String id;  // Dont think we need this anymore
     String name;
     int tpqn;
     int bpm;
@@ -45,7 +45,7 @@ public class FretSong extends FretBase {
     }
 
     public FretSong(String song) {
-        Log.d(TAG, "ev=[" + song + "]");
+//        Log.d(TAG, "song=[" + song + "]");
         fretTracks = new ArrayList<>();
         this.id = getTagString(song, ATTR_ID);
         this.name = getTagString(song, ATTR_NAME);
@@ -64,7 +64,7 @@ public class FretSong extends FretBase {
         // look for contents of <ev></ev>
         while (matcher.find()) {
             String track = matcher.group(1);
-            Log.d(TAG, "HELLO found "+FretTrack.ELEMENT_TRACK+" tag: [" + track + "]");
+//            Log.d(TAG, "HELLO found "+FretTrack.ELEMENT_TRACK+" tag: [" + track + "]");
             fretTracks.add(new FretTrack(track));
         }
     }
@@ -128,6 +128,10 @@ public class FretSong extends FretBase {
      */
     public FretTrack getTrack(int index){
         return fretTracks.get(index);
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }
 

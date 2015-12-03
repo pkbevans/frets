@@ -1,9 +1,13 @@
 package com.bondevans.fretboard.midi;
 
+import android.util.Log;
+
 import java.io.IOException;
 import java.io.InputStream;
 
 class MidiEvent {
+    private static final String TAG = MidiEvent.class.getSimpleName();
+    static final int MICROSECONDS_PER_MINUTE = 60000000;
     public static final int TYPE_META_EVENT = 1;
     public static final int TYPE_SYSEX_EVENT = 2;
     public static final int TYPE_NOTE_EVENT = 3;
@@ -62,8 +66,12 @@ class MidiEvent {
      * @return BPM
      */
     public int getTempo(){
+        // TODO Need to sort out tempo
         if( mEventType == TYPE_META_EVENT && mMetaEventType == META_EVENT_TYPE_SET_TEMPO){
-            return (60000000/(mData[0] & 0xff) << 16 | (mData[1] & 0xff) << 8 | (mData[2] & 0xff));
+            int MPQN = (mData[0] & 0xff) << 16 | (mData[1] & 0xff) << 8 | (mData[2] & 0xff);
+            int BPM = MICROSECONDS_PER_MINUTE/MPQN;
+            Log.d(TAG, "MPQN=["+MPQN+"] BPM=["+BPM+"]");
+            return BPM;
         }
         return 0;
     }
