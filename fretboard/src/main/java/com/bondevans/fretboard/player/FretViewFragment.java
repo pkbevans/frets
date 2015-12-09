@@ -2,20 +2,24 @@ package com.bondevans.fretboard.player;
 
 import android.annotation.TargetApi;
 import android.app.Fragment;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.media.midi.MidiDevice;
 import android.media.midi.MidiDeviceInfo;
 import android.media.midi.MidiInputPort;
 import android.media.midi.MidiManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -50,6 +54,7 @@ public class FretViewFragment extends Fragment {
     private Spinner mTrackSpinner;
     ArrayAdapter<SongTrack> mTrackAdapter;
     TextView mSongName;
+    private ImageButton playPauseButton;
     private MidiDevice mOpenDevice;
     private int mSelectedTrack = NO_TRACK_SELECTED;
     private String mFileName;
@@ -58,6 +63,10 @@ public class FretViewFragment extends Fragment {
     private int mTempo;
     private int mProgress;
     private FretSong mFretSong;
+    private ProgressDialog progressDialog;
+    private Drawable playDrawable;
+    private Drawable pauseDrawable;
+    private boolean mPlay;
 
     public FretViewFragment() {
     }
@@ -77,6 +86,8 @@ public class FretViewFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate");
+        pauseDrawable = ContextCompat.getDrawable(getActivity(), R.drawable.pausebutton2);
+        playDrawable = ContextCompat.getDrawable(getActivity(), R.drawable.playbutton2);
         if (savedInstanceState == null) {
             if (getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_MIDI)) {
                 mMidiSupported = true;
@@ -89,26 +100,35 @@ public class FretViewFragment extends Fragment {
         } else {
             mMidiSupported = savedInstanceState.getBoolean(KEY_MIDI);
         }
+        progressDialog = new ProgressDialog(getActivity());
+        progressDialog.setMessage(getString(R.string.buffering_msg));
+        progressDialog.setCancelable(false);
+        progressDialog.show();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         Log.d(TAG, "onCreateView");
-        View myView = inflater.inflate(R.layout.fretboard_fragment_layout, container, false);
+        View myView = inflater.inflate(R.layout.fretview_layout, container, false);
         mFretView = (FretView) myView.findViewById(R.id.fretboard);
-        mFretView.setProgressListener(new FretView.ProgressListener() {
+        mFretView.setFretListener(new FretView.FretListener() {
             @Override
             public void OnProgressUpdated(int progress) {
                 mProgress = progress;
                 mSeekBar.setProgress(progress);
             }
-        });
-        mFretView.setTempoChangeListener(new FretView.TempoChangeListener() {
+
             @Override
             public void OnTempoChanged(int tempo) {
                 mTempo = tempo;
                 mTempoText.setText("" + tempo);
+            }
+
+            @Override
+            public void OnPlayEnabled(boolean flag) {
+                mPlay = true;
+                progressDialog.hide();
             }
         });
         mTempoText = (TextView) myView.findViewById(R.id.bpmText);
@@ -131,6 +151,16 @@ public class FretViewFragment extends Fragment {
             }
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
+            }
+        });
+        playPauseButton = (ImageButton) myView.findViewById(R.id.playPauseButton);
+        playPauseButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Toggle Play/pause
+                mPlay = !mPlay;
+                playPauseButton.setImageDrawable(mPlay ? playDrawable : pauseDrawable);
+                mFretView.play();
             }
         });
         return myView;
@@ -197,7 +227,6 @@ public class FretViewFragment extends Fragment {
         Log.d(TAG, "onPause");
         // The app is losing focus so need to stop the
         mFretView.pause();
-//        closeDevice();
     }
 
     @Override
