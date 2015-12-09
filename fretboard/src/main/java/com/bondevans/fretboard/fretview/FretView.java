@@ -483,15 +483,12 @@ public class FretView extends View {
 
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-            Log.d(TAG, "HELLO onScroll distanceX=" + distanceX + "] distanceY=[" + distanceY + "]");
-            if (Math.abs(distanceX) > Math.abs(distanceY)) {
-                Log.d(TAG, "MORE LEFT/RIGHT than UP/DOWN - IGNORE");
-            } else {
-                Log.d(TAG, "MORE UP/DOWN THAN LEFT/RIGHT");
+//            Log.d(TAG, "HELLO onScroll distanceX=" + distanceX + "] distanceY=[" + distanceY + "]");
+            if (Math.abs(distanceX) < Math.abs(distanceY)) {
                 if (distanceY > 0) {
-                    Log.d(TAG, "UP = SLOW DOWN");
+                    Log.d(TAG, "UP = SPEED UP");
                 } else {
-                    Log.d(TAG, "DOWN = SPEED UP");
+                    Log.d(TAG, "DOWN = SLOW DOWN");
                 }
                 updateTempo(distanceY);
             }
