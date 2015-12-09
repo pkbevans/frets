@@ -149,13 +149,13 @@ public class FretListActivity extends ListActivity {
                         @Override
                         public void OnFileWritten() {
                             // Start FretViewer
-                            progressDialog.dismiss();
+                            progressDialog.hide();
                             showFretView(cacheFile);
                         }
 
                         @Override
                         public void OnError(String msg) {
-                            progressDialog.dismiss();
+                            progressDialog.hide();
                             Toast.makeText(FretListActivity.this,msg,Toast.LENGTH_SHORT).show();
                         }
                     });
@@ -164,7 +164,7 @@ public class FretListActivity extends ListActivity {
 
                 @Override
                 public void onCancelled(FirebaseError firebaseError) {
-                    progressDialog.dismiss();
+                    progressDialog.hide();
                     Log.d(TAG, "OOPS " + firebaseError.getMessage());
                     Toast.makeText(FretListActivity.this, firebaseError.getMessage(), Toast.LENGTH_SHORT).show();
                 }

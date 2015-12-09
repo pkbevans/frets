@@ -1,8 +1,6 @@
 package com.bondevans.fretboard.fretview;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -35,7 +33,7 @@ public class FretView extends View {
     private static final int MINIMUM_TEMPO = 10;
     private static final int NUT_WIDTH = 5;
     private static final float RANDOM_VALUE = 2;
-    private int mFrets = 6;
+    private int mFrets = 22;
     private int mStrings = 6;
     private Paint mPaint;
     private Paint mPaintText;
@@ -50,7 +48,6 @@ public class FretView extends View {
     private int mTicksPerQtrNote;
     private int mDefaultTempo = 120;
     private int mCurrentBPM;
-    private boolean mPlayEnabled = false;
     private boolean mPlaying = false;
     private GestureDetector gestureDetector;
     private FretEventHandler mFretEventHandler;
@@ -58,23 +55,18 @@ public class FretView extends View {
     private MidiInputPort mInputPort = null;
     int mChannel = 0; // TODO hardcoded channel
     private float mRadius;
-    private ProgressListener progressListener;
-    private TempoChangeListener tempoChangeListener;
+    private FretListener fretListener;
+    private boolean mInitialised = false;
 
-    public interface ProgressListener {
+    public interface FretListener {
         void OnProgressUpdated(int progress);
-    }
-
-    public void setProgressListener(ProgressListener progressListener) {
-        this.progressListener = progressListener;
-    }
-
-    public interface TempoChangeListener {
         void OnTempoChanged(int tempo);
+
+        void OnPlayEnabled(boolean flag);
     }
 
-    public void setTempoChangeListener(TempoChangeListener tempoChangeListener) {
-        this.tempoChangeListener = tempoChangeListener;
+    public void setFretListener(FretListener fretListener) {
+        this.fretListener = fretListener;
     }
 
     public FretView(Context context) {
@@ -111,43 +103,43 @@ public class FretView extends View {
         this.setOnTouchListener(gestureListener);
         mFretEventHandler = new FretEventHandler();
         setBackgroundResource(R.drawable.wood2);
-//        testDrawNotes();
     }
 
     /**
      * Initialise the redraw.
      */
     private void initialiseStuff() {
-        // Set up a Paint for the strings and frets
-        mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mPaint.setColor(Color.BLACK);
-        mPaint.getFontSpacing();
-        // Set up a Paint for the Fret Number and String text
-        mPaintText = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mPaintText.setTextAlign(Paint.Align.LEFT);
-        // Set up a Paint for the FretNote dots
-        mPaintNote = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mPaintNote.setTextSize(getHeight() / NOTE_TEXT_DIVISOR);
-        // Set up a Paint for background
-        mPaintBackground = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mPaintBackground.setColor(Color.WHITE);
+        if (!mInitialised) {
+            // Set up a Paint for the strings and frets
+            mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            mPaint.setColor(Color.BLACK);
+            mPaint.getFontSpacing();
+            // Set up a Paint for the Fret Number and String text
+            mPaintText = new Paint(Paint.ANTI_ALIAS_FLAG);
+            mPaintText.setTextAlign(Paint.Align.LEFT);
+            // Set up a Paint for the FretNote dots
+            mPaintNote = new Paint(Paint.ANTI_ALIAS_FLAG);
+            mPaintNote.setTextSize(getHeight() / NOTE_TEXT_DIVISOR);
+            // Set up a Paint for background
+            mPaintBackground = new Paint(Paint.ANTI_ALIAS_FLAG);
+            mPaintBackground.setColor(Color.WHITE);
 
-        // various constants...
-        mStringSpace = getHeight() / (mStrings + 1);
-        mSpaceBeforeNut = getWidth() / mFrets;
-        mFretWidth = (getWidth() - (mSpaceBeforeNut * 2)) / mFrets;
-        mRadius = mFretWidth / 4;
+            // various constants...
+            mStringSpace = getHeight() / (mStrings + 1);
+            mSpaceBeforeNut = getWidth() / mFrets;
+            mFretWidth = (getWidth() - (mSpaceBeforeNut * 2)) / mFrets;
+            mRadius = mFretWidth / 4;
+            mInitialised = true;
+        }
     }
 
     @Override
     protected void onDraw(Canvas g) {
+        Log.d(TAG, "onDraw");
         initialiseStuff();
         drawStrings(g);
         drawFrets(g);
         drawNotes(g);
-        if (mPlayEnabled) {
-            drawPlayPauseButton(g);
-        }
         doTempo();
     }
 
@@ -155,26 +147,6 @@ public class FretView extends View {
         if (mCurrentBPM == 0) {
             mCurrentBPM = mDefaultTempo;  // Set it to default instrument first time
         }
-    }
-
-    Rect buttonRect;
-    Bitmap buttonBitmap;
-
-    private void drawPlayPauseButton(Canvas g) {
-        //  Draw the button centred in a square 2xmStringSpace high
-        buttonRect = new Rect((getWidth() / 2) - mStringSpace, (getHeight() / 2) - mStringSpace, (getWidth() / 2) + mStringSpace, (getHeight() / 2) + mStringSpace);
-        if (mPlaying) {
-            // Draw Pause button
-            buttonBitmap = BitmapFactory.decodeResource(
-                    getResources(),
-                    R.drawable.pause_button);
-        } else {
-            // Draw Play button
-            buttonBitmap = BitmapFactory.decodeResource(
-                    getResources(),
-                    R.drawable.play_button);
-        }
-        g.drawBitmap(buttonBitmap, null, buttonRect, null);
     }
 
     Rect mRect = new Rect(); // Avoid creating every call to drawStrings
@@ -224,7 +196,6 @@ public class FretView extends View {
         mPaintText.setColor(Color.GREEN);
         mPaintText.setAlpha(TEXT_ALPHA);
 
-//        Log.d(TAG, "textSize="+mPaintText.getTextSize());
         while (fret <= mFrets) {
             //Draw vertical line - from top to bottom string
             fretX = mSpaceBeforeNut + (fret * mFretWidth);
@@ -247,12 +218,9 @@ public class FretView extends View {
 
     private void drawNotes(Canvas g) {
         if (mFretNotes != null) {
-//            Log.d(TAG, "drawNotes ["+mFretNotes.size()+"]");
             for (int i = 0; i < mFretNotes.size(); i++) {
                 if (mFretNotes.get(i).on) {
                     // draw a circle on the relevant string in the middle of the fret
-//                Log.d(TAG, "note ["+mFretNotes.get(i).note+"] string ["+mFretNotes.get(i).string+
-//                        "] fret["+mFretNotes.get(i).fret+"] name ["+mFretNotes.get(i).name+"]");
                     if (mFretNotes.get(i).fret == 0) {
                         // For open strings, draw an un-filled cicle behind the nut
                         mPaintNote.setStyle(Paint.Style.STROKE);
@@ -270,7 +238,6 @@ public class FretView extends View {
     private float getNoteY(FretNote note) {
         // Get the y coord of the given string
         return (note.string + 1) * mStringSpace;
-//        Log.d(TAG, "getNoteY ["+ret+"]");
     }
 
     private float getNoteX(FretNote note) {
@@ -282,7 +249,6 @@ public class FretView extends View {
             // If its an open string then we place a Circle just being the nut
             ret = (float) mSpaceBeforeNut - (mRadius * 2) - RANDOM_VALUE;
         }
-//        Log.d(TAG, "getNoteX ["+ret+"]");
         return ret;
     }
 
@@ -319,15 +285,13 @@ public class FretView extends View {
         mTicksPerQtrNote = tpqn;
         // Enable Play
         sendMidiProgramChange();
-        mPlayEnabled = true;
+        fretListener.OnPlayEnabled(true);
         invalidate();   // Force redraw to display Play button
-        if (tempoChangeListener != null) {
-            tempoChangeListener.OnTempoChanged(mCurrentBPM);
-        }
+        fretListener.OnTempoChanged(mCurrentBPM);
     }
 
     /**
-     * Moves to new position in the midi event list - in response to user moving the see bar
+     * Moves to new position in the midi event list - in response to user moving the seek bar
      *
      * @param progress - percentage through the song
      */
@@ -458,28 +422,23 @@ public class FretView extends View {
             mCurrentFretEvent = 0;
         }
         long delay = delayFromClicks(mFretTrack.fretEvents.get(mCurrentFretEvent).deltaTime);
-//        Log.d(TAG, "setting up fretEvent :" + mCurrentFretEvent + " delay: " + delay);
 
         // Update progress listener (so it can update the seekbar (or whatever)
-        if (progressListener != null) {
-            progressListener.OnProgressUpdated(mCurrentFretEvent * 100 / mFretTrack.fretEvents.size());
-        }
+        fretListener.OnProgressUpdated(mCurrentFretEvent * 100 / mFretTrack.fretEvents.size());
         mFretEventHandler.sleep(delay);
     }
 
     /**
      * Plays/pauses the current track
      */
-    private void play() {
+    public void play() {
         // toggle play/pause
         mPlaying = !mPlaying;
         if (mPlaying) {
             // Play
-//            Log.d(TAG, "PLAY");
             mFretEventHandler.sleep(mFretTrack.fretEvents.get(mCurrentFretEvent).deltaTime);
         } else {
             // Pause
-//            Log.d(TAG, "PAUSE");
             sendMidiNotesOff2();
         }
         invalidate();   // Force redraw with correct play/pause button
@@ -489,7 +448,7 @@ public class FretView extends View {
      * Public method to pause if the app is being paused.
      */
     public void pause() {
-        if (mPlayEnabled && mPlaying) {
+        if (mPlaying) {
             play();
         }
     }
@@ -512,7 +471,6 @@ public class FretView extends View {
             ret = (long) z;
         }
 
-//        Log.d(TAG, "ticksPerQtrNote["+ mTicksPerQtrNote + "] deltaTicks[" + deltaTicks+ "] millisecs["+ret+"]");
         return ret;
     }
 
@@ -521,16 +479,6 @@ public class FretView extends View {
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
             Log.d(TAG, "HELLO onFling");
             return false;
-        }
-
-        @Override
-        public boolean onSingleTapConfirmed(MotionEvent e) {
-//            Log.d(TAG, "HELLO onSingleTapConfirmed");
-            if (mPlayEnabled) {
-                // Toggle Play/Pause
-                play();
-            }
-            return super.onSingleTapConfirmed(e);
         }
 
         @Override
@@ -570,24 +518,20 @@ public class FretView extends View {
         }
 //        Log.d(TAG, "updateTempo ["+b+"] currentTempo ["+mCurrentBPM+"]");
         invalidate();
-        if (tempoChangeListener != null) {
-            tempoChangeListener.OnTempoChanged(mCurrentBPM);
-        }
+        fretListener.OnTempoChanged(mCurrentBPM);
     }
 
-    /**
-     * Increment current fret by +ve or -ve value
-     *
-     * @param value value to add or subtract from current fret event
-     */
-    @Deprecated
-    public void incFretEvent(int value) {
-        mCurrentFretEvent += value;
-        if (mCurrentFretEvent > mFretTrack.fretEvents.size()) {
-            mCurrentFretEvent = mFretTrack.fretEvents.size() - 1;
-        } else if (mCurrentFretEvent < 0) {
-            mCurrentFretEvent = 0;
-        }
-        Log.d(TAG, "mCurrentFretEvent [" + mCurrentFretEvent + "]");
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+//        Log.d(TAG, "onMeasure getWidth ["+getWidth()+"]getHeight["+getHeight()+"]widthMeasureSpec["
+//                +widthMeasureSpec+"] heightMeasureSpec["+heightMeasureSpec+"]");
+//        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        int height = MeasureSpec.getSize(heightMeasureSpec);
+        int width = height * 3;
+        Log.d(TAG, "onMeasure getWidth [" + getWidth() + "]getHeight[" + getHeight() + "]width["
+                + width + "] height[" + height + "]");
+
+        //MUST CALL THIS
+        setMeasuredDimension(width, height);
     }
 }
