@@ -190,15 +190,6 @@ public class FretViewFragment extends Fragment {
         mTrackSpinner.setEnabled(true);
     }
 
-    public void export() {
-        if( mSelectedTrack== NO_TRACK_SELECTED){
-            Toast.makeText(getActivity(), R.string.no_track, Toast.LENGTH_SHORT).show();
-            return;
-        }
-        String xx = mFretSong.toString();
-        Log.d(TAG, "HELLO - export: ["+xx+"]");
-    }
-
     class trackSelectedListener implements AdapterView.OnItemSelectedListener {
         public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
             // Load up selected track

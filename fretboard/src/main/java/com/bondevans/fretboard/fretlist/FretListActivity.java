@@ -29,7 +29,6 @@ import java.io.File;
 
 public class FretListActivity extends ListActivity {
     private static final String TAG = FretListActivity.class.getSimpleName();
-    private static final int BROWSER_ID = Menu.FIRST;
     private Firebase mFirebaseRef;
     private ValueEventListener mConnectedListener;
     private FretListAdapter mFretListAdapter;
@@ -51,23 +50,21 @@ public class FretListActivity extends ListActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        menu.add(0, BROWSER_ID, 0, getString(R.string.import_midi))
-//                .setIcon(R.drawable.ai_refresh)
-                .setShowAsActionFlags(MenuItem.SHOW_AS_ACTION_ALWAYS);
-        return super.onCreateOptionsMenu(menu);
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.fretlist_menu, menu);
+        return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         Log.d(TAG, "onOptionsItemSelected");
-        boolean handled=false;
-        switch (item.getItemId()) {
-            case BROWSER_ID:
+        int id = item.getItemId();
+        switch (id) {
+            case R.id.action_import:
                 launchBrowser();
-                handled=true;
-                break;
+                return (true);
         }
-        return handled;
+        return super.onOptionsItemSelected(item);
     }
 
     private void launchBrowser() {
@@ -96,14 +93,16 @@ public class FretListActivity extends ListActivity {
         });
 
         // Finally, a little indication of connection status
+        progressDialog.show();
         mConnectedListener = mFirebaseRef.getRoot().child(".info/connected").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                progressDialog.hide();
                 boolean connected = (Boolean) dataSnapshot.getValue();
                 if (connected) {
-                    Toast.makeText(FretListActivity.this, "Connected to Firebase", Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "Connected to Firebase");
                 } else {
-                    Toast.makeText(FretListActivity.this, "Disconnected from Firebase", Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "Disconnected from Firebase");
                 }
             }
 

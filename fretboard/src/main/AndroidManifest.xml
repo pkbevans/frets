@@ -20,38 +20,9 @@
         <activity
             android:name=".player.FretViewActivity"
             android:label="@string/app_name">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-            </intent-filter>
-            <intent-filter>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-
-                <action android:name="android.intent.action.VIEW"/>
-                <action android:name="android.intent.action.EDIT"/>
-                <action android:name="android.intent.action.PICK"/>
-
-                <data android:scheme="file"/>
-                <data android:mimeType="audio/midi"/>
-                <data android:host="*"/>
-                <data android:pathPattern=".*\\.mid"/>
-                <data android:pathPattern=".*\\..*\\.mid"/>
-                <data android:pathPattern=".*\\..*\\..*\\.mid"/>
-                <data android:pathPattern=".*\\..*\\..*\\..*\\.mid"/>
-                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.mid"/>
-                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.mid"/>
-                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.mid"/>
-                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\.mid"/>
-                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\.mid"/>
-                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\.mid"/>
-            </intent-filter>
-
         </activity>
         <activity
             android:name="com.bondevans.fretboard.filebrowser.FileBrowserActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-            </intent-filter>
         </activity>
         <activity
             android:name="com.bondevans.fretboard.fretlist.FretListActivity">

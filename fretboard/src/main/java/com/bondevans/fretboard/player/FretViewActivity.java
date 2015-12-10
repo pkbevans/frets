@@ -63,7 +63,7 @@ public class FretViewActivity extends Activity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        getMenuInflater().inflate(R.menu.fretview_menu, menu);
         return true;
     }
 
@@ -77,9 +77,6 @@ public class FretViewActivity extends Activity {
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
-        }
-        else if( id == R.id.action_export){
-            fragment.export();
         }
 
         return super.onOptionsItemSelected(item);
