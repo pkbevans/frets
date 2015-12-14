@@ -46,4 +46,6 @@
     <string name="song_name">Song Name</string>
     <string name="song_details">Please enter the Song Details</string>
     <string name="play_button_content_description">Play Button</string>
+    <string name="user_name">User Name</string>
+    <string name="hello_user">"Hello "</string>
 </resources>

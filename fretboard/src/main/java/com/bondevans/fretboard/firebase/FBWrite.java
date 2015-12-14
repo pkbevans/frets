@@ -3,8 +3,9 @@ package com.bondevans.fretboard.firebase;
 import android.content.Context;
 import android.util.Log;
 
-import com.bondevans.fretboard.firebase.dao.DeviceDetails;
-import com.bondevans.fretboard.firebase.dao.Usage;
+import com.bondevans.fretboard.firebase.dao.Songs;
+import com.bondevans.fretboard.firebase.dao.SongClick;
+import com.bondevans.fretboard.firebase.dao.Users;
 import com.bondevans.fretboard.fretview.FretSong;
 import com.firebase.client.Firebase;
 
@@ -20,23 +21,23 @@ import java.util.Map;
 public class FBWrite {
     private static final String TAG = FBWrite.class.getSimpleName();
 
-    public static void newUser(Context context, Firebase firebaseRef, String uid, String email) {
-        firebaseRef.child("users").child(uid).child("email").setValue(email);
-        // Also add some device details
-        DeviceDetails device = new DeviceDetails(context);
-        firebaseRef.child("users").child(uid).push().setValue(device);
+    public static void newUser(Context context, Firebase firebaseRef, String uid, Users user) {
+        firebaseRef.child(Users.childName).child(uid).setValue(user);
+        // TODO Also add some device details
+//        DeviceDetails device = new DeviceDetails(context);
+//        firebaseRef.child("users").child(uid).push().setValue(device);
     }
 
-    public static void usage(Firebase firebaseRef, String uid, String feature) {
-        Usage usage = new Usage(feature);
-        firebaseRef.child("usage").child(uid).push().setValue(usage);
+    public static void usage(Firebase firebaseRef, String uId, String songId) {
+        SongClick songClick = new SongClick(songId, uId);
+        firebaseRef.child(SongClick.childName).child(uId).push().setValue(songClick);
     }
 
     /**
      * Add a new Song to the firebase db
      * @param firebaseRef firebase reference
      * @param fretSong FretSoong to add to db
-     * @param description
+     * @param description Description of the song
      */
     public static void addSong(Firebase firebaseRef, FretSong fretSong, String description) {
         // First add the song contents - create a new record
@@ -49,10 +50,11 @@ public class FBWrite {
         contentsRef.setValue(post1);
         // Now store the Song Details entry using id as link to contents
         Firebase detailsRef = firebaseRef.child("songs");
-        post1.clear();
-        post1.put("id", songId);
-        post1.put("name", fretSong.getName());
-        post1.put("description", description);
-        detailsRef.push().setValue(post1);
+        detailsRef.push().setValue(new Songs(songId, fretSong.getName(), description));
+//        post1.clear();
+//        post1.put("id", songId);
+//        post1.put("name", fretSong.getName());
+//        post1.put("description", description);
+//        detailsRef.push().setValue(post1);
     }
 }

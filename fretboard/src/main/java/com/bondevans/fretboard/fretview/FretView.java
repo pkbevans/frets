@@ -135,7 +135,6 @@ public class FretView extends View {
 
     @Override
     protected void onDraw(Canvas g) {
-        Log.d(TAG, "onDraw");
         initialiseStuff();
         drawStrings(g);
         drawFrets(g);
@@ -418,7 +417,6 @@ public class FretView extends View {
         // Force redraw
         invalidate();
         if (++mCurrentFretEvent >= mFretTrack.fretEvents.size()) {
-            Log.d(TAG, "No more fretEvents - resetting to zero");
             mCurrentFretEvent = 0;
         }
         long delay = delayFromClicks(mFretTrack.fretEvents.get(mCurrentFretEvent).deltaTime);

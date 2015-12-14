@@ -11,6 +11,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.bondevans.fretboard.R;
+import com.bondevans.fretboard.firebase.dao.Users;
 import com.bondevans.fretboard.utils.Log;
 import com.firebase.client.AuthData;
 import com.firebase.client.Firebase;
@@ -25,7 +26,7 @@ public class SignUpDialog extends DialogFragment {
     private ProgressDialog mAuthProgressDialog;
 
     public interface NewUserListener {
-        void OnNewUser(AuthData authData, String email, String pwd);
+        void OnNewUser(AuthData authData, Users user, String pwd);
     }
 
     public void setNewUserListener(NewUserListener newUserListener) {
@@ -49,6 +50,7 @@ public class SignUpDialog extends DialogFragment {
     @Override
     public Dialog onCreateDialog(Bundle args) {
         final EditText email;
+        final EditText userName;
         final EditText pwd1;
         final EditText pwd2;
         Button signupButton;
@@ -63,6 +65,7 @@ public class SignUpDialog extends DialogFragment {
 
         status = (TextView) layout.findViewById(R.id.statusText);
         email = (EditText) layout.findViewById(R.id.email);
+        userName = (EditText) layout.findViewById(R.id.username);
         pwd1 = (EditText) layout.findViewById(R.id.password1);
         pwd2 = (EditText) layout.findViewById(R.id.password2);
 
@@ -72,6 +75,7 @@ public class SignUpDialog extends DialogFragment {
             public void onClick(View v) {
                 Log.d(TAG, "HELLO Signup button clicked");
                 if (email.getText().toString().isEmpty() ||
+                        userName.getText().toString().isEmpty() ||
                         pwd1.getText().toString().isEmpty() ||
                         pwd2.getText().toString().isEmpty()) {
                     status.setText(getString(R.string.create_user_txt));
@@ -83,12 +87,13 @@ public class SignUpDialog extends DialogFragment {
                     mFirebase.createUser(email.getText().toString().trim(), pwd1.getText().toString().trim(), new Firebase.ResultHandler() {
                         @Override
                         public void onSuccess() {
-                            mFirebase.authWithPassword(email.getText().toString().trim(), pwd1.getText().toString().trim(), new Firebase.AuthResultHandler() {
+                            final Users user = new Users(userName.getText().toString().trim(), email.getText().toString().trim());
+                            mFirebase.authWithPassword(user.getEmail(), pwd1.getText().toString().trim(), new Firebase.AuthResultHandler() {
                                 @Override
                                 public void onAuthenticated(AuthData authData) {
                                     mAuthProgressDialog.hide();
                                     Log.d(TAG, "HELLO Authentication OK");
-                                    newUserListener.OnNewUser(authData, email.getText().toString().trim(), pwd1.getText().toString().trim());
+                                    newUserListener.OnNewUser(authData, user, pwd1.getText().toString().trim());
                                     // Close dialog
                                     dismiss();
                                 }

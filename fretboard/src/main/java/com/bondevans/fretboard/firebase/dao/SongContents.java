@@ -1,9 +1,10 @@
 package com.bondevans.fretboard.firebase.dao;
 
 /**
- * Simple Songs Class for use with Firebase for retreiving and storing song details
+ * Simple Songs Class for use with Firebase for retrieving and storing song details
  */
 public class SongContents {
+    public static String childName = SongContents.class.getSimpleName().toLowerCase();
     String contents;
 
     /**

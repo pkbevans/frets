@@ -11,10 +11,13 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.bondevans.fretboard.R;
+import com.bondevans.fretboard.firebase.dao.Users;
 import com.bondevans.fretboard.utils.Log;
 import com.firebase.client.AuthData;
+import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
+import com.firebase.client.ValueEventListener;
 
 public class LoginDialog extends DialogFragment {
 
@@ -27,7 +30,7 @@ public class LoginDialog extends DialogFragment {
     private ProgressDialog mAuthProgressDialog;
 
     public interface LoginListener {
-        void OnLoginDetailsEntered(AuthData authData, String email, String pwd);
+        void OnLoginDetailsEntered(AuthData authData, Users user, String pwd);
 
         void OnReset(String email);
     }
@@ -78,7 +81,6 @@ public class LoginDialog extends DialogFragment {
             @Override
             public void onClick(View v) {
                 Log.d(TAG, "HELLO Login button clicked");
-                //                    loginListener.OnLoginDetailsEntered(email.getText().toString().trim(), pwd.getText().toString().trim());
                 if (email.getText().toString().isEmpty() ||
                         pwd.getText().toString().isEmpty()) {
                     status.setText(getString(R.string.login_txt));
@@ -88,11 +90,26 @@ public class LoginDialog extends DialogFragment {
                     mAuthProgressDialog.show();
                     mFirebase.authWithPassword(email.getText().toString().trim(), pwd.getText().toString().trim(), new Firebase.AuthResultHandler() {
                         @Override
-                        public void onAuthenticated(AuthData authData) {
+                        public void onAuthenticated(final AuthData authData) {
                             mAuthProgressDialog.hide();
-                            Log.d(TAG, "HELLO Authentication OK");
-                            loginListener.OnLoginDetailsEntered(authData, email.getText().toString().trim(), pwd.getText().toString().trim());
-                            dismiss();
+                            Log.d(TAG, "HELLO Authentication OK - Uid=[" + authData.getUid() + "]");
+                            // Get the User Name
+                            Firebase userRef = new Firebase(getString(R.string.firebase_url))
+                                    .child(Users.childName).child(authData.getUid());
+                            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(DataSnapshot dataSnapshot) {
+                                    Users user = dataSnapshot.getValue(Users.class);
+                                    Log.d(TAG, "Got username: " + user.getUsername());
+                                    loginListener.OnLoginDetailsEntered(authData, user, pwd.getText().toString().trim());
+                                    dismiss();
+                                }
+
+                                @Override
+                                public void onCancelled(FirebaseError firebaseError) {
+                                    Log.d(TAG, "OOPS " + firebaseError.getMessage());
+                                }
+                            });
                         }
 
                         @Override
