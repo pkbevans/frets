@@ -1,10 +1,12 @@
 package com.bondevans.fretboard.fretview;
 
+import com.bondevans.fretboard.midi.MidiFile;
+
 /**
  * A note on the fretboard
  */
 public class FretNote extends FretBase {
-    public static final String ELEMENT_NOTE = "note";
+    public static final String ELEMENT_NOTE = "nt";
     public static final String NOTE_ELEMENT_OPEN = "<" + ELEMENT_NOTE + ">";
     public static final String NOTE_ELEMENT_CLOSE = "</" + ELEMENT_NOTE + ">";
     private static final int NOT_SET = 99;
@@ -53,9 +55,9 @@ public class FretNote extends FretBase {
         this.note = getTagInt(note, ATTR_NOTE);
         this.string = getTagInt(note, ATTR_STRING);
         this.fret = getTagInt(note, ATTR_FRET);
-        this.name = getTagString(note, ATTR_NAME);
+        this.name = MidiFile.noteName(this.note);
         String on = getTagString(note, ATTR_ON);
-        this.on = on.equalsIgnoreCase("true");
+        this.on = on.equalsIgnoreCase("1");
     }
 
     @Override
@@ -65,7 +67,7 @@ public class FretNote extends FretBase {
                 attr(ATTR_ON, on) +
                 attr(ATTR_STRING, string) +
                 attr(ATTR_FRET, fret) +
-                attr(ATTR_NAME, name) +
+//                attr(ATTR_NAME, name) +
                 NOTE_ELEMENT_CLOSE;
     }
 }

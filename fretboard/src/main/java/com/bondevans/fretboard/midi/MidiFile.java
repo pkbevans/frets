@@ -204,7 +204,7 @@ public class MidiFile {
      * @param note Midi Note
      * @return Note name
      */
-    private String noteName(int note) {
+    public static String noteName(int note) {
         int div = note/12;
         int mod = note%12;
         String [] name = {"C", "C#","D","Eb", "E", "F", "F#", "G", "Ab", "A","B", "Bb"};

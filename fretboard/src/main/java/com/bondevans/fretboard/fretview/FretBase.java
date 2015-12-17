@@ -19,7 +19,7 @@ public class FretBase {
     }
 
     protected String attr(String name, boolean value) {
-        return name + "=" + "\"" + (value?"true":"false")+ "\" ";
+        return name + "=" + "\"" + (value ? "1" : "0") + "\" ";
     }
     protected String attr(String name, int value) {
 
