@@ -24,12 +24,15 @@ import android.widget.ImageButton;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bondevans.fretboard.R;
 import com.bondevans.fretboard.fretview.FretSong;
 import com.bondevans.fretboard.fretview.FretView;
 import com.bondevans.fretboard.midi.MidiTrack;
+import com.bondevans.fretboard.utils.FileLoaderTask;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -177,6 +180,23 @@ public class FretViewFragment extends Fragment {
         setupTrackSpinner();
     }
 
+    public void setFretSong(File file) {
+        progressDialog.show();
+        FileLoaderTask fileLoaderTask = new FileLoaderTask(file);
+        fileLoaderTask.setFileLoadedListener(new FileLoaderTask.FileLoadedListener() {
+            @Override
+            public void OnFileLoaded(String contents) {
+                setFretSong(new FretSong(contents));
+                progressDialog.hide();
+            }
+
+            @Override
+            public void OnError(String msg) {
+                Toast.makeText(getActivity(), msg, Toast.LENGTH_SHORT).show();
+            }
+        });
+        fileLoaderTask.execute();
+    }
     private void setupTrackSpinner() {
         mTrackAdapter = new ArrayAdapter<>
                 (this.getActivity(), simple_spinner_item, mTracks);

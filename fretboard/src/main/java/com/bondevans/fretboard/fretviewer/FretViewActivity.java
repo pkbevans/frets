@@ -14,6 +14,8 @@ import android.view.MenuItem;
 import com.bondevans.fretboard.R;
 import com.bondevans.fretboard.fretview.FretSong;
 
+import java.io.File;
+
 public class FretViewActivity extends Activity {
 
     private static final String TAG = "FretViewActivity";
@@ -35,7 +37,8 @@ public class FretViewActivity extends Activity {
             Intent intent = getIntent();
             String songContents = intent.getStringExtra(INTENT_SONGCONTENTS);
             if (songContents == null) {
-                Log.e(TAG, "THIS SHOULD NEVER HAPPEN!!!!");
+                Log.e(TAG, "Got File");
+                fragment.setFretSong(new File(intent.getData().getPath()));
             } else {
                 Log.d(TAG, "Got songcontents");
                 fragment.setFretSong(new FretSong(songContents));
