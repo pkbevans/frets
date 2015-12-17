@@ -18,7 +18,7 @@
         android:label="@string/app_name"
         android:theme="@android:style/Theme.Holo.Light.DarkActionBar">
         <activity
-            android:name=".player.FretViewActivity"
+            android:name=".fretviewer.FretViewActivity"
             android:label="@string/app_name">
         </activity>
         <activity

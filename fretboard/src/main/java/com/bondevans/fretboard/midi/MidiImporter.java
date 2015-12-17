@@ -10,7 +10,6 @@ import com.bondevans.fretboard.fretview.FretNote;
 import com.bondevans.fretboard.fretview.FretPosition;
 import com.bondevans.fretboard.fretview.FretSong;
 import com.bondevans.fretboard.fretview.FretTrack;
-import com.bondevans.fretboard.player.SongTrack;
 import com.bondevans.fretboard.utils.FileWriter;
 
 import java.io.File;
@@ -55,7 +54,7 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
         Log.d(TAG, "Loading header: " + mMidiFilePath);
         try {
             FretSong fretSong;
-            List<SongTrack> mTracks;
+            List<MidiTrack> mTracks;
             mMidiFile = new MidiFile(mMidiFilePath);
             mTracks = mMidiFile.getTracks();
 
@@ -110,6 +109,7 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
         List<FretNote> fretNotes = new ArrayList<>();
         int deltaTime = 0;
         int tempo = 0;
+        boolean hasNotes = false;
         for (MidiNoteEvent ev : midiNoteEvents) {
             if (!first && ev.deltaTime > 0) {
                 // If we get an event with a delay then get fret positions for the previous set,
@@ -126,6 +126,7 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
 //                Log.d(TAG, "Got event [" + ev.on + "][" + ev.name + "][" + ev.note + "]["+ev.instrument+"]");
             first = false;
             if (ev.type == MidiNoteEvent.TYPE_NOTE) {
+                hasNotes = true;
                 fretNotes.add(new FretNote(ev.note, ev.on));
             } else {
                 tempo = ev.tempo;
@@ -137,7 +138,7 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
             fretEvents.add(new FretEvent(deltaTime, fp.getFretPositions(fretNotes), 0));
         }
         // If no FretEvents at all then we want to ignore this track (throw an exception)
-        if(fretEvents.isEmpty()){
+        if (fretEvents.isEmpty() || !hasNotes) {
             throw new EmptyTrackException("Empty");
         }
 //            Log.d(TAG, "Got [" + fretEvents.size() + "] FretEvents");

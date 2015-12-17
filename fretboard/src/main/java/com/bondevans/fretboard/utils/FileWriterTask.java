@@ -9,6 +9,7 @@ import java.io.IOException;
  * Async Wrapper for FileWriter
  */
 public class FileWriterTask extends AsyncTask<Void, Void,String> {
+    private static final String TAG = FileWriterTask.class.getSimpleName();
     private final File file;
     private final String contents;
     private FileWrittenListener fileWrittenListener;
@@ -40,6 +41,7 @@ public class FileWriterTask extends AsyncTask<Void, Void,String> {
     @Override
     protected void onPostExecute(String s) {
         if(s.isEmpty()){
+            Log.d(TAG, "File written OK");
             fileWrittenListener.OnFileWritten();
         }
         else{

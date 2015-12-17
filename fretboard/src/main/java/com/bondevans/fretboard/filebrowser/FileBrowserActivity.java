@@ -3,10 +3,10 @@ package com.bondevans.fretboard.filebrowser;
 import android.Manifest;
 import android.app.Activity;
 import android.app.FragmentManager;
+import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
@@ -18,8 +18,9 @@ import com.bondevans.fretboard.R;
 import com.bondevans.fretboard.firebase.FBWrite;
 import com.bondevans.fretboard.fretview.FretSong;
 import com.bondevans.fretboard.fretview.FretSongLoader;
+import com.bondevans.fretboard.fretviewer.FretViewActivity;
 import com.bondevans.fretboard.midi.MidiImporter;
-import com.bondevans.fretboard.player.FretViewActivity;
+import com.bondevans.fretboard.utils.FileLoaderTask;
 import com.bondevans.fretboard.utils.Log;
 import com.firebase.client.Firebase;
 
@@ -36,6 +37,7 @@ public class FileBrowserActivity extends Activity implements
     private FileBrowserFragment fileBrowserFragment = null;
     private boolean mUpEnabled = false;
     private Menu mMenu = null;
+    private ProgressDialog progressDialog;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -47,6 +49,10 @@ public class FileBrowserActivity extends Activity implements
         getActionBar();
         FragmentManager fm = getFragmentManager();
         fileBrowserFragment = (FileBrowserFragment) fm.findFragmentById(R.id.browser_fragment);
+        // Setup the progress dialog that is displayed later
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage(getString(R.string.buffering_msg));
+        progressDialog.setCancelable(false);
     }
 
     /* (non-Javadoc)
@@ -95,19 +101,28 @@ public class FileBrowserActivity extends Activity implements
     }
 
     public void onFileSelected(File file) {
-        // Frig to allow cache files to be opened
         if (file.getName().endsWith("xml")) {
-            // Record SongClick
-            // Open the file with the FretViewActivity
-            Intent intent = new Intent(this, FretViewActivity.class);
-            intent.setData(Uri.fromFile(file));
-            try {
-                startActivity(intent);
-            } catch (ActivityNotFoundException e) {
-                Log.e(TAG, "NO ACTIVITY FOUND: FretViewActivity");
-            }
-        } else
-        if(file.getName().endsWith("mid")) {
+            progressDialog.show();
+            // Frig to allow cache files to be opened
+            // Get the file
+            Log.d(TAG, "Got file in cache: " + file.getName());
+            FileLoaderTask fileLoader = new FileLoaderTask(file);
+            fileLoader.setFileLoadedListener(new FileLoaderTask.FileLoadedListener() {
+                @Override
+                public void OnFileLoaded(String contents) {
+                    progressDialog.hide();
+                    Log.d(TAG, "File loaded");
+                    showFretView(contents);
+                }
+
+                @Override
+                public void OnError(String msg) {
+                    progressDialog.hide();
+                    Toast.makeText(FileBrowserActivity.this, msg, Toast.LENGTH_SHORT).show();
+                }
+            });
+            fileLoader.execute();
+        } else if (file.getName().endsWith("mid")) {
             // Import the midi file into an instance of FretSong
             // write out to file in cache (/sdcard/android.com.bondevans.fretplayer....)
             MidiImporter midiImporter = new MidiImporter(file,
@@ -144,6 +159,16 @@ public class FileBrowserActivity extends Activity implements
         }
     }
 
+    private void showFretView(String songContents) {
+        // Open the file with the FretViewActivity
+        Intent intent = new Intent(this, FretViewActivity.class);
+        intent.putExtra(FretViewActivity.INTENT_SONGCONTENTS, songContents);
+        try {
+            startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            Log.e(TAG, "NO ACTIVITY FOUND: FretViewActivity");
+        }
+    }
     private void writeSongToServer(final File file, final String name, final String description) {
         FretSongLoader fretSongLoader = new FretSongLoader(file);
         fretSongLoader.setSongLoadedListener(new FretSongLoader.SongLoadedListener() {

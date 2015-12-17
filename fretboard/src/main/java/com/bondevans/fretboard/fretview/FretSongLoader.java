@@ -2,7 +2,7 @@ package com.bondevans.fretboard.fretview;
 
 import android.os.AsyncTask;
 
-import com.bondevans.fretboard.utils.FileWriter;
+import com.bondevans.fretboard.utils.FileLoader;
 import com.bondevans.fretboard.utils.Log;
 
 import java.io.File;
@@ -43,7 +43,7 @@ public class FretSongLoader extends AsyncTask<Void, Integer, String> {
         Log.d(TAG, "Loading file: "+file.getName());
         // Load up FretSong class from file
         try {
-            mFretSong = new FretSong(FileWriter.loadFile(file));
+            mFretSong = new FretSong(FileLoader.loadFile(file));
             return "";    // All OK
         } catch (Exception e) {
             return e.getMessage();  // Oops

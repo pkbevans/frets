@@ -1,11 +1,10 @@
-package com.bondevans.fretboard.player;
+package com.bondevans.fretboard.fretviewer;
 
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,10 +12,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.bondevans.fretboard.R;
+import com.bondevans.fretboard.fretview.FretSong;
 
 public class FretViewActivity extends Activity {
 
     private static final String TAG = "FretViewActivity";
+    public static final String INTENT_SONGCONTENTS = "adfgfdg";
     private static final int REQUEST_CODE_READ_STORAGE_PERMISSION = 4522;
     private FretViewFragment fragment;
 
@@ -25,24 +26,25 @@ public class FretViewActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         checkFileAccessPermission();
-        //  See if we got a file name int he intent
         setContentView(R.layout.activity_main);
         fragment = (FretViewFragment) getFragmentManager()
                 .findFragmentById(R.id.fragment);
 
         if (savedInstanceState == null) {
+            //  We should have the song contents in the intent
             Intent intent = getIntent();
-            if (intent != null) {
-                Uri x = intent.getData();
-                if (x != null) {
-                    fragment.setFileName(x.getPath());
-                }
+            String songContents = intent.getStringExtra(INTENT_SONGCONTENTS);
+            if (songContents == null) {
+                Log.e(TAG, "THIS SHOULD NEVER HAPPEN!!!!");
+            } else {
+                Log.d(TAG, "Got songcontents");
+                fragment.setFretSong(new FretSong(songContents));
             }
         }
     }
 
     private void checkFileAccessPermission() {
-        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.M) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             Log.d(TAG, "checkFileAccessPermission 1");
             if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                 Log.d(TAG, "checkFileAccessPermission 2");

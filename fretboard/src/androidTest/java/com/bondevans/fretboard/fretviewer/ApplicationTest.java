@@ -1,4 +1,4 @@
-package com.bondevans.fretboard.player;
+package com.bondevans.fretboard.fretviewer;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

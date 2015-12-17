@@ -1,6 +1,6 @@
 package com.bondevans.fretboard.fretview;
 
-import com.bondevans.fretboard.player.SongTrack;
+import com.bondevans.fretboard.midi.MidiTrack;
 import com.bondevans.fretboard.utils.Log;
 
 import java.util.ArrayList;
@@ -21,10 +21,10 @@ public class FretSong extends FretBase {
     private static final String ATTR_TPQN = "tpqn";
     private static final String ATTR_BPM = "bpm";
     @Deprecated String id;  // Dont think we need this anymore
-    String name;
-    int tpqn;
-    int bpm;
-    List<FretTrack> fretTracks;
+    private String name;
+    private int tpqn;
+    private int bpm;
+    private List<FretTrack> fretTracks;
 
     /**
      * Constructor
@@ -112,11 +112,11 @@ public class FretSong extends FretBase {
         return bpm;
     }
 
-    public List<SongTrack> getTrackNames() {
-        List<SongTrack> ret = new ArrayList<>();
+    public List<MidiTrack> getTrackNames() {
+        List<MidiTrack> ret = new ArrayList<>();
         int i=0;
         for( FretTrack t: fretTracks){
-            ret.add(new SongTrack(t.name,i++));
+            ret.add(new MidiTrack(t.name, i++));
         }
         return ret;
     }
@@ -132,6 +132,10 @@ public class FretSong extends FretBase {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public int tracks() {
+        return fretTracks.size();
     }
 }
 

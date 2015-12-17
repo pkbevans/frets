@@ -3,7 +3,6 @@ package com.bondevans.fretboard.midi;
 import android.util.Log;
 
 import com.bondevans.fretboard.exception.FretboardException;
-import com.bondevans.fretboard.player.SongTrack;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -28,7 +27,7 @@ public class MidiFile {
 
     private File mMidiFile;
     private String songTitle;
-    private List<SongTrack> mTracks;
+    private List<MidiTrack> mTracks;
     private int mTicksPerQtrNote;
     private int BPM=120;
     private int[] mTrackChunkLength;
@@ -46,7 +45,7 @@ public class MidiFile {
         mHeaderLoaded = true;
     }
 
-    public List<SongTrack> getTracks() throws FretboardException {
+    public List<MidiTrack> getTracks() throws FretboardException {
         if (!mHeaderLoaded) {
             throw new FretboardException("ERRROR - Header not loaded");
         }
@@ -291,7 +290,7 @@ public class MidiFile {
                         // If this is the first track then assume that we have got the song title
                         this.songTitle = trackName;
                     }
-                    mTracks.add(new SongTrack(trackName, track));
+                    mTracks.add(new MidiTrack(trackName, track));
                 }
                 if(track==0){
                     // Lets get the tempo from the first track.

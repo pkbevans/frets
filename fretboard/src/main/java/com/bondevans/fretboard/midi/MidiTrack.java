@@ -1,13 +1,13 @@
-package com.bondevans.fretboard.player;
+package com.bondevans.fretboard.midi;
 
 /**
  * Track name and number
  */
-public class SongTrack {
+public class MidiTrack {
     public String name;
     public int index;
 
-    public SongTrack(String name, int index) {
+    public MidiTrack(String name, int index) {
         this.name = name;
         this.index = index;
     }

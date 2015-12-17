@@ -7,7 +7,6 @@ import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.DataSetObserver;
-import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.Menu;
@@ -26,7 +25,8 @@ import com.bondevans.fretboard.firebase.FBWrite;
 import com.bondevans.fretboard.firebase.dao.SongContents;
 import com.bondevans.fretboard.firebase.dao.Songs;
 import com.bondevans.fretboard.firebase.dao.Users;
-import com.bondevans.fretboard.player.FretViewActivity;
+import com.bondevans.fretboard.fretviewer.FretViewActivity;
+import com.bondevans.fretboard.utils.FileLoaderTask;
 import com.bondevans.fretboard.utils.FileWriterTask;
 import com.bondevans.fretboard.utils.Log;
 import com.firebase.client.AuthData;
@@ -148,8 +148,22 @@ public class FretListActivity extends ListActivity {
         if(cacheFile.exists()){
             // Get the file
             Log.d(TAG, "Got file in cache: " + cacheFile.getName());
-            progressDialog.hide();
-            showFretView(cacheFile);
+            FileLoaderTask fileLoader = new FileLoaderTask(cacheFile);
+            fileLoader.setFileLoadedListener(new FileLoaderTask.FileLoadedListener() {
+                @Override
+                public void OnFileLoaded(String contents) {
+                    progressDialog.hide();
+                    Log.d(TAG, "File loaded");
+                    showFretView(contents);
+                }
+
+                @Override
+                public void OnError(String msg) {
+                    progressDialog.hide();
+                    Toast.makeText(FretListActivity.this, msg, Toast.LENGTH_SHORT).show();
+                }
+            });
+            fileLoader.execute();
         } else {
             Log.d(TAG, "NOT in cache: " + cacheFile.getName());
             // Get the SongContent from the server
@@ -157,25 +171,12 @@ public class FretListActivity extends ListActivity {
             songRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
-//                    Log.d(TAG, "CHILD:" + dataSnapshot.toString());
-                    SongContents songContents = dataSnapshot.getValue(SongContents.class);
-                    // Write out to cache
-                    FileWriterTask fileWriterTask = new FileWriterTask(cacheFile, songContents.getContents());
-                    fileWriterTask.setFileWrittenListener(new FileWriterTask.FileWrittenListener() {
-                        @Override
-                        public void OnFileWritten() {
-                            // Start FretViewer
-                            progressDialog.hide();
-                            showFretView(cacheFile);
-                        }
-
-                        @Override
-                        public void OnError(String msg) {
-                            progressDialog.hide();
-                            Toast.makeText(FretListActivity.this,msg,Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                    fileWriterTask.execute();
+                    Log.d(TAG, "CHILD:" + dataSnapshot.toString());
+                    String songContents = dataSnapshot.child("contents").toString();
+                    // Write out to cache in background
+                    writeFileToCache(cacheFile, songContents);
+                    progressDialog.hide();
+                    showFretView(songContents);
                 }
 
                 @Override
@@ -190,9 +191,10 @@ public class FretListActivity extends ListActivity {
         FretApplication app = (FretApplication) getApplicationContext();
         FBWrite.usage(mFirebaseRef.getRoot(), app.getUID(), song.getId());
     }
-    private void showFretView(File file){
+
+    private void showFretView(String songContents) {
         Intent intent = new Intent(this, FretViewActivity.class);
-        intent.setData(Uri.fromFile(file));
+        intent.putExtra(FretViewActivity.INTENT_SONGCONTENTS, songContents);
         try {
             startActivity(intent);
         } catch (ActivityNotFoundException e) {
@@ -200,6 +202,23 @@ public class FretListActivity extends ListActivity {
         }
     }
 
+    private void writeFileToCache(final File cacheFile, String songContents) {
+        FileWriterTask fileWriterTask = new FileWriterTask(cacheFile, songContents);
+        fileWriterTask.setFileWrittenListener(new FileWriterTask.FileWrittenListener() {
+            @Override
+            public void OnFileWritten() {
+                Log.d(TAG, "File written to cache: " + cacheFile.getName());
+            }
+
+            @Override
+            public void OnError(String msg) {
+                progressDialog.hide();
+                Toast.makeText(FretListActivity.this, msg, Toast.LENGTH_SHORT).show();
+            }
+        });
+        fileWriterTask.execute();
+
+    }
     private void authenticateUser() {
         Log.d(TAG, "HELLO authenticateUser");
         /* Create the Firebase ref that is used for authentication with Firebase */
@@ -306,7 +325,7 @@ public class FretListActivity extends ListActivity {
         if (authData != null) {
             Log.d(TAG, "HELLO - authdata NOT null");
             /* show a provider specific status text */
-            Toast.makeText(this, R.string.hello_user + user.getUsername(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.hello_user) + user.getUsername(), Toast.LENGTH_SHORT).show();
             if (authData.getProvider().equals("anonymous")
                     || authData.getProvider().equals("password")) {
                 FretApplication app = (FretApplication) getApplicationContext();

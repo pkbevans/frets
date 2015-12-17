@@ -59,7 +59,7 @@ public class FretView extends View {
     private boolean mInitialised = false;
 
     public interface FretListener {
-        void OnProgressUpdated(int progress);
+        void OnProgressUpdated(int numberEvents, int currentEvent);
         void OnTempoChanged(int tempo);
 
         void OnPlayEnabled(boolean flag);
@@ -269,24 +269,28 @@ public class FretView extends View {
     }
 
     /**
-     * Instructs the view to start loading up the specified track in the given midi file
+     * Instructs the view to start loading up the specified track in the FretSong
      *
      * @param fretTrack Track to load
+     * @param tpqn ticks per quarter note
+     * @param bpm BPM
      */
     public void setTrack(FretTrack fretTrack, int tpqn, int bpm) {
         setTrack(fretTrack, tpqn, bpm, 0);
     }
 
-    public void setTrack(FretTrack frettrack, int tpqn, int bpm, int progress) {
+    public void setTrack(FretTrack frettrack, int tpqn, int bpm, int currentFretEvent) {
+        Log.d(TAG, "setTrack");
         mFretTrack = frettrack;
         mCurrentBPM = bpm;
-        moveTo(progress);
+        mCurrentFretEvent = currentFretEvent;
+        setNotes(mFretTrack.fretEvents.get(mCurrentFretEvent).fretNotes);
         mTicksPerQtrNote = tpqn;
         // Enable Play
         sendMidiProgramChange();
         fretListener.OnPlayEnabled(true);
-        invalidate();   // Force redraw to display Play button
         fretListener.OnTempoChanged(mCurrentBPM);
+        invalidate();   // Force redraw
     }
 
     /**
@@ -319,8 +323,6 @@ public class FretView extends View {
                     e.printStackTrace();
                     Log.e(TAG, "OOPS Midi send didn't work");
                 }
-            } else {
-                Log.e(TAG, "OOPs - Midi Port NULL 4");
             }
         }
     }
@@ -339,8 +341,6 @@ public class FretView extends View {
                     e.printStackTrace();
                     Log.e(TAG, "OOPS Midi sendNotesOffdidn't work");
                 }
-            } else {
-                Log.e(TAG, "OOPs - Midi Port NULL 3");
             }
         }
     }
@@ -364,8 +364,6 @@ public class FretView extends View {
                         }
                     }
                 }
-            } else {
-                Log.e(TAG, "OOPs - Midi Port NULL 1");
             }
         }
     }
@@ -385,8 +383,6 @@ public class FretView extends View {
                     e.printStackTrace();
                     Log.e(TAG, "OOPS Midi send didn't work");
                 }
-            } else {
-                Log.e(TAG, "OOPs - Midi Port NULL 2");
             }
         }
     }
@@ -422,7 +418,7 @@ public class FretView extends View {
         long delay = delayFromClicks(mFretTrack.fretEvents.get(mCurrentFretEvent).deltaTime);
 
         // Update progress listener (so it can update the seekbar (or whatever)
-        fretListener.OnProgressUpdated(mCurrentFretEvent * 100 / mFretTrack.fretEvents.size());
+        fretListener.OnProgressUpdated(mFretTrack.fretEvents.size(), mCurrentFretEvent);
         mFretEventHandler.sleep(delay);
     }
 
@@ -475,7 +471,7 @@ public class FretView extends View {
     class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-            Log.d(TAG, "HELLO onFling");
+//            Log.d(TAG, "HELLO onFling");
             return false;
         }
 
@@ -520,11 +516,10 @@ public class FretView extends View {
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 //        Log.d(TAG, "onMeasure getWidth ["+getWidth()+"]getHeight["+getHeight()+"]widthMeasureSpec["
 //                +widthMeasureSpec+"] heightMeasureSpec["+heightMeasureSpec+"]");
-//        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         int height = MeasureSpec.getSize(heightMeasureSpec);
         int width = height * 3;
-        Log.d(TAG, "onMeasure getWidth [" + getWidth() + "]getHeight[" + getHeight() + "]width["
-                + width + "] height[" + height + "]");
+//        Log.d(TAG, "onMeasure getWidth [" + getWidth() + "]getHeight[" + getHeight() + "]width["
+//                + width + "] height[" + height + "]");
 
         //MUST CALL THIS
         setMeasuredDimension(width, height);
