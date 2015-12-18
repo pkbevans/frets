@@ -28,7 +28,7 @@ import android.widget.Toast;
 
 import com.bondevans.fretboard.R;
 import com.bondevans.fretboard.fretview.FretSong;
-import com.bondevans.fretboard.fretview.FretView;
+import com.bondevans.fretboard.fretview.FretTrackView;
 import com.bondevans.fretboard.midi.MidiTrack;
 import com.bondevans.fretboard.utils.FileLoaderTask;
 
@@ -47,7 +47,7 @@ public class FretViewFragment extends Fragment {
     private static final String KEY_MIDI = "midi";
     private static final int NO_TRACK_SELECTED = -1;
     private boolean mMidiSupported;
-    private FretView mFretView;
+    private FretTrackView mFretTrackView;
     private List<MidiTrack> mTracks = new ArrayList<>();
     private Spinner mTrackSpinner;
     ArrayAdapter<MidiTrack> mTrackAdapter;
@@ -104,8 +104,8 @@ public class FretViewFragment extends Fragment {
                              Bundle savedInstanceState) {
         Log.d(TAG, "onCreateView");
         View myView = inflater.inflate(R.layout.fretview_layout, container, false);
-        mFretView = (FretView) myView.findViewById(R.id.fretboard);
-        mFretView.setFretListener(new FretView.FretListener() {
+        mFretTrackView = (FretTrackView) myView.findViewById(R.id.fretview);
+        mFretTrackView.setFretListener(new FretTrackView.FretListener() {
             @Override
             public void OnProgressUpdated(int length, int current) {
                 mCurrentEvent = current;
@@ -117,6 +117,7 @@ public class FretViewFragment extends Fragment {
                 mTempo = tempo;
                 mTempoText.setText(String.valueOf(tempo));
             }
+
             @Override
             public void OnPlayEnabled(boolean flag) {
                 mPlay = true;
@@ -135,7 +136,7 @@ public class FretViewFragment extends Fragment {
                 // If user moves the position, then need to update current fretEvent in Fretboard view
                 // progress = a value between 0-100 - e.g. percent of way through the song
                 if (fromUser) {
-                    mFretView.moveTo(progress);
+                    mFretTrackView.moveTo(progress);
                 }
             }
 
@@ -154,7 +155,7 @@ public class FretViewFragment extends Fragment {
                 // Toggle Play/pause
                 mPlay = !mPlay;
                 playPauseButton.setImageDrawable(mPlay ? playDrawable : pauseDrawable);
-                mFretView.play();
+                mFretTrackView.play();
             }
         });
         if (savedInstanceState != null) {
@@ -220,11 +221,11 @@ public class FretViewFragment extends Fragment {
             if(mSelectedTrack == pos) {
                 Log.d(TAG, "ORIENTATION CHANGE Track " + pos + " selected: "+ track);
                 // must be orientation change
-                mFretView.setTrack(mFretSong.getTrack(track.index), mFretSong.getTpqn(), mTempo, mCurrentEvent);
+                mFretTrackView.setTrack(mFretSong.getTrack(track.index), mFretSong.getTpqn(), mTempo, mCurrentEvent);
             }
             else{
                 // Must be different track selected in current session
-                mFretView.setTrack(mFretSong.getTrack(track.index), mFretSong.getTpqn(), mFretSong.getBpm());
+                mFretTrackView.setTrack(mFretSong.getTrack(track.index), mFretSong.getTpqn(), mFretSong.getBpm());
             }
             mSelectedTrack = pos;
         }
@@ -240,7 +241,7 @@ public class FretViewFragment extends Fragment {
         super.onPause();
         Log.d(TAG, "onPause");
         // The app is losing focus so need to stop the
-        mFretView.pause();
+        mFretTrackView.pause();
     }
 
     @Override
@@ -325,8 +326,8 @@ public class FretViewFragment extends Fragment {
                                 Log.e(TAG, "could not open input port on " + info);
                             } else {
                                 Log.d(TAG, "Port " + port + " opened.");
-                                if (mFretView != null) {
-                                    mFretView.setInputPort(inputPort, 1);
+                                if (mFretTrackView != null) {
+                                    mFretTrackView.setInputPort(inputPort, 1);
                                 }
                             }
                         }
