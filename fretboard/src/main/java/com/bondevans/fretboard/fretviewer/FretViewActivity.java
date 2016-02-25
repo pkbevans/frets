@@ -3,6 +3,7 @@ package com.bondevans.fretboard.fretviewer;
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -12,15 +13,17 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.bondevans.fretboard.R;
+import com.bondevans.fretboard.freteditor.FretEditActivity;
 import com.bondevans.fretboard.fretview.FretSong;
 
 import java.io.File;
 
 public class FretViewActivity extends Activity {
 
-    private static final String TAG = "FretViewActivity";
+    private static final String TAG = FretViewActivity.class.getSimpleName();
     public static final String INTENT_SONGCONTENTS = "adfgfdg";
     private static final int REQUEST_CODE_READ_STORAGE_PERMISSION = 4522;
+    private static final int REQUEST_EDIT_FRET = 678;
     private FretViewFragment fragment;
 
     @Override
@@ -61,7 +64,6 @@ public class FretViewActivity extends Activity {
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        // TODO need to handle user not allowing access.
         Log.d(TAG, "onRequestPermissionsResult");
     }
 
@@ -82,14 +84,41 @@ public class FretViewActivity extends Activity {
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
+        } else if (id == R.id.action_edit) {
+            showFretEdit();
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void showFretEdit() {
+        Intent intent = new Intent(this, FretEditActivity.class);
+        intent.putExtra(FretEditActivity.INTENT_FRETSONG, fragment.getFretSong().toString());
+        // Add the file location into the intent, so that the editor can update the file
+        Log.d(TAG, "setting data: " + getIntent().getDataString());
+        intent.setData(getIntent().getData());
+
+        try {
+            startActivityForResult(intent, REQUEST_EDIT_FRET);
+        } catch (ActivityNotFoundException e) {
+            Log.e(TAG, "NO ACTIVITY FOUND: FretEditActivity");
+        }
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         Log.d(TAG, "HELLO on SaveInstanceState");
         super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.d(TAG, "HELLO onActivityResult-activity request=[" + requestCode + "]result=[" + resultCode + "]");
+        if (requestCode == REQUEST_EDIT_FRET && resultCode == FretEditActivity.RESULT_EDITED) {
+            Log.d(TAG, "HELLO EDIT_FRET Finished");
+            // Reload the fretTrack because it has been edited
+            fragment.setFretSong(new File(getIntent().getData().getPath()));
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 }

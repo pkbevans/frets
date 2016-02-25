@@ -35,7 +35,7 @@ public class FretView extends View {
     private int mSpaceBeforeNut;
     private int mStringSpace;
     protected List<FretNote> mFretNotes;
-    private float mRadius;
+    protected float mRadius;
     private boolean mInitialised = false;
 
     public FretView(Context context) {
@@ -179,6 +179,7 @@ public class FretView extends View {
                     } else {
                         mPaintNote.setStyle(Paint.Style.FILL);
                     }
+                    mPaintNote.setColor(Color.BLACK);
                     g.drawCircle(getNoteX(mFretNotes.get(i)), getNoteY(mFretNotes.get(i)), mRadius, mPaintNote);
                 }
             }

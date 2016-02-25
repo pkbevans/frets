@@ -75,7 +75,6 @@ public class FretTrackView extends FretView {
                 return gestureDetector.onTouchEvent(event);
             }
         };
-
         this.setOnTouchListener(gestureListener);
         mFretEventHandler = new FretEventHandler();
     }

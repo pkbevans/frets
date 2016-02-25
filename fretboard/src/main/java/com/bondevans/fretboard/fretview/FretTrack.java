@@ -16,8 +16,8 @@ public class FretTrack extends FretBase {
     public static final String TRACK_ELEMENT_OPEN = "<"+ELEMENT_TRACK+">";
     public static final String TRACK_ELEMENT_CLOSE = "</"+ELEMENT_TRACK+">";
     private static final String ATTR_NAME = "na";
-    String name;
-    List<FretEvent> fretEvents;
+    private String name;
+    public List<FretEvent> fretEvents;
 
     /**
      * Constructor
@@ -53,6 +53,10 @@ public class FretTrack extends FretBase {
 //            Log.d(TAG, "HELLO found <ev> tag: [" + ev + "]");
             fretEvents.add(new FretEvent(ev));
         }
+    }
+
+    public String getName() {
+        return name;
     }
 
     /**

@@ -10,6 +10,7 @@ import com.bondevans.fretboard.fretview.FretNote;
 import com.bondevans.fretboard.fretview.FretPosition;
 import com.bondevans.fretboard.fretview.FretSong;
 import com.bondevans.fretboard.fretview.FretTrack;
+import com.bondevans.fretboard.instruments.FretGuitarStandard;
 import com.bondevans.fretboard.utils.FileWriter;
 
 import java.io.File;
@@ -19,10 +20,6 @@ import java.util.List;
 
 public class MidiImporter extends AsyncTask<Void, Integer, String> {
     private static final String TAG = MidiImporter.class.getSimpleName();
-    private static final int MAX_STRINGS_GUITAR = 6;
-    private static final int[] GUITAR_STANDARD_TUNING = new int[]{64, 59, 55, 50, 45, 40};   // Highest to lowest
-    private static final String[] GUITAR_STANDARD_TUNING_STRING_NAMES = new String[]{"Top E", "B", "G", "D", "A", "Low E"};
-    private static final int MAX_FRETS_GUITAR = 20;
     private static final String NO_ID_YET = "";
     private final File mOutFile;
     private File mMidiFilePath;
@@ -62,7 +59,7 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
             for (int i=0; i<mTracks.size();i++) {
 
                 try {
-                    fretSong.add(loadTrack(mTracks.get(i).name, mTracks.get(i).index));
+                    fretSong.addTrack(loadTrack(mTracks.get(i).name, mTracks.get(i).index));
                 } catch (EmptyTrackException e) {
                     Log.d(TAG, "Ignoring Empty track: "+mTracks.get(i).name);
                 }
@@ -104,8 +101,9 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
 //            Log.d(TAG, "Loading Fret Events");
         fretEvents = new ArrayList<>();
         boolean first = true;
-        FretPosition fp = new FretPosition(MAX_STRINGS_GUITAR, MAX_FRETS_GUITAR,
-                GUITAR_STANDARD_TUNING, GUITAR_STANDARD_TUNING_STRING_NAMES);
+//        FretPosition fp = new FretPosition(MAX_STRINGS_GUITAR, MAX_FRETS_GUITAR,
+//                GUITAR_STANDARD_TUNING, GUITAR_STANDARD_TUNING_STRING_NAMES);
+        FretPosition fp = new FretPosition(new FretGuitarStandard());
         List<FretNote> fretNotes = new ArrayList<>();
         int deltaTime = 0;
         int tempo = 0;

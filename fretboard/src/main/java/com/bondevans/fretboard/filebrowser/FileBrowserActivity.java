@@ -45,7 +45,7 @@ public class FileBrowserActivity extends Activity implements
         Log.d(TAG, "HELLO onCreate");
         mFirebaseRef = new Firebase(getString(R.string.firebase_url));
         checkFileAccessPermission();
-        setContentView(R.layout.file_browser_activity);// This is the xml with all the different frags
+        setContentView(R.layout.filebrowser_activity);// This is the xml with all the different frags
         getActionBar();
         FragmentManager fm = getFragmentManager();
         fileBrowserFragment = (FileBrowserFragment) fm.findFragmentById(R.id.browser_fragment);

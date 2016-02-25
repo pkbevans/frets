@@ -1,7 +1,5 @@
 package com.bondevans.fretboard.fretview;
 
-import com.bondevans.fretboard.utils.Log;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -11,7 +9,7 @@ import java.util.regex.Pattern;
  * A FretEvent is an event that impacts on the Fretboard
  */
 public class FretEvent extends FretBase {
-    private static final String TAG = FretEvent.class.getSimpleName();
+    //    private static final String TAG = FretEvent.class.getSimpleName();
     public static final String ELEMENT_EVENT = "ev";
     public static final String EVENT_ELEMENT_OPEN = "<"+ELEMENT_EVENT+">";
     public static final String EVENT_ELEMENT_CLOSE = "</"+ELEMENT_EVENT+">";
@@ -19,7 +17,7 @@ public class FretEvent extends FretBase {
     private static final String ATTR_TEMPO = "te";
     int deltaTime;
     int tempo;
-    List<FretNote> fretNotes;
+    public List<FretNote> fretNotes;
 
     /**
      * Constructor
@@ -72,6 +70,21 @@ public class FretEvent extends FretBase {
         }
         sb.append(EVENT_ELEMENT_CLOSE);
         return sb.toString();
+    }
+
+    /**
+     * Returns true if this event has ON notes (or false if it only has OFF notes)
+     *
+     * @return True if there are ON notes in this event, else False
+     */
+    public boolean hasOnNotes() {
+        for (FretNote fretNote : fretNotes) {
+            if (fretNote.on) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
 

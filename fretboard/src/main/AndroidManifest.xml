@@ -25,6 +25,9 @@
             android:name="com.bondevans.fretboard.filebrowser.FileBrowserActivity">
         </activity>
         <activity
+            android:name="com.bondevans.fretboard.freteditor.FretEditActivity">
+        </activity>
+        <activity
             android:name="com.bondevans.fretboard.fretlist.FretListActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>

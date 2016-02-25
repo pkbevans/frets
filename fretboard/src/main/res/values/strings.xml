@@ -48,4 +48,13 @@
     <string name="play_button_content_description">Play Button</string>
     <string name="user_name">User Name</string>
     <string name="hello_user">"Hello "</string>
+    <string name="back">Back</string>
+    <string name="forward">forward</string>
+    <string name="action_edit">Edit…</string>
+    <string name="down">Down</string>
+    <string name="prev">Prev</string>
+    <string name="next">Next</string>
+    <string name="save_file">Do you want to save this Fret?</string>
+    <string name="fret_saved">Fret saved</string>
+    <string name="save_failed">Failed to save Fret</string>
 </resources>

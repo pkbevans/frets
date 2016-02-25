@@ -57,7 +57,7 @@ public class FretListActivity extends ListActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.fretlist_activity_main);
+        setContentView(R.layout.fretlist_layout);
         authenticateUser();
         // Setup our Firebase
         mFirebaseRef = new Firebase(getString(R.string.firebase_url)).child("songs");
@@ -159,7 +159,7 @@ public class FretListActivity extends ListActivity {
                     @Override
                     public void OnFileLoaded(String contents) {
                         Log.d(TAG, "File loaded");
-                        showFretView(contents);
+                        showFretView(cacheFile, contents);
                     }
 
                     @Override
@@ -177,8 +177,8 @@ public class FretListActivity extends ListActivity {
             songRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
-                    Log.d(TAG, "CHILD:" + dataSnapshot.toString());
                     String songContents = dataSnapshot.child("contents").toString();
+                    Log.d(TAG, "HELLO CHILD:" + songContents);
                     if (songContents.length() > ARBITRARY_LARGE_NUMBER) {
                         Log.d(TAG, "File size too big: " + cacheFile.length());
                         // Write out to cache and then show FretView
@@ -186,7 +186,7 @@ public class FretListActivity extends ListActivity {
                     } else {
                         // Write out to cache in background
                         writeFileToCache(cacheFile, songContents, false);
-                        showFretView(songContents);
+                        showFretView(cacheFile, songContents);
                     }
                 }
 
@@ -214,10 +214,12 @@ public class FretListActivity extends ListActivity {
         }
     }
 
-    private void showFretView(String songContents) {
+    private void showFretView(File fretFile, String songContents) {
         progressDialog.hide();
         Intent intent = new Intent(this, FretViewActivity.class);
         intent.putExtra(FretViewActivity.INTENT_SONGCONTENTS, songContents);
+        // Need the file as well as the contents so that the Freteditor can save updates back to the file.
+        intent.setData(Uri.fromFile(fretFile));
         try {
             startActivity(intent);
         } catch (ActivityNotFoundException e) {

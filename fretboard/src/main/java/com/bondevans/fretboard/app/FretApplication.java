@@ -10,7 +10,7 @@ import com.firebase.client.Firebase;
  */
 public class FretApplication extends android.app.Application {
     private static final String TAG = FretApplication.class.getSimpleName();
-    private String mUID; // Unique User ID
+    private String mUID = ""; // Unique User ID
 
     @Override
     public void onCreate() {

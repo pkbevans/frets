@@ -276,7 +276,7 @@ public class FileBrowserFragment extends ListFragment {
         String selectedItem = (String) getListView().getItemAtPosition(info.position);
         super.onCreateContextMenu(menu, v, menuInfo);
         MenuInflater inflater = getActivity().getMenuInflater();
-        inflater.inflate(R.menu.file_browser_menu, menu);
+        inflater.inflate(R.menu.filebrowser_menu, menu);
         menu.setHeaderTitle("Options");
         if (selectedItem.endsWith(File.separator) || selectedItem.equals("..")) {
             // Directory, so can't edit or delete or convert or save_as or add to set

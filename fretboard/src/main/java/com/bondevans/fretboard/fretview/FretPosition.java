@@ -2,29 +2,31 @@ package com.bondevans.fretboard.fretview;
 
 import android.util.Log;
 
+import com.bondevans.fretboard.instruments.FretInstrument;
+
 import java.util.List;
 
 public class FretPosition {
 
     private static final String TAG = "FretPosition";
-    private int numStrings;    // Nunmber of numStrings on this instrument
-    private int numFrets;      // Number of numFrets on this instrument
-    private int[] tuning;  // Tuning - e.g. on guitar EADGBE = 40, 45, 50, 55, 59, 64
-    private String [] stringNames;  // For Debugging purposes mainly.
-
-    private boolean[] stringAvailable;
+    private int mNumStrings;    // Nunmber of strings on this instrument
+    private int mNumFrets;      // Number of frets on this instrument
+    private int[] mTuning;  // Tuning - e.g. on guitar EADGBE = 40, 45, 50, 55, 59, 64
+    private String[] mStringNames;  // For Debugging purposes mainly.
+    private boolean[] mStringAvailable;
 
     /**
-     * Constructor sets up instrument
+     * Constructor takes FretInstrument definition
+     * @param instrument Instrument definition
      */
-    public FretPosition(int numStrings, int numFrets, int[] tuning, String [] stringNames) {
+    public FretPosition(FretInstrument.Instrument instrument) {
         Log.d(TAG, "Constructor");
-        this.numStrings = numStrings;
-        this.numFrets = numFrets;
-        this.tuning = tuning;
-        this.stringNames = stringNames;
+        this.mNumStrings = instrument.numStrings();
+        this.mNumFrets = instrument.numFrets();
+        this.mTuning = instrument.TUNING();
+        this.mStringNames = instrument.STRING_NAMES();
         // Initialise arrays
-        this.stringAvailable = new boolean[numStrings];
+        this.mStringAvailable = new boolean[mNumStrings];
     }
 
     public List<FretNote> getFretPositions(List<FretNote> fretNotes) {
@@ -34,9 +36,9 @@ public class FretPosition {
         List<FretNote> mFretNotes;
 //        Log.d(TAG, "getFretPositions");
         mFretNotes = fretNotes;
-        // reset stringAvailable
-        for (int i = 0; i < numStrings; i++) {
-            stringAvailable[i] = true;
+        // reset mStringAvailable
+        for (int i = 0; i < mNumStrings; i++) {
+            mStringAvailable[i] = true;
         }
         // Work out string/fret positions for each note
         FretNote fretNote;
@@ -47,18 +49,18 @@ public class FretPosition {
             fretNote = mFretNotes.get(i);
             // Utterly simplistic - get first position that fits
             // Start with highest note and top string
-            for(int j = 0;j < numStrings; j++) {
-                if (stringAvailable[j]) {
-                    if (fretNote.note >= tuning[j] && fretNote.note <= (tuning[j] + numFrets)) {
+            for (int j = 0; j < mNumStrings; j++) {
+                if (mStringAvailable[j]) {
+                    if (fretNote.note >= mTuning[j] && fretNote.note <= (mTuning[j] + mNumFrets)) {
                         fretNote.string = j;
-                        fretNote.fret = fretNote.note - tuning[j];
+                        fretNote.fret = fretNote.note - mTuning[j];
                         fretNote.name = setName(fretNote.note);
                         if(fretNote.on) {
                             // Only use up a string for ON notes
-                            stringAvailable[j] = false;
+                            mStringAvailable[j] = false;
                         }
 //                        Log.d(TAG, "Found position for note[" + i + "] [" + fretNote.note + "] string[" +
-//                                stringNames[fretNote.string] + "] fret [" + fretNote.fret +
+//                                mStringNames[fretNote.string] + "] fret [" + fretNote.fret +
 //                                "] name [" + fretNote.name + "]");
                         // Update FretNote list with updated element
                         mFretNotes.set(i,fretNote);
@@ -83,5 +85,34 @@ public class FretPosition {
         int div = note / 12;
         int mod = note % 12;
         return noteName[mod] + (div - 1);
+    }
+
+    /**
+     * Takes a <code>FretNote</code> and returns the same note moved to the next string
+     *
+     * @param fretNote the note
+     * @param up       true = UP, false = DOWN
+     */
+    public void moveNoteOneString(FretNote fretNote, boolean up) {
+        if ((up && fretNote.string >= (mNumStrings - 1)) || (!up && fretNote.string == 0)) {
+            // Already on lowest string so cant move up the fret board
+            // or already on highest string so cant move down the fretboard
+            Log.d(TAG, "moveNoteOneString1");
+            return;
+        }
+        if (!up && (fretNote.note - mTuning[fretNote.string - 1]) < 0) {
+            // Already too close to the nut to move down the fretboard
+            Log.d(TAG, "moveNoteOneString2");
+            return;
+        }
+        if (up && mTuning[fretNote.string + 1] - fretNote.note >= mNumFrets) {
+            // Already too close to the bridge to move up the fretboard
+            Log.d(TAG, "moveNoteOneString3");
+            return;
+        }
+
+        fretNote.string += (up ? 1 : -1);
+        // find new fret position...
+        fretNote.fret = fretNote.note - mTuning[fretNote.string];
     }
 }

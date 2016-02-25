@@ -85,7 +85,7 @@ public class FretSong extends FretBase {
             sb.append(track.toString());
         }
         sb.append(SONG_ELEMENT_CLOSE);
-        Log.d(TAG, "XML: "+sb.toString());
+        Log.d(TAG, "XML: " + sb.toString());
         return sb.toString();
     }
 
@@ -93,7 +93,7 @@ public class FretSong extends FretBase {
      * Add a new track to the song. Initialises list if not already done
      * @param fretTrack tracvk to add
      */
-    public void add(FretTrack fretTrack) {
+    public void addTrack(FretTrack fretTrack) {
         if(fretTracks == null){
             fretTracks = new ArrayList<>();
         }
@@ -116,7 +116,7 @@ public class FretSong extends FretBase {
         List<MidiTrack> ret = new ArrayList<>();
         int i=0;
         for( FretTrack t: fretTracks){
-            ret.add(new MidiTrack(t.name, i++));
+            ret.add(new MidiTrack(t.getName(), i++));
         }
         return ret;
     }

@@ -336,4 +336,8 @@ public class FretViewFragment extends Fragment {
             }
         }
     }
+
+    public FretSong getFretSong() {
+        return mFretSong;
+    }
 }
