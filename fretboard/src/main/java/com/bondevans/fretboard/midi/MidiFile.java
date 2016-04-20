@@ -183,7 +183,11 @@ public class MidiFile {
                 case MidiEvent.NOTE_EVENT_TYPE_CONTROLLER:
                 case MidiEvent.NOTE_EVENT_TYPE_PITCHBEND:
                     param2 = in.read();
-                    Log.d(TAG, "NOTE_AFTER_TOUCH/CONTROLLER/PICTHBEND [" + noteEventType + "]["+iToHex(param1)+"]["+iToHex(param2)+"]");
+                    if (noteEventType == MidiEvent.NOTE_EVENT_TYPE_PITCHBEND) {
+                        Log.d(TAG, "PICTHBEND [" + noteEventType + "][" + iToHex(param1) + "][" + iToHex(param2) + "]");
+                    } else {
+                        Log.d(TAG, "NOTE_AFTER_TOUCH/CONTROLLER [" + noteEventType + "][" + iToHex(param1) + "][" + iToHex(param2) + "]");
+                    }
                     break;
                 case MidiEvent.NOTE_EVENT_TYPE_PROGRAM_CHANGE:
                 case MidiEvent.NOTE_EVENT_TYPE_CHANNEL_AFTERTOUCH:

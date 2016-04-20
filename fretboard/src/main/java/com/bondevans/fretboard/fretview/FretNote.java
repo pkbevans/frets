@@ -9,17 +9,20 @@ public class FretNote extends FretBase {
     public static final String ELEMENT_NOTE = "nt";
     public static final String NOTE_ELEMENT_OPEN = "<" + ELEMENT_NOTE + ">";
     public static final String NOTE_ELEMENT_CLOSE = "</" + ELEMENT_NOTE + ">";
+    public static final int MAX_BEND = 10;
     private static final int NOT_SET = 99;
     private static final String ATTR_NOTE = "no";
     private static final String ATTR_ON = "on";
     private static final String ATTR_STRING = "st";
     private static final String ATTR_FRET = "fr";
+    private static final String ATTR_BEND = "be";
     private static final String ATTR_NAME = "na";
-    int note;   // Midi note value (Bottom E on standard Guitar is 40)
-    public boolean on;     // True = turn note ON, False = turn FretNote off
-    int string; // String number from 0 to mStrings (0=highest string - i.e. Top E on standard guitar)
-    int fret;   // fret position
-    String name;   // FretNote name (e.g. E, F#, etc)
+    int note;               // Midi note value (Bottom E on standard Guitar is 40)
+    public boolean on;      // True = turn note ON, False = turn FretNote off
+    int string;             // String number from 0 to mStrings (0=highest string - i.e. Top E on standard guitar)
+    int fret;               // fret position
+    String name;            // FretNote name (e.g. E, F#, etc)
+    int bend;               // Amount of bend on the string.  A value between 0-10
 
     /**
      * Constructor takes note, ON/OFF and fret details
@@ -55,6 +58,7 @@ public class FretNote extends FretBase {
         this.note = getTagInt(note, ATTR_NOTE);
         this.string = getTagInt(note, ATTR_STRING);
         this.fret = getTagInt(note, ATTR_FRET);
+        this.bend = getTagInt(note, ATTR_BEND);
         this.name = MidiFile.noteName(this.note);
         String on = getTagString(note, ATTR_ON);
         this.on = on.equalsIgnoreCase("1");
@@ -67,6 +71,7 @@ public class FretNote extends FretBase {
                 attr(ATTR_ON, on) +
                 attr(ATTR_STRING, string) +
                 attr(ATTR_FRET, fret) +
+                attr(ATTR_BEND, bend) +
 //                attr(ATTR_NAME, name) +
                 NOTE_ELEMENT_CLOSE;
     }
