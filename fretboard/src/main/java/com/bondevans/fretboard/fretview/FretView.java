@@ -129,15 +129,15 @@ public class FretView extends View {
         // Draw  Strings
         int string = 0;
         while (string < mStrings) {
+            stringY = (string + 1) * mStringSpace;
             if (!mBentStrings[string]) {
                 // Draw string
-                stringY = (string + 1) * mStringSpace;
-                g.drawLine(0, stringY, getWidth(), stringY, mPaint);
-                // Write String note
-                mPaintText.getTextBounds(mStringText[string], 0, 1, mRect);
-                textHeight = mRect.height();
-                g.drawText(mStringText[string], 0, stringY + textHeight / 2, mPaintText);
+                g.drawLine(mSpaceBeforeNut, stringY, getWidth(), stringY, mPaint);
             }
+            // Write String note
+            mPaintText.getTextBounds(mStringText[string], 0, 1, mRect);
+            textHeight = mRect.height();
+            g.drawText(mStringText[string], 0, stringY + textHeight / 2, mPaintText);
             ++string;
         }
     }

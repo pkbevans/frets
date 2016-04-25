@@ -90,6 +90,17 @@ public class MidiFile {
         return buffer;
     }
 
+    /**
+     * Loads a track into a List of MidiNoteEvents
+     * <p/>
+     * TODO It would be better to load up ALL midi events into a List and then remove any events
+     * we are not interested in, in a 2nd step.  Would make debugging easier....
+     *
+     * @param track
+     * @return
+     * @throws FretboardException
+     * @throws IOException
+     */
     public List<MidiNoteEvent> loadNoteEvents(int track) throws FretboardException, IOException {
         Log.d(TAG, "loadNoteEvents");
         InputStream in = new ByteArrayInputStream(loadTrack(track));
@@ -106,11 +117,14 @@ public class MidiFile {
                 }
                 mNoteEvents.add(new MidiNoteEvent(ev.mParam1, ev.mNoteEventType == MidiEvent.NOTE_EVENT_TYPE_NOTE_ON, ev.mTicks + runningTicks));
                 runningTicks = 0;
+            } else if (ev.mNoteEventType == MidiEvent.NOTE_EVENT_TYPE_PITCHBEND) {
+                Log.d(TAG, "BEND=" + ev.getBend());
+                mNoteEvents.add(new MidiNoteEvent(MidiNoteEvent.TYPE_BEND, ev.mTicks + runningTicks, ev.getBend()));
+                runningTicks = 0;
             }
             else if(ev.mMetaEventType == MidiEvent.META_EVENT_TYPE_SET_TEMPO) {
-                // Turn 3 bytes of description into new instrument
                 Log.d(TAG, "TEMPO="+ev.getTempo());
-                mNoteEvents.add(new MidiNoteEvent(ev.getTempo(), ev.mTicks + runningTicks));
+                mNoteEvents.add(new MidiNoteEvent(MidiNoteEvent.TYPE_TEMPO, ev.mTicks + runningTicks, ev.getTempo()));
                 runningTicks=0;
             }
             else
@@ -133,6 +147,7 @@ public class MidiFile {
         int param1, param2 = 0;
         int channel;
         int ticks = getTimeTicks(in);
+        Log.d(TAG, "TICKS["+ticks+"]");
         int type = in.read();
         Log.d(TAG, "TYPE["+iToHex(type)+"]");
         // What sort of event is it?

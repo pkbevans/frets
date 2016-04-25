@@ -39,9 +39,6 @@ import java.util.List;
 
 import static android.R.layout.simple_spinner_item;
 
-/**
- * A placeholder fragment containing a simple view.
- */
 public class FretViewFragment extends Fragment {
     private static final String TAG = FretViewFragment.class.getSimpleName();
     private static final String KEY_MIDI = "midi";

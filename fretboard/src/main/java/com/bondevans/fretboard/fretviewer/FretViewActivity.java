@@ -2,12 +2,13 @@ package com.bondevans.fretboard.fretviewer;
 
 import android.Manifest;
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -18,7 +19,7 @@ import com.bondevans.fretboard.fretview.FretSong;
 
 import java.io.File;
 
-public class FretViewActivity extends Activity {
+public class FretViewActivity extends AppCompatActivity {
 
     private static final String TAG = FretViewActivity.class.getSimpleName();
     public static final String INTENT_SONGCONTENTS = "adfgfdg";
@@ -47,6 +48,8 @@ public class FretViewActivity extends Activity {
                 fragment.setFretSong(new FretSong(songContents));
             }
         }
+        Toolbar toolbar = (Toolbar) findViewById(R.id.tool_bar); // Attaching the layout to the toolbar object
+        setSupportActionBar(toolbar);                   // Setting toolbar as the ActionBar with setSupportActionBar() call
     }
 
     private void checkFileAccessPermission() {

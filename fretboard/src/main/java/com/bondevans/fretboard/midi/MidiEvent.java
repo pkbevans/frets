@@ -80,16 +80,16 @@ class MidiEvent {
      * @param ticks Ticks delay before firing this event
      * @param type What sort of note event is it
      * @param channel The midi mChannel (not used)
-     * @param note The note
-     * @param velocity Velocity (not used)
+     * @param param1 The note
+     * @param param2 Velocity (not used)
      */
-    public MidiEvent(int ticks, int type, int channel, int note, int velocity) {
+    public MidiEvent(int ticks, int type, int channel, int param1, int param2) {
         this.mEventType = TYPE_NOTE_EVENT;
         this.mNoteEventType = type;
         this.mTicks = ticks;
         this.mChannel = channel;
-        this.mParam1 = note;
-        this.mParam2 = velocity;
+        this.mParam1 = param1;
+        this.mParam2 = param2;
     }
 
     public boolean isNoteOnOrOff() {
@@ -99,5 +99,14 @@ class MidiEvent {
     public boolean isEndOfTrack(){
         return mEventType == TYPE_META_EVENT &&
                 mMetaEventType == META_EVENT_TYPE_END_OF_TRACK;
+    }
+
+    public int getBend() {
+        if (mNoteEventType == NOTE_EVENT_TYPE_PITCHBEND) {
+            int ret = ((mParam2 & 0x7F) << 7) + (mParam1 & 0x7F);
+            Log.d(TAG, "getBend:[" + MidiFile.iToHex(mParam1) + "][" + MidiFile.iToHex(mParam2) + "] = " + ret);
+            return ret;
+        }
+        return 0;
     }
 }

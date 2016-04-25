@@ -1,11 +1,13 @@
 package com.bondevans.fretboard.fretview;
 
 import com.bondevans.fretboard.midi.MidiFile;
+import com.bondevans.fretboard.utils.Log;
 
 /**
  * A note on the fretboard
  */
 public class FretNote extends FretBase {
+    private static final String TAG = FretNote.class.getSimpleName();
     public static final String ELEMENT_NOTE = "nt";
     public static final String NOTE_ELEMENT_OPEN = "<" + ELEMENT_NOTE + ">";
     public static final String NOTE_ELEMENT_CLOSE = "</" + ELEMENT_NOTE + ">";
@@ -17,6 +19,7 @@ public class FretNote extends FretBase {
     private static final String ATTR_FRET = "fr";
     private static final String ATTR_BEND = "be";
     private static final String ATTR_NAME = "na";
+    private static final int ZERO_PITCH_BEND = 8192;
     int note;               // Midi note value (Bottom E on standard Guitar is 40)
     public boolean on;      // True = turn note ON, False = turn FretNote off
     int string;             // String number from 0 to mStrings (0=highest string - i.e. Top E on standard guitar)
@@ -62,6 +65,19 @@ public class FretNote extends FretBase {
         this.name = MidiFile.noteName(this.note);
         String on = getTagString(note, ATTR_ON);
         this.on = on.equalsIgnoreCase("1");
+    }
+
+    /**
+     * Sets Bend value in range given a midi pitch bend amount in the range 0 - 16383
+     * 8192 = ZERO.  Anything below this is ignored - you can't bend down.
+     *
+     * @param bendValue
+     */
+    public void setBend(int bendValue) {
+//        this.bend = (bendValue-ZERO_PITCH_BEND<0)?0:(bendValue-MAX_PITCH_BEND)/MAX_PITCH_BEND/10;
+        this.bend = bendValue > ZERO_PITCH_BEND ? (bendValue - ZERO_PITCH_BEND) / (ZERO_PITCH_BEND / MAX_BEND) : 0;
+
+        Log.d(TAG, "HELLO setBend:" + bendValue + "=>" + this.bend);
     }
 
     @Override

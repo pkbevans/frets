@@ -91,18 +91,16 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
     // Load track
     private FretTrack loadTrack(String name, int track) throws IOException, FretboardException, EmptyTrackException {
         List<FretEvent> fretEvents;
-//            Log.d(TAG, "Loading track: " + track);
+//      Log.d(TAG, "Loading track: " + track);
         // convert MIDI file into list of fretboard events
         List<MidiNoteEvent> midiNoteEvents;
         midiNoteEvents = mMidiFile.loadNoteEvents(track);
-//                Log.d(TAG, "Got " + midiNoteEvents.size() + " events");
+//      Log.d(TAG, "Got " + midiNoteEvents.size() + " events");
         //  Loop through list of events.  For each set of events with the same time (i.e. chords)
         //  get the fret positions
-//            Log.d(TAG, "Loading Fret Events");
+//      Log.d(TAG, "Loading Fret Events");
         fretEvents = new ArrayList<>();
         boolean first = true;
-//        FretPosition fp = new FretPosition(MAX_STRINGS_GUITAR, MAX_FRETS_GUITAR,
-//                GUITAR_STANDARD_TUNING, GUITAR_STANDARD_TUNING_STRING_NAMES);
         FretPosition fp = new FretPosition(new FretGuitarStandard());
         List<FretNote> fretNotes = new ArrayList<>();
         int deltaTime = 0;
@@ -112,7 +110,7 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
             if (!first && ev.deltaTime > 0) {
                 // If we get an event with a delay then get fret positions for the previous set,
                 // reset count to zero and start building the next set.
-//                    Log.d(TAG, "Getting positions for [" + count + "] notes");
+//              Log.d(TAG, "Getting positions for [" + count + "] notes");
                 fretNotes = fp.getFretPositions(fretNotes);
                 fretEvents.add(new FretEvent(deltaTime, fretNotes, tempo));
                 // calculate delay time and save for later
@@ -121,25 +119,44 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
                 fretNotes = new ArrayList<>();
                 tempo = 0;
             }
-//                Log.d(TAG, "Got event [" + ev.on + "][" + ev.name + "][" + ev.note + "]["+ev.instrument+"]");
+//          Log.d(TAG, "Got event [" + ev.on + "][" + ev.name + "][" + ev.note + "]["+ev.instrument+"]");
             first = false;
             if (ev.type == MidiNoteEvent.TYPE_NOTE) {
                 hasNotes = true;
                 fretNotes.add(new FretNote(ev.note, ev.on));
+            } else if (ev.type == MidiNoteEvent.TYPE_BEND) {
+                // If we get a pitch bend event then it applies to the previous (i.e. current) FretNote list
+                // Get previous event
+                if (fretEvents.size() > 0 && fretEvents.get(fretEvents.size() - 1).fretNotes.size() > 0) {
+                    boolean gotNotes = false;
+                    FretEvent fe = fretEvents.get(fretEvents.size() - 1);
+                    // Apply the bend to each note in the event
+                    for (FretNote fn : fe.fretNotes) {
+                        if (fn.on) {
+                            gotNotes = true;
+                            fn.setBend(ev.bend);
+                        }
+                    }
+                    // Then add it in again (if we actually updated any notes
+                    if (gotNotes) {
+                        // TODO Also need to adjust the timing
+                        fretEvents.add(fe);
+                    }
+                }
             } else {
                 tempo = ev.tempo;
             }
         }
         // Don't forget the last one - and dont add one if there weren't any events (first=true)
         if (!first) {
-//                Log.d(TAG, "Getting positions for [" + count + "] notes (Last one)");
+//          Log.d(TAG, "Getting positions for [" + count + "] notes (Last one)");
             fretEvents.add(new FretEvent(deltaTime, fp.getFretPositions(fretNotes), 0));
         }
         // If no FretEvents at all then we want to ignore this track (throw an exception)
         if (fretEvents.isEmpty() || !hasNotes) {
             throw new EmptyTrackException("Empty");
         }
-//            Log.d(TAG, "Got [" + fretEvents.size() + "] FretEvents");
+//      Log.d(TAG, "Got [" + fretEvents.size() + "] FretEvents");
         return new FretTrack(name, fretEvents);
     }
 }

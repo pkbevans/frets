@@ -87,7 +87,7 @@ public class FileBrowserFragment extends ListFragment {
         Log.d(TAG, "HELLO onCreate1");
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getActivity());
         // See whether we've changed directory before changing orientation
-        String curDir="";
+        String curDir;
         if (savedInstanceState != null) {
             curDir = savedInstanceState.getString(KEY_CURDIR);
         } else {
