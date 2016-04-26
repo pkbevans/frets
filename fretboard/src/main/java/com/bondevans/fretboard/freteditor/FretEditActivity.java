@@ -1,9 +1,10 @@
 package com.bondevans.fretboard.freteditor;
 
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -16,7 +17,7 @@ import com.bondevans.fretboard.utils.Log;
 
 import java.io.File;
 
-public class FretEditActivity extends Activity {
+public class FretEditActivity extends AppCompatActivity {
     private static final String TAG = FretEditActivity.class.getSimpleName();
     public static final String INTENT_FRETSONG = "fretsong";
     private static final String SAVE_FILE = "sdkfjhi";
@@ -38,6 +39,8 @@ public class FretEditActivity extends Activity {
             Log.d(TAG, "HELLO track IN[" + intent.getStringExtra(INTENT_FRETSONG) + "]");
             mFragment.setFretSong(new FretSong(intent.getStringExtra(INTENT_FRETSONG))); // Assumes only 1 track (or the one we want is first one)
         }
+        Toolbar toolbar = (Toolbar) findViewById(R.id.tool_bar); // Attaching the layout to the toolbar object
+        setSupportActionBar(toolbar);                   // Setting toolbar as the ActionBar with setSupportActionBar() call
     }
 
     @Override

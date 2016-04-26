@@ -9,6 +9,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -26,7 +28,7 @@ import com.firebase.client.Firebase;
 
 import java.io.File;
 
-public class FileBrowserActivity extends Activity implements
+public class FileBrowserActivity extends AppCompatActivity implements
         FileBrowserFragment.OnFileSelectedListener {
     private static final String TAG = "FileBrowserActivity";
     private static final int REFRESH_ID = Menu.FIRST + 16;
@@ -53,6 +55,9 @@ public class FileBrowserActivity extends Activity implements
         progressDialog = new ProgressDialog(this);
         progressDialog.setMessage(getString(R.string.buffering_msg));
         progressDialog.setCancelable(false);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.tool_bar); // Attaching the layout to the toolbar object
+        setSupportActionBar(toolbar);                   // Setting toolbar as the ActionBar with setSupportActionBar() call
     }
 
     /* (non-Javadoc)
@@ -64,12 +69,12 @@ public class FileBrowserActivity extends Activity implements
 
         if (mUpEnabled) {
             menu.add(0, UP_ID, 1, getString(R.string.up))
-                    .setIcon(R.drawable.up_button)
+                    .setIcon(R.drawable.ic_up_button)
                     .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
         }
 
         menu.add(0, REFRESH_ID, 0, getString(R.string.refresh))
-                .setIcon(R.drawable.ic_reload)
+                .setIcon(R.drawable.ic_refresh)
                 .setShowAsActionFlags(MenuItem.SHOW_AS_ACTION_ALWAYS);
 
         return super.onCreateOptionsMenu(menu);
@@ -199,7 +204,7 @@ public class FileBrowserActivity extends Activity implements
             // If not already enabled, enable the UP button
             if (enable && !mUpEnabled) {
                 mMenu.add(0, UP_ID, 1, getString(R.string.up))
-                        .setIcon(R.drawable.up_button)
+                        .setIcon(R.drawable.ic_up_button)
                         .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
             }
             //Remove the button if we are disabling it

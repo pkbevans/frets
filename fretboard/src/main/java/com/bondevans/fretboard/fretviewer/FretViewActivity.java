@@ -32,7 +32,7 @@ public class FretViewActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         checkFileAccessPermission();
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.fretview_activity);
         fragment = (FretViewFragment) getFragmentManager()
                 .findFragmentById(R.id.fragment);
 
