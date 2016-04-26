@@ -15,7 +15,7 @@ import android.view.View;
 import java.io.IOException;
 
 /**
- * FretView displays a fretboard
+ * <code>FretTrackView</code> extends <code>FretView</code>  to animate the notes of a song on a fretboard
  */
 public class FretTrackView extends FretView {
     private static final String TAG = FretTrackView.class.getSimpleName();
@@ -117,7 +117,7 @@ public class FretTrackView extends FretView {
         mFretTrack = frettrack;
         mCurrentBPM = bpm;
         mCurrentFretEvent = currentFretEvent;
-        setNotes(mFretTrack.fretEvents.get(mCurrentFretEvent).fretNotes);
+        setNotes(mFretTrack.fretEvents.get(mCurrentFretEvent).fretNotes, mFretTrack.fretEvents.get(mCurrentFretEvent).bend);
         mTicksPerQtrNote = tpqn;
         // Enable Play
         sendMidiProgramChange();
@@ -219,7 +219,7 @@ public class FretTrackView extends FretView {
         if (fretEvent.tempo > 0) {
             mDefaultTempo = fretEvent.tempo;
         }
-        setNotes(fretEvent.fretNotes);
+        setNotes(fretEvent.fretNotes, fretEvent.bend);
         // Force redraw
         invalidate();
         if (++mCurrentFretEvent >= mFretTrack.fretEvents.size()) {

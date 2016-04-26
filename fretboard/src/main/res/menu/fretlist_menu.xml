@@ -5,6 +5,7 @@
     <item
         android:id="@+id/action_import"
         android:title="@string/import_midi"
+        android:icon="@drawable/ic_action_import"
         android:orderInCategory="100"
-        app:showAsAction="never"/>
+        app:showAsAction="always"/>
 </menu>

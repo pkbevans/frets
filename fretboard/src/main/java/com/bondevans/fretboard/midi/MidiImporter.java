@@ -105,6 +105,7 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
         List<FretNote> fretNotes = new ArrayList<>();
         int deltaTime = 0;
         int tempo = 0;
+        int bend = 0;
         boolean hasNotes = false;
         for (MidiNoteEvent ev : midiNoteEvents) {
             if (!first && ev.deltaTime > 0) {
@@ -112,12 +113,13 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
                 // reset count to zero and start building the next set.
 //              Log.d(TAG, "Getting positions for [" + count + "] notes");
                 fretNotes = fp.getFretPositions(fretNotes);
-                fretEvents.add(new FretEvent(deltaTime, fretNotes, tempo));
+                fretEvents.add(new FretEvent(deltaTime, fretNotes, tempo, bend));
                 // calculate delay time and save for later
                 deltaTime = ev.deltaTime;
                 //reset the list of notes
                 fretNotes = new ArrayList<>();
                 tempo = 0;
+                bend = 0;
             }
 //          Log.d(TAG, "Got event [" + ev.on + "][" + ev.name + "][" + ev.note + "]["+ev.instrument+"]");
             first = false;
@@ -127,22 +129,7 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
             } else if (ev.type == MidiNoteEvent.TYPE_BEND) {
                 // If we get a pitch bend event then it applies to the previous (i.e. current) FretNote list
                 // Get previous event
-                if (fretEvents.size() > 0 && fretEvents.get(fretEvents.size() - 1).fretNotes.size() > 0) {
-                    boolean gotNotes = false;
-                    FretEvent fe = fretEvents.get(fretEvents.size() - 1);
-                    // Apply the bend to each note in the event
-                    for (FretNote fn : fe.fretNotes) {
-                        if (fn.on) {
-                            gotNotes = true;
-                            fn.setBend(ev.bend);
-                        }
-                    }
-                    // Then add it in again (if we actually updated any notes
-                    if (gotNotes) {
-                        // TODO Also need to adjust the timing
-                        fretEvents.add(fe);
-                    }
-                }
+                bend = ev.bend;
             } else {
                 tempo = ev.tempo;
             }
@@ -150,7 +137,7 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
         // Don't forget the last one - and dont add one if there weren't any events (first=true)
         if (!first) {
 //          Log.d(TAG, "Getting positions for [" + count + "] notes (Last one)");
-            fretEvents.add(new FretEvent(deltaTime, fp.getFretPositions(fretNotes), 0));
+            fretEvents.add(new FretEvent(deltaTime, fp.getFretPositions(fretNotes), 0, bend));
         }
         // If no FretEvents at all then we want to ignore this track (throw an exception)
         if (fretEvents.isEmpty() || !hasNotes) {

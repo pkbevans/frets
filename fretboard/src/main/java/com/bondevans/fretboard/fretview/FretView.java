@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * FretView displays a fretboard
+ * FretView displays a fretboard and a set of notes
  */
 public class FretView extends View {
     //    private static final String TAG = FretView.class.getSimpleName();
@@ -254,7 +254,7 @@ public class FretView extends View {
     }
     private float getNoteY(FretNote note) {
         // Get the y coord of the given string - allowing for bent strings
-        return ((note.string + 1) * mStringSpace) + (note.bend * mStringSpace / FretNote.MAX_BEND);
+        return ((note.string + 1) * mStringSpace) + (note.bend * mStringSpace / FretEvent.MAX_BEND);
     }
 
     private float getNoteX(FretNote note) {
@@ -269,13 +269,22 @@ public class FretView extends View {
         return ret;
     }
 
-    public void setNotes(List<FretNote> notes) {
-        // Store the previous notes so we can draw a ghostly trail of previous notes
-        for (int i = mOldNotes.length - 2; i >= 0; i--) {
-            mOldNotes[i + 1] = mOldNotes[i];
+    public void setNotes(List<FretNote> notes, int bend) {
+        // Could be just a bend on current notes, so dont overwrite if notes list empty
+        if (notes.size() > 0) {
+            // Store the previous notes so we can draw a ghostly trail of previous notes
+            for (int i = mOldNotes.length - 2; i >= 0; i--) {
+                mOldNotes[i + 1] = mOldNotes[i];
+            }
+            mOldNotes[0] = mFretNotes;
+            mFretNotes = notes;
         }
-        mOldNotes[0] = mFretNotes;
-        mFretNotes = notes;
+        // Apply bend to current notes
+        for (FretNote fn : mFretNotes) {
+            if (fn.on) {
+                fn.bend = bend;
+            }
+        }
     }
 
     @SuppressWarnings("unused")
@@ -288,7 +297,7 @@ public class FretView extends View {
         myFretNotes.add(new FretNote(63, true, 1, 4, "Eb"));
         myFretNotes.add(new FretNote(69, true, 0, 5, "A"));
 
-        setNotes(myFretNotes);
+        setNotes(myFretNotes, 0);
     }
 
     @Override
