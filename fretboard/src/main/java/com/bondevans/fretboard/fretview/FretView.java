@@ -280,9 +280,11 @@ public class FretView extends View {
             mFretNotes = notes;
         }
         // Apply bend to current notes
-        for (FretNote fn : mFretNotes) {
-            if (fn.on) {
-                fn.bend = bend;
+        if (mFretNotes != null) {
+            for (FretNote fn : mFretNotes) {
+                if (fn.on) {
+                    fn.bend = bend;
+                }
             }
         }
     }

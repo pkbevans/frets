@@ -33,7 +33,6 @@ public class FretListFragment extends ListFragment {
     private static final String TAG = FretListFragment.class.getSimpleName();
     private static final int ARBITRARY_LARGE_NUMBER = 100000;
     private Firebase mFirebaseRef;
-    private ValueEventListener mConnectedListener;
     private FretListAdapter mFretListAdapter;
     private ProgressDialog progressDialog;
 
@@ -74,32 +73,11 @@ public class FretListFragment extends ListFragment {
                 listView.setSelection(mFretListAdapter.getCount() - 1);
             }
         });
-
-        // Finally, a little indication of connection status
-        progressDialog.show();
-        mConnectedListener = mFirebaseRef.getRoot().child(".info/connected").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                progressDialog.hide();
-                boolean connected = (Boolean) dataSnapshot.getValue();
-                if (connected) {
-                    Log.d(TAG, "Connected to Firebase");
-                } else {
-                    Log.d(TAG, "Disconnected from Firebase");
-                }
-            }
-
-            @Override
-            public void onCancelled(FirebaseError firebaseError) {
-                // No-op
-            }
-        });
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        mFirebaseRef.getRoot().child(".info/connected").removeEventListener(mConnectedListener);
         mFretListAdapter.cleanup();
     }
 

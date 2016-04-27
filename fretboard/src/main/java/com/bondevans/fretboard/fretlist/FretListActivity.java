@@ -1,7 +1,6 @@
 package com.bondevans.fretboard.fretlist;
 
 import android.app.DialogFragment;
-import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -24,10 +23,8 @@ import com.bondevans.fretboard.firebase.FBWrite;
 import com.bondevans.fretboard.firebase.dao.Users;
 import com.bondevans.fretboard.utils.Log;
 import com.firebase.client.AuthData;
-import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
-import com.firebase.client.ValueEventListener;
 
 public class FretListActivity extends AppCompatActivity {
     private static final String TAG = FretListActivity.class.getSimpleName();
@@ -38,24 +35,13 @@ public class FretListActivity extends AppCompatActivity {
     private static final String TAG_SIGNUP = "SignUp";
     private static final String SETTINGS_KEY_UID = "Uid";
     private static final String SETTINGS_KEY_USERNAME = "Username";
-    private static final int ARBITRARY_LARGE_NUMBER = 100000;
-    private Firebase mFirebaseRef;
     private Firebase mFirebaseAuthRef;
-    private ValueEventListener mConnectedListener;
-    private FretListAdapter mFretListAdapter;
-    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.fretlist_activity);
         authenticateUser();
-        // Setup our Firebase
-        mFirebaseRef = new Firebase(getString(R.string.firebase_url)).child("songs");
-        // Setup the progress dialog that is displayed later
-        progressDialog = new ProgressDialog(this);
-        progressDialog.setMessage(getString(R.string.buffering_msg));
-        progressDialog.setCancelable(false);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.tool_bar); // Attaching the layout to the toolbar object
         setSupportActionBar(toolbar);                   // Setting toolbar as the ActionBar with setSupportActionBar() call
@@ -92,32 +78,11 @@ public class FretListActivity extends AppCompatActivity {
     @Override
     public void onStart() {
         super.onStart();
-
-        // Finally, a little indication of connection status
-        progressDialog.show();
-        mConnectedListener = mFirebaseRef.getRoot().child(".info/connected").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                progressDialog.hide();
-                boolean connected = (Boolean) dataSnapshot.getValue();
-                if (connected) {
-                    Log.d(TAG, "Connected to Firebase");
-                } else {
-                    Log.d(TAG, "Disconnected from Firebase");
-                }
-            }
-
-            @Override
-            public void onCancelled(FirebaseError firebaseError) {
-                // No-op
-            }
-        });
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        mFirebaseRef.getRoot().child(".info/connected").removeEventListener(mConnectedListener);
     }
 
     private void authenticateUser() {
