@@ -57,4 +57,7 @@
     <string name="save_file">Do you want to save this Fret?</string>
     <string name="fret_saved">Fret saved</string>
     <string name="save_failed">Failed to save Fret</string>
+    <string name="action_del_track">Delete Track</string>
+    <string name="action_solo_track">Make Solo track</string>
+    <string name="action_rename_track">Rename Track...</string>
 </resources>

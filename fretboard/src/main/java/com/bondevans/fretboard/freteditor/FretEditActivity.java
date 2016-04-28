@@ -51,10 +51,40 @@ public class FretEditActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        // Remove Delete Track and Make Solo button if only 1 track
+        if (mFragment != null && mFragment.getTrackCount() <= 1) {
+            menu.removeItem(R.id.action_del_track);
+            menu.removeItem(R.id.action_solo_track);
+        }
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        return id == R.id.action_settings || super.onOptionsItemSelected(item);
+        switch (id) {
+            case R.id.action_solo_track:
+                if (mFragment != null) {
+                    mFragment.makeCurrentTrackSolo();
+                }
+                break;
+            case R.id.action_del_track:
+                if (mFragment != null) {
+                    mFragment.deleteCurrentTrackSolo();
+                }
+                break;
+            case R.id.action_rename_track:
+                // TODO
+                break;
+            case R.id.action_settings:
+                // TODO Either allow settings to be accessed from here or remove this option
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+        return true;
     }
 
     private void saveSong() {

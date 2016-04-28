@@ -78,6 +78,7 @@ public class FretListFragment extends ListFragment {
     @Override
     public void onStop() {
         super.onStop();
+        progressDialog.dismiss();
         mFretListAdapter.cleanup();
     }
 

@@ -18,40 +18,28 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.SeekBar;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bondevans.fretboard.R;
 import com.bondevans.fretboard.fretview.FretSong;
 import com.bondevans.fretboard.fretview.FretTrackView;
-import com.bondevans.fretboard.midi.MidiTrack;
 import com.bondevans.fretboard.utils.FileLoaderTask;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import static android.R.layout.simple_spinner_item;
 
 public class FretViewFragment extends Fragment {
     private static final String TAG = FretViewFragment.class.getSimpleName();
     private static final String KEY_MIDI = "midi";
-    private static final int NO_TRACK_SELECTED = -1;
     private boolean mMidiSupported;
     private FretTrackView mFretTrackView;
-    private List<MidiTrack> mTracks = new ArrayList<>();
-    private Spinner mTrackSpinner;
-    ArrayAdapter<MidiTrack> mTrackAdapter;
-    TextView mSongName;
+    private TextView mSongName;
+    private TextView mTrackName;
     private ImageButton playPauseButton;
     private MidiDevice mOpenDevice;
-    private int mSelectedTrack = NO_TRACK_SELECTED;
     private SeekBar mSeekBar;
     private TextView mTempoText;
     private int mTempo;
@@ -101,6 +89,7 @@ public class FretViewFragment extends Fragment {
                              Bundle savedInstanceState) {
         Log.d(TAG, "onCreateView");
         View myView = inflater.inflate(R.layout.fretview_layout, container, false);
+        mTrackName = (TextView) myView.findViewById(R.id.track_name);
         mFretTrackView = (FretTrackView) myView.findViewById(R.id.fretview);
         mFretTrackView.setFretListener(new FretTrackView.FretListener() {
             @Override
@@ -122,9 +111,7 @@ public class FretViewFragment extends Fragment {
             }
         });
         mTempoText = (TextView) myView.findViewById(R.id.bpmText);
-        mTrackSpinner = (Spinner) myView.findViewById(R.id.track_spinner);
-        mTrackSpinner.setEnabled(false);
-        mSongName = (TextView) myView.findViewById(R.id.file_name);
+        mSongName = (TextView) myView.findViewById(R.id.song_name);
         mSeekBar = (SeekBar) myView.findViewById(R.id.seekBar);
         mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -159,8 +146,7 @@ public class FretViewFragment extends Fragment {
             Log.d(TAG, "savedInstanceState != null");
             // Must be orientation change
             mSongName.setText(mFretSong.getName());
-            setupTrackSpinner();
-//            mFretView.setTrack(mFretSong.getTrack(mSelectedTrack), mFretSong.getTpqn(), mTempo, mCurrentEvent);
+            mFretTrackView.setTrack(mFretSong.getTrack(mFretSong.getSoloTrack()), mFretSong.getTpqn(), mTempo, mCurrentEvent);
         }
         return myView;
     }
@@ -174,8 +160,8 @@ public class FretViewFragment extends Fragment {
         Log.d(TAG, "setFretSong");
         mFretSong = fretSong;
         mSongName.setText(mFretSong.getName());
-        mTracks = mFretSong.getTrackNames();
-        setupTrackSpinner();
+        mTrackName.setText(mFretSong.geTrackName(mFretSong.getSoloTrack()));
+        mFretTrackView.setTrack(mFretSong.getTrack(mFretSong.getSoloTrack()), mFretSong.getTpqn(), mFretSong.getBpm());
     }
 
     public void setFretSong(File file) {
@@ -195,43 +181,6 @@ public class FretViewFragment extends Fragment {
         });
         fileLoaderTask.execute();
     }
-    private void setupTrackSpinner() {
-        mTrackAdapter = new ArrayAdapter<>
-                (this.getActivity(), simple_spinner_item, mTracks);
-
-        mTrackAdapter.setDropDownViewResource
-                (android.R.layout.simple_spinner_dropdown_item);
-
-        mTrackSpinner.setAdapter(mTrackAdapter);
-        // Spinner item selection Listener
-        mTrackSpinner.setOnItemSelectedListener(new TrackSelectedListener());
-        if (mFretSong != null) {
-            mTrackSpinner.setEnabled((mFretSong.tracks() > 1));
-        }
-    }
-
-    class TrackSelectedListener implements AdapterView.OnItemSelectedListener {
-        public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
-            Log.d(TAG, "TrackSelectedListener: " + pos + " selected");
-            // Load up selected track
-            MidiTrack track = (MidiTrack) parent.getItemAtPosition(pos);
-            if(mSelectedTrack == pos) {
-                Log.d(TAG, "ORIENTATION CHANGE Track " + pos + " selected: "+ track);
-                // must be orientation change
-                mFretTrackView.setTrack(mFretSong.getTrack(track.index), mFretSong.getTpqn(), mTempo, mCurrentEvent);
-            }
-            else{
-                // Must be different track selected in current session
-                mFretTrackView.setTrack(mFretSong.getTrack(track.index), mFretSong.getTpqn(), mFretSong.getBpm());
-            }
-            mSelectedTrack = pos;
-        }
-
-        @Override
-        public void onNothingSelected(AdapterView<?> arg0) {
-            Log.d(TAG, "onNothingSelected");
-        }
-    }
 
     @Override
     public void onPause() {
@@ -239,6 +188,7 @@ public class FretViewFragment extends Fragment {
         Log.d(TAG, "onPause");
         // The app is losing focus so need to stop the
         mFretTrackView.pause();
+        progressDialog.dismiss();
     }
 
     @Override

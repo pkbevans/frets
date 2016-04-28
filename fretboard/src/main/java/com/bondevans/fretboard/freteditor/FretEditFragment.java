@@ -6,8 +6,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.HorizontalScrollView;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.bondevans.fretboard.R;
@@ -20,19 +23,24 @@ import com.bondevans.fretboard.instruments.FretGuitarStandard;
 
 import java.util.List;
 
+import static android.R.layout.simple_spinner_item;
+
 public class FretEditFragment extends Fragment {
     private static final String TAG = FretEditFragment.class.getSimpleName();
     private static final int NOTE_NEXT = 1;
     private static final int NOTE_PREV = 2;
     private FretEditView mFretEditView;
-    private TextView mSongName;
-    private TextView mTrackName;
+    private TextView mSongNameText;
     private FretTrack mFretTrack;
-    private String mSong;
+    private String mSongName;
     private int mCurrentEvent = 0;
     private FretPosition mFretPosition;
     private boolean mEdited = false;
     private FretSong mFretSong;
+    private static final int NO_TRACK_SELECTED = -1;
+    private Spinner mTrackSpinner;
+    ArrayAdapter<String> mTrackAdapter;
+    private int mSelectedTrack = NO_TRACK_SELECTED;
 
     public FretEditFragment() {
     }
@@ -53,8 +61,7 @@ public class FretEditFragment extends Fragment {
         HorizontalScrollView scrollView = (HorizontalScrollView) myView.findViewById(R.id.horizontalScrollView);
         mFretEditView = (FretEditView) myView.findViewById(R.id.fretview);
         scrollView.setOnTouchListener(mFretEditView);
-        mSongName = (TextView) myView.findViewById(R.id.song_name);
-        mTrackName = (TextView) myView.findViewById(R.id.track_name);
+        mSongNameText = (TextView) myView.findViewById(R.id.song_name);
         Button nextButton = (Button) myView.findViewById(R.id.next_button);
         nextButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -87,12 +94,14 @@ public class FretEditFragment extends Fragment {
                 mFretEditView.invalidate();
             }
         });
+        mTrackSpinner = (Spinner) myView.findViewById(R.id.track_spinner);
+        mTrackSpinner.setEnabled(false);
 
         if (savedInstanceState != null) {
             Log.d(TAG, "savedInstanceState != null");
             // Must be orientation change
-            mSongName.setText(mSong);
-            mTrackName.setText(mFretTrack.getName());
+            setupTrackSpinner();
+            mSongNameText.setText(mSongName);
             mFretEditView.setNotes(mFretTrack.fretEvents.get(mCurrentEvent).fretNotes, mFretTrack.fretEvents.get(mCurrentEvent).bend);
         }
         return myView;
@@ -130,9 +139,8 @@ public class FretEditFragment extends Fragment {
      */
     private void setFretTrack(String song, FretTrack fretTrack) {
         Log.d(TAG, "setFretTrack");
-        mSong = song;
-        mSongName.setText(song);
-        mTrackName.setText(fretTrack.getName());
+        mSongName = song;
+        mSongNameText.setText(song);
         mFretTrack = fretTrack;
         mCurrentEvent = 0;
         mFretEditView.setNotes(mFretTrack.fretEvents.get(mCurrentEvent).fretNotes, mFretTrack.fretEvents.get(mCurrentEvent).bend);
@@ -140,7 +148,9 @@ public class FretEditFragment extends Fragment {
 
     public void setFretSong(FretSong fretSong) {
         mFretSong = fretSong;
-        setFretTrack(mFretSong.getName(), fretSong.getTrack(0));
+        setupTrackSpinner();
+        mSelectedTrack = 0;
+        setFretTrack(mFretSong.getName(), fretSong.getTrack(mSelectedTrack));    // Start off with first track
     }
 
     /**
@@ -173,4 +183,58 @@ public class FretEditFragment extends Fragment {
     public FretSong getFretSong() {
         return mFretSong;
     }
+
+    public void makeCurrentTrackSolo() {
+        mFretSong.setSoloTrack(mSelectedTrack);
+        mEdited = true;
+    }
+
+    public void deleteCurrentTrackSolo() {
+        mFretSong.deleteTrack(mSelectedTrack);
+        setFretTrack(mFretSong.getName(), mFretSong.getTrack(mFretSong.getSoloTrack()));
+        // Set up spinner again (invalidate??)
+        setupTrackSpinner();
+        mEdited = true;
+    }
+
+    public int getTrackCount() {
+        return mFretSong.tracks();
+    }
+
+    private void setupTrackSpinner() {
+        mTrackAdapter = new ArrayAdapter<>
+                (this.getActivity(), simple_spinner_item, mFretSong.getTrackNames());
+
+        mTrackAdapter.setDropDownViewResource
+                (android.R.layout.simple_spinner_dropdown_item);
+
+        mTrackSpinner.setAdapter(mTrackAdapter);
+        // Spinner item selection Listener
+        mTrackSpinner.setOnItemSelectedListener(new TrackSelectedListener());
+        if (mFretSong != null) {
+            mTrackSpinner.setEnabled((mFretSong.tracks() > 1));
+        }
+    }
+
+    class TrackSelectedListener implements AdapterView.OnItemSelectedListener {
+        public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
+            Log.d(TAG, "TrackSelectedListener: " + pos + " selected");
+            // Load up selected track
+            String track = (String) parent.getItemAtPosition(pos);
+            if (mSelectedTrack == pos) {
+                Log.d(TAG, "ORIENTATION CHANGE Track " + pos + " selected: " + track);
+                // must be orientation change - ignore
+            } else {
+                // Must be different track selected in current session
+                setFretTrack(mFretSong.getName(), mFretSong.getTrack(mFretSong.getSoloTrack()));
+            }
+            mSelectedTrack = pos;
+        }
+
+        @Override
+        public void onNothingSelected(AdapterView<?> arg0) {
+            Log.d(TAG, "onNothingSelected");
+        }
+    }
+
 }

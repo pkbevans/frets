@@ -20,10 +20,12 @@ public class FretSong extends FretBase {
     private static final String ATTR_NAME = "na";
     private static final String ATTR_TPQN = "tpqn";
     private static final String ATTR_BPM = "bpm";
+    private static final String ATTR_SOLO = "so";
     @Deprecated String id;  // Dont think we need this anymore
     private String name;
     private int tpqn;
     private int bpm;
+    private int soloTrack;
     private List<FretTrack> fretTracks;
 
     /**
@@ -42,6 +44,7 @@ public class FretSong extends FretBase {
         if(fretTracks != null) {
             this.fretTracks = fretTracks;
         }
+        this.soloTrack = 0;   // Assume first track is the solo
     }
 
     public FretSong(String song) {
@@ -51,6 +54,7 @@ public class FretSong extends FretBase {
         this.name = getTagString(song, ATTR_NAME);
         this.tpqn = getTagInt(song, ATTR_TPQN);
         this.bpm = getTagInt(song, ATTR_BPM);
+        this.soloTrack = getTagInt(song, ATTR_SOLO);
         loadFretTracks(song);
     }
 
@@ -80,6 +84,7 @@ public class FretSong extends FretBase {
                 +attr(ATTR_NAME, name)
                 +attr(ATTR_TPQN, tpqn)
                 +attr(ATTR_BPM, bpm)
+                + attr(ATTR_SOLO, soloTrack)
         );
         for(FretTrack track: fretTracks){
             sb.append(track.toString());
@@ -112,11 +117,11 @@ public class FretSong extends FretBase {
         return bpm;
     }
 
-    public List<MidiTrack> getTrackNames() {
-        List<MidiTrack> ret = new ArrayList<>();
+    public List<String> getTrackNames() {
+        List<String> ret = new ArrayList<>();
         int i=0;
         for( FretTrack t: fretTracks){
-            ret.add(new MidiTrack(t.getName(), i++));
+            ret.add(t.getName());
         }
         return ret;
     }
@@ -136,6 +141,22 @@ public class FretSong extends FretBase {
 
     public int tracks() {
         return fretTracks.size();
+    }
+
+    public void deleteTrack(int track) {
+        fretTracks.remove(track);
+    }
+
+    public void setSoloTrack(int track) {
+        this.soloTrack = track;
+    }
+
+    public int getSoloTrack() {
+        return this.soloTrack;
+    }
+
+    public String geTrackName(int track) {
+        return fretTracks.get(track).getName();
     }
 }
 

@@ -10,7 +10,7 @@
     tools:context=".fretviewer.FretViewActivity">
 
     <TextView
-        android:id="@+id/file_name"
+        android:id="@+id/song_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingEnd="@dimen/abc_control_padding_material"
@@ -18,12 +18,13 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:layout_weight="0.05"/>
 
-    <Spinner
-        android:id="@+id/track_spinner"
+    <TextView
+        android:id="@+id/track_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:paddingEnd="@dimen/abc_control_padding_material"
+        android:paddingStart="@dimen/abc_control_padding_material"
         android:layout_weight="0.05"/>
-
 
     <FrameLayout
         android:layout_width="match_parent"
