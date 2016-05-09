@@ -19,7 +19,7 @@ public class FretEvent extends FretBase {
     private static final String ATTR_DELTATIME = "dt";
     private static final String ATTR_TEMPO = "te";
     private static final String ATTR_BEND = "be";
-    private static final int ZERO_PITCH_BEND = 8192;
+    public static final int ZERO_PITCH_BEND = 8192;
     int deltaTime;
     int tempo;
     public int bend;

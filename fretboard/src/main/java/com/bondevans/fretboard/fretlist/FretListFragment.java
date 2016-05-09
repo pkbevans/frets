@@ -19,7 +19,6 @@ import com.bondevans.fretboard.firebase.FBWrite;
 import com.bondevans.fretboard.firebase.dao.SongContents;
 import com.bondevans.fretboard.firebase.dao.Songs;
 import com.bondevans.fretboard.fretviewer.FretViewActivity;
-import com.bondevans.fretboard.utils.FileLoaderTask;
 import com.bondevans.fretboard.utils.FileWriterTask;
 import com.bondevans.fretboard.utils.Log;
 import com.firebase.client.DataSnapshot;
@@ -31,7 +30,6 @@ import java.io.File;
 
 public class FretListFragment extends ListFragment {
     private static final String TAG = FretListFragment.class.getSimpleName();
-    private static final int ARBITRARY_LARGE_NUMBER = 100000;
     private Firebase mFirebaseRef;
     private FretListAdapter mFretListAdapter;
     private ProgressDialog progressDialog;
@@ -91,28 +89,8 @@ public class FretListFragment extends ListFragment {
         // See if we've got this song in the cache
         final File cacheFile = new File(getActivity().getExternalFilesDir(null), song.getId() + ".xml");
         if (cacheFile.exists()) {
-            if (cacheFile.length() > ARBITRARY_LARGE_NUMBER) {
-                Log.d(TAG, "File size too big: " + cacheFile.length());
-                showFretView(cacheFile);
-            } else {
-                // Get the file
-                Log.d(TAG, "Got file in cache: " + cacheFile.getName());
-                FileLoaderTask fileLoader = new FileLoaderTask(cacheFile);
-                fileLoader.setFileLoadedListener(new FileLoaderTask.FileLoadedListener() {
-                    @Override
-                    public void OnFileLoaded(String contents) {
-                        Log.d(TAG, "File loaded");
-                        showFretView(cacheFile, contents);
-                    }
-
-                    @Override
-                    public void OnError(String msg) {
-                        progressDialog.hide();
-                        Toast.makeText(FretListFragment.this.getActivity(), msg, Toast.LENGTH_SHORT).show();
-                    }
-                });
-                fileLoader.execute();
-            }
+            // Always open FretViewer by passing file referece - not song contents
+            showFretView(cacheFile);
         } else {
             Log.d(TAG, "NOT in cache: " + cacheFile.getName());
             // Get the SongContent from the server
@@ -122,15 +100,8 @@ public class FretListFragment extends ListFragment {
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     String songContents = dataSnapshot.child("contents").toString();
                     Log.d(TAG, "HELLO CHILD:" + songContents);
-                    if (songContents.length() > ARBITRARY_LARGE_NUMBER) {
-                        Log.d(TAG, "File size too big: " + cacheFile.length());
-                        // Write out to cache and then show FretView
-                        writeFileToCache(cacheFile, songContents, true);
-                    } else {
-                        // Write out to cache in background
-                        writeFileToCache(cacheFile, songContents, false);
-                        showFretView(cacheFile, songContents);
-                    }
+                    // Write out to cache and then show FretView
+                    writeFileToCache(cacheFile, songContents, true);
                 }
 
                 @Override
@@ -150,19 +121,6 @@ public class FretListFragment extends ListFragment {
         progressDialog.hide();
         Intent intent = new Intent(getActivity(), FretViewActivity.class);
         intent.setData(Uri.fromFile(cacheFile));
-        try {
-            startActivity(intent);
-        } catch (ActivityNotFoundException e) {
-            Log.e(TAG, "NO ACTIVITY FOUND: FretViewActivity");
-        }
-    }
-
-    private void showFretView(File fretFile, String songContents) {
-        progressDialog.hide();
-        Intent intent = new Intent(getActivity(), FretViewActivity.class);
-        intent.putExtra(FretViewActivity.INTENT_SONGCONTENTS, songContents);
-        // Need the file as well as the contents so that the Freteditor can save updates back to the file.
-        intent.setData(Uri.fromFile(fretFile));
         try {
             startActivity(intent);
         } catch (ActivityNotFoundException e) {

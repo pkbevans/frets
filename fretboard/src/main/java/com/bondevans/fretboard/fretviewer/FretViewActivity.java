@@ -39,14 +39,8 @@ public class FretViewActivity extends AppCompatActivity {
         if (savedInstanceState == null) {
             //  We should have the song contents in the intent
             Intent intent = getIntent();
-            String songContents = intent.getStringExtra(INTENT_SONGCONTENTS);
-            if (songContents == null) {
-                Log.e(TAG, "Got File");
-                fragment.setFretSong(new File(intent.getData().getPath()));
-            } else {
-                Log.d(TAG, "Got songcontents");
-                fragment.setFretSong(new FretSong(songContents));
-            }
+            Log.d(TAG, "Got File");
+            fragment.setFretSong(new File(intent.getData().getPath()));
         }
         Toolbar toolbar = (Toolbar) findViewById(R.id.tool_bar); // Attaching the layout to the toolbar object
         setSupportActionBar(toolbar);                   // Setting toolbar as the ActionBar with setSupportActionBar() call
@@ -96,7 +90,6 @@ public class FretViewActivity extends AppCompatActivity {
 
     private void showFretEdit() {
         Intent intent = new Intent(this, FretEditActivity.class);
-        intent.putExtra(FretEditActivity.INTENT_FRETSONG, fragment.getFretSong().toString());
         // Add the file location into the intent, so that the editor can update the file
         Log.d(TAG, "setting data: " + getIntent().getDataString());
         intent.setData(getIntent().getData());

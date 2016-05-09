@@ -4,11 +4,6 @@
               android:layout_height="match_parent"
               android:orientation="vertical">
 
-    <include
-        android:id="@+id/tool_bar"
-        layout="@layout/toolbar">
-    </include>
-
     <ListView
         android:id="@android:id/list"
         android:layout_width="fill_parent"

@@ -29,6 +29,12 @@ public class FretPosition {
         this.mStringAvailable = new boolean[mNumStrings];
     }
 
+    /**
+     * Updates list of <code>FretNote</code>s with Fret positions (if found)
+     *
+     * @param fretNotes
+     * @return
+     */
     public List<FretNote> getFretPositions(List<FretNote> fretNotes) {
         if(fretNotes == null){
             return null;

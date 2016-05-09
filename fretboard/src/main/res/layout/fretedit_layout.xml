@@ -9,20 +9,59 @@
     android:orientation="vertical"
     tools:context=".fretviewer.FretViewActivity">
 
-    <TextView
+    <EditText
         android:id="@+id/song_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingEnd="@dimen/abc_control_padding_material"
-        android:paddingStart="@dimen/abc_control_padding_material"
+        android:paddingTop="@dimen/padding_material"
+        android:paddingEnd="@dimen/padding_material"
+        android:paddingStart="@dimen/padding_material"
+        android:paddingBottom="@dimen/padding_material"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:layout_weight="0.05"/>
 
-    <Spinner
-        android:id="@+id/track_spinner"
+    <LinearLayout
+        android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="0.05"/>
+        >
+
+        <Spinner
+            android:id="@+id/track_spinner"
+            android:paddingTop="@dimen/padding_material"
+            android:paddingEnd="@dimen/padding_material"
+            android:paddingStart="@dimen/padding_material"
+            android:paddingBottom="@dimen/padding_material"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.25"/>
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/editTrackName"
+            android:src="@android:drawable/ic_menu_edit"
+            />
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/ic_delete"
+            android:id="@+id/deleteTrack"
+            />
+
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="@dimen/padding_material"
+            android:paddingEnd="@dimen/padding_material"
+            android:paddingStart="@dimen/padding_material"
+            android:paddingBottom="@dimen/padding_material"
+            android:text="@string/solo_track"
+            android:id="@+id/checkBox"
+            />
+
+    </LinearLayout>
 
     <HorizontalScrollView
         android:id="@+id/horizontalScrollView"

@@ -3,19 +3,15 @@
       xmlns:tools="http://schemas.android.com/tools"
       tools:context=".fretviewer.FretEditActivity">
     <item
-        android:id="@+id/action_del_track"
-        android:orderInCategory="100"
-        android:title="@string/action_del_track"
-        app:showAsAction="always"/>
-    <item
-        android:id="@+id/action_solo_track"
+        android:id="@+id/action_save_song"
         android:orderInCategory="101"
-        android:title="@string/action_solo_track"
+        android:title="@string/action_save_song"
+        android:icon="@drawable/ic_save"
         app:showAsAction="always"/>
     <item
-        android:id="@+id/action_rename_track"
+        android:id="@+id/action_publish"
         android:orderInCategory="102"
-        android:title="@string/action_rename_track"
+        android:title="@string/action_publish"
         app:showAsAction="never"/>
     <item
         android:id="@+id/action_settings"

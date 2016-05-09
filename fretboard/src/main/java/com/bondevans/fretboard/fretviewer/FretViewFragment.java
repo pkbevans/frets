@@ -1,17 +1,9 @@
 package com.bondevans.fretboard.fretviewer;
 
-import android.annotation.TargetApi;
 import android.app.Fragment;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.DialogInterface;
-import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
-import android.media.midi.MidiDevice;
-import android.media.midi.MidiDeviceInfo;
-import android.media.midi.MidiInputPort;
-import android.media.midi.MidiManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -28,18 +20,16 @@ import com.bondevans.fretboard.fretview.FretSong;
 import com.bondevans.fretboard.fretview.FretTrackView;
 import com.bondevans.fretboard.utils.FileLoaderTask;
 
-import java.io.File;
-import java.io.IOException;
+import org.billthefarmer.mididriver.MidiDriver;
 
-public class FretViewFragment extends Fragment {
+import java.io.File;
+
+public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStartListener {
     private static final String TAG = FretViewFragment.class.getSimpleName();
-    private static final String KEY_MIDI = "midi";
-    private boolean mMidiSupported;
     private FretTrackView mFretTrackView;
     private TextView mSongName;
     private TextView mTrackName;
     private ImageButton playPauseButton;
-    private MidiDevice mOpenDevice;
     private SeekBar mSeekBar;
     private TextView mTempoText;
     private int mTempo;
@@ -49,6 +39,7 @@ public class FretViewFragment extends Fragment {
     private Drawable playDrawable;
     private Drawable pauseDrawable;
     private boolean mPlay;
+    private MidiDriver mMidiDriver;
 
     public FretViewFragment() {
     }
@@ -60,18 +51,6 @@ public class FretViewFragment extends Fragment {
         Log.d(TAG, "onCreate");
         pauseDrawable = ContextCompat.getDrawable(getActivity(), R.drawable.pausebutton2);
         playDrawable = ContextCompat.getDrawable(getActivity(), R.drawable.playbutton2);
-        if (savedInstanceState == null) {
-            Log.d(TAG, "savedInstanceState == null");
-            if (getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_MIDI)) {
-                mMidiSupported = true;
-                Log.d(TAG, "MIDI Supported");
-            } else {
-                Log.d(TAG, "MIDI NOT Supported!!");
-                mMidiSupported = false;
-            }
-        } else {
-            mMidiSupported = savedInstanceState.getBoolean(KEY_MIDI);
-        }
         progressDialog = new ProgressDialog(getActivity());
         progressDialog.setMessage(getString(R.string.buffering_msg));
         progressDialog.setCancelable(true);
@@ -82,6 +61,10 @@ public class FretViewFragment extends Fragment {
             }
         });
         progressDialog.show();
+        // Instantiate the driver.
+        mMidiDriver = new MidiDriver();
+        // Set the listener.
+        mMidiDriver.setOnMidiStartListener(this);
     }
 
     @Override
@@ -108,6 +91,11 @@ public class FretViewFragment extends Fragment {
             public void OnPlayEnabled(boolean flag) {
                 mPlay = true;
                 progressDialog.hide();
+            }
+
+            @Override
+            public void SendMidi(byte[] buffer) {
+                mMidiDriver.write(buffer);
             }
         });
         mTempoText = (TextView) myView.findViewById(R.id.bpmText);
@@ -187,6 +175,7 @@ public class FretViewFragment extends Fragment {
         super.onPause();
         Log.d(TAG, "onPause");
         // The app is losing focus so need to stop the
+        mMidiDriver.stop();
         mFretTrackView.pause();
         progressDialog.dismiss();
     }
@@ -195,22 +184,27 @@ public class FretViewFragment extends Fragment {
     public void onResume() {
         super.onResume();
         Log.d(TAG, "onResume");
+        mMidiDriver.start();
+        // Get the configuration.
+        int[] config = mMidiDriver.config();
+
+        // Print out the details.
+        Log.d(TAG, "maxVoices: " + config[0]);
+        Log.d(TAG, "numChannels: " + config[1]);
+        Log.d(TAG, "sampleRate: " + config[2]);
+        Log.d(TAG, "mixBufferSize: " + config[3]);
     }
 
     @Override
     public void onStart() {
         super.onStart();
         Log.d(TAG, "onStart");
-        if(mMidiSupported){
-            setUpMidi();
-        }
     }
 
     @Override
     public void onStop() {
         super.onStop();
         Log.d(TAG, "onStop");
-        closeDevice();
     }
 
     @Override
@@ -219,72 +213,8 @@ public class FretViewFragment extends Fragment {
         Log.d(TAG, "onDestroy");
     }
 
-    void closeDevice() {
-        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.M) {
-            Log.d(TAG, "closeDevice");
-
-            if (mOpenDevice != null) {
-                try {
-                    mOpenDevice.close();
-                } catch (IOException e) {
-                    Log.d(TAG, "ERROR: " + e.getMessage());
-                } finally {
-                    Log.d(TAG, "FINALLY");
-                }
-            }
-        }
-    }
-
-    private void setUpMidi() {
-        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.M) {
-
-            Log.d(TAG, "Setting up MIDI");
-            MidiManager m = (MidiManager) getActivity().getSystemService(Context.MIDI_SERVICE);
-            final MidiDeviceInfo[] infos = m.getDevices();
-            if (infos == null || infos.length == 0) {
-                Log.d(TAG, "NO MIDI DEVICES");
-            } else {
-                for (MidiDeviceInfo d : infos) {
-                    Bundle properties = d.getProperties();
-                    Log.d(TAG, "MIDI DEVICE NAME: " + properties.getString(MidiDeviceInfo.PROPERTY_NAME));
-                    Log.d(TAG, "MIDI DEVICE MANUFACTURER: " + properties.getString(MidiDeviceInfo.PROPERTY_MANUFACTURER));
-                    Log.d(TAG, "MIDI DEVICE PRODUCT: " + properties.getString(MidiDeviceInfo.PROPERTY_PRODUCT));
-                    Log.d(TAG, "MIDI DEVICE SERIAL_NUMBER: " + properties.getString(MidiDeviceInfo.PROPERTY_SERIAL_NUMBER));
-                    Log.d(TAG, "MIDI DEVICE USB_DEVICE: " + properties.getString(MidiDeviceInfo.PROPERTY_USB_DEVICE));
-                    Log.d(TAG, "MIDI DEVICE BLUETOOTH_EDVICE: " + properties.getString(MidiDeviceInfo.PROPERTY_BLUETOOTH_DEVICE));
-                    Log.d(TAG, "MIDI DEVICE VERSION: " + properties.getString(MidiDeviceInfo.PROPERTY_VERSION));
-                }
-                final MidiDeviceInfo info = infos[0];
-                // Lets try to open the first device
-                m.openDevice(info, new MidiManager.OnDeviceOpenedListener() {
-
-                    @TargetApi(Build.VERSION_CODES.M)
-                    @Override
-                    public void onDeviceOpened(MidiDevice device) {
-                        if (device == null) {
-                            Log.e(TAG, "could not open device " + info);
-                        } else {
-                            Log.d(TAG, "Device opened");
-                            mOpenDevice = device;
-                            // TODO - what port to open???
-                            int port = 0;
-                            MidiInputPort inputPort = mOpenDevice.openInputPort(port);
-                            if (inputPort == null) {
-                                Log.e(TAG, "could not open input port on " + info);
-                            } else {
-                                Log.d(TAG, "Port " + port + " opened.");
-                                if (mFretTrackView != null) {
-                                    mFretTrackView.setInputPort(inputPort, 1);
-                                }
-                            }
-                        }
-                    }
-                }, null);
-            }
-        }
-    }
-
-    public FretSong getFretSong() {
-        return mFretSong;
+    @Override
+    public void onMidiStart() {
+        Log.d(TAG, "onMidiStart()");
     }
 }

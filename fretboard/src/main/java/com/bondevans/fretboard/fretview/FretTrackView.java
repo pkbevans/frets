@@ -2,8 +2,6 @@ package com.bondevans.fretboard.fretview;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.media.midi.MidiInputPort;
-import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.util.AttributeSet;
@@ -12,9 +10,7 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 
-import java.io.IOException;
-
-/**
+/**¬
  * <code>FretTrackView</code> extends <code>FretView</code>  to animate the notes of a song on a fretboard
  */
 public class FretTrackView extends FretView {
@@ -28,7 +24,6 @@ public class FretTrackView extends FretView {
     private GestureDetector gestureDetector;
     private FretEventHandler mFretEventHandler;
     private int mCurrentFretEvent = 0;
-    private MidiInputPort mInputPort = null;
     int mChannel = 0; // TODO hardcoded channel
     private FretListener fretListener;
 
@@ -38,6 +33,8 @@ public class FretTrackView extends FretView {
         void OnTempoChanged(int tempo);
 
         void OnPlayEnabled(boolean flag);
+
+        void SendMidi(byte[] buffer);
     }
 
     public void setFretListener(FretListener fretListener) {
@@ -55,11 +52,6 @@ public class FretTrackView extends FretView {
     public FretTrackView(Context context, AttributeSet attrs) {
         super(context, attrs);
         initialiseView(context);
-    }
-
-    public void setInputPort(MidiInputPort inputPort, int channel) {
-        this.mInputPort = inputPort;
-        this.mChannel = channel;
     }
 
     /**
@@ -83,7 +75,9 @@ public class FretTrackView extends FretView {
     protected void onDraw(Canvas g) {
         super.onDraw(g);
         doTempo();
-        doMidiNotes();
+        if (mPlaying) {
+            sendMidiNotes();
+        }
     }
 
     private void doTempo() {
@@ -92,10 +86,10 @@ public class FretTrackView extends FretView {
         }
     }
 
-    private void doMidiNotes() {
+    private void sendMidiNotes() {
         if (mFretNotes != null) {
             for (int i = 0; i < mFretNotes.size(); i++) {
-                // Send the MIDI note to the Input Port
+                // Send the MIDI notes
                 sendMidiNote(mFretNotes.get(i));
             }
         }
@@ -120,7 +114,7 @@ public class FretTrackView extends FretView {
         setNotes(mFretTrack.fretEvents.get(mCurrentFretEvent).fretNotes, mFretTrack.fretEvents.get(mCurrentFretEvent).bend);
         mTicksPerQtrNote = tpqn;
         // Enable Play
-        sendMidiProgramChange();
+        setMidiInstrument();
         fretListener.OnPlayEnabled(true);
         fretListener.OnTempoChanged(mCurrentBPM);
         invalidate();   // Force redraw
@@ -142,59 +136,48 @@ public class FretTrackView extends FretView {
     private byte[] midiBuffer = new byte[3];
 
     private void sendMidiNote(FretNote fretNote) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (mInputPort != null) {
 //            Log.d(TAG, (fretNote.on?"NOTE ON": "NOTE OFF")+ " ["+fretNote.name+"]");
-                midiBuffer[0] = (byte) (fretNote.on ? (0x90 | mChannel) : (0x80 | mChannel));
-                // Note value
-                midiBuffer[1] = (byte) fretNote.note;
-                // Velocity - TODO Hardcoded volume
-                midiBuffer[2] = (byte) 0x60;
-                try {
-                    mInputPort.send(midiBuffer, 0, 3);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    Log.e(TAG, "OOPS Midi send didn't work");
-                }
-            }
+        if (fretNote.bend > 0) {
+            // Send pitch Bend message (will alter current note playing)
+            midiBuffer[0] = (byte) (0xE0 | mChannel);
+            getMidiPitchBendValue(fretNote.bend, midiBuffer);
+        } else {
+            midiBuffer[0] = (byte) (fretNote.on ? (0x90 | mChannel) : (0x80 | mChannel));
+            // Note value
+            midiBuffer[1] = (byte) fretNote.note;
+            // Velocity - TODO Hardcoded volume
+            midiBuffer[2] = (byte) 0x60;
         }
+        fretListener.SendMidi(midiBuffer);
+    }
+
+    /**
+     * Converts bend value (0-10) to Midi pitch bend value in range 8192-16383
+     *
+     * @param bend
+     */
+    private void getMidiPitchBendValue(int bend, byte[] midiBuffer) {
+        int midiValue = FretEvent.ZERO_PITCH_BEND - 1 + (bend * (FretEvent.ZERO_PITCH_BEND / FretEvent.MAX_BEND));
+        midiBuffer[0] = (byte) (0xE0 | mChannel);
+        midiBuffer[1] = (byte) (midiValue & 0x7F);
+        midiBuffer[2] = (byte) ((byte) (midiValue >> 7) & 0x7F);
+        return;
     }
 
     private void sendMidiNotesOff2() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (mInputPort != null) {
-                Log.d(TAG, "Sending ALL NOTES OFF");
-                midiBuffer[0] = (byte) (0xB | mChannel);
-                // Note value
-                midiBuffer[1] = (byte) 0x7B;
-                // Velocity - TODO Hardcoded volume
-                try {
-                    mInputPort.send(midiBuffer, 0, 2);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    Log.e(TAG, "OOPS Midi sendNotesOffdidn't work");
-                }
-            }
-        }
+        Log.d(TAG, "Sending ALL NOTES OFF");
+        midiBuffer[0] = (byte) (0xB | mChannel);
+        // Note value
+        midiBuffer[1] = (byte) 0x7B;
+        fretListener.SendMidi(midiBuffer);
     }
 
-    private void sendMidiProgramChange() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (mInputPort != null) {
-                Log.d(TAG, "sendMidiProgramChange");
-                midiBuffer[0] = (byte) (0xC | mChannel);
-                // Note value
-                midiBuffer[1] = 0x1D;
-                // Velocity - TODO Hardcoded volume
-                midiBuffer[2] = (byte) 0;
-                try {
-                    mInputPort.send(midiBuffer, 0, 3);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    Log.e(TAG, "OOPS Midi send didn't work");
-                }
-            }
-        }
+    private void setMidiInstrument() {
+        Log.d(TAG, "setMidiInstrument: Instrument");
+        midiBuffer[0] = (byte) (0xC | mChannel);
+        midiBuffer[1] = 0x00;
+        midiBuffer[2] = (byte) 0;
+        fretListener.SendMidi(midiBuffer);
     }
 
     class FretEventHandler extends Handler {

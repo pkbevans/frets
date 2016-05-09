@@ -145,6 +145,12 @@ public class FretSong extends FretBase {
 
     public void deleteTrack(int track) {
         fretTracks.remove(track);
+        // Adjust solo track if necessary
+        if (soloTrack == track) {
+            soloTrack = 0;
+        } else if (soloTrack > track) {
+            soloTrack--;
+        }
     }
 
     public void setSoloTrack(int track) {
@@ -152,6 +158,7 @@ public class FretSong extends FretBase {
     }
 
     public int getSoloTrack() {
+        Log.d(TAG, "SOLO=" + soloTrack);
         return this.soloTrack;
     }
 

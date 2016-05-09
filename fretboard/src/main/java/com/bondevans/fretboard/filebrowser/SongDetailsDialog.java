@@ -9,14 +9,24 @@ import android.view.View;
 import android.widget.EditText;
 
 import com.bondevans.fretboard.R;
+import com.bondevans.fretboard.utils.Log;
 
 public class SongDetailsDialog extends DialogFragment {
 
     public static final String TAG = SongDetailsDialog.class.getSimpleName();
+    private static final String KEY_NAME = "na";
     private SongDetailsListener songDetailsListener;
 
+    public static SongDetailsDialog newInstance(String name) {
+        SongDetailsDialog frag = new SongDetailsDialog();
+        Bundle args = new Bundle();
+        args.putString(KEY_NAME, name);
+        frag.setArguments(args);
+        return frag;
+
+    }
     public interface SongDetailsListener {
-        void OnLoginDetailsEntered(String name, String description);
+        void OnSongDetailsEntered(String name, String description);
         void OnCancel();
     }
 
@@ -34,7 +44,11 @@ public class SongDetailsDialog extends DialogFragment {
 
         View layout = View.inflate(getActivity(), R.layout.song_details_dialog, null);
 
+        if (args != null) {
+            Log.d(TAG, "ARGS NOT NULL!!!");
+        }
         name = (EditText) layout.findViewById(R.id.name);
+        name.setText(getArguments().getString(KEY_NAME));
         description = (EditText) layout.findViewById(R.id.description);
 
         return new AlertDialog.Builder(getActivity())
@@ -43,7 +57,7 @@ public class SongDetailsDialog extends DialogFragment {
                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        songDetailsListener.OnLoginDetailsEntered(name.getText().toString().trim(),
+                        songDetailsListener.OnSongDetailsEntered(name.getText().toString().trim(),
                                 description.getText().toString().trim());
                     }
                 })

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="accent_material_light">#00f53d</color>
-    <color name="primary_dark_material_light">#87f978</color>
+    <color name="accent_material_light">#f500b8</color>
+    <color name="primary_dark_material_light">#ff83db</color>
     <color name="foreground_material_light">#379187</color>
     <color name="black">#2f0606</color>
 </resources>

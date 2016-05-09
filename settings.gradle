@@ -1,1 +1,1 @@
-include ':fretboard', ':paulslib'
+include ':fretboard', ':paulslib', ':MidiDriver'

@@ -35,7 +35,7 @@ public class SaveFileDialog extends DialogFragment {
                         mSaveFileListener.onSave();
                     }
                 })
-                .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                .setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         dialog.cancel();
                         mSaveFileListener.onCancel();
