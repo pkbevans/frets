@@ -1,4 +1,4 @@
-package com.bondevans.fretboard.filebrowser;
+package com.bondevans.fretboard.freteditor;
 
 import android.app.AlertDialog;
 import android.app.Dialog;

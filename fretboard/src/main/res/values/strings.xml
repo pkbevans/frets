@@ -38,7 +38,7 @@
     <string name="user_does_not_exist">Please enter a valid email address.  We don\'t have this one on our system</string>
     <string name="action_export">Export…</string>
     <string name="no_track">No track selected. Please select track to export</string>
-    <string name="no_songs">No songs yet…</string>
+    <string name="no_songs">Connecting…</string>
     <string name="import_midi">Import Midi File…</string>
     <string name="buffering_msg">Loading…</string>
     <string name="invalid_file_type">This is not a Midi file.</string>
@@ -59,12 +59,14 @@
     <string name="save_failed">Failed to save Fret</string>
     <string name="action_del_track">Delete Track</string>
     <string name="action_solo_track">Make Solo track</string>
-    <string name="action_rename_track">Rename Track...</string>
+    <string name="action_rename_track">Rename Track…</string>
     <string name="action_test">MidiTest</string>
     <string name="solo_track">Solo Track</string>
-    <string name="action_publish">Publish...</string>
+    <string name="action_publish">Publish…</string>
     <string name="published">" published"</string>
     <string name="no">No</string>
     <string name="track">Track</string>
     <string name="action_save_song">Save song</string>
+    <string name="track_details">Please enter the Track details</string>
+    <string name="track_name">Track Name</string>
 </resources>

@@ -11,7 +11,6 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.bondevans.fretboard.R;
-import com.bondevans.fretboard.filebrowser.SongDetailsDialog;
 import com.bondevans.fretboard.firebase.FBWrite;
 import com.bondevans.fretboard.fretview.FretSong;
 import com.bondevans.fretboard.utils.FileWriterTask;
@@ -41,7 +40,7 @@ public class FretEditActivity extends AppCompatActivity {
         if (savedInstanceState == null) {
             //  We should have the song contents in the intent
             Intent intent = getIntent();
-            Log.e(TAG, "Got File");
+            Log.d(TAG, "Got File");
             mFragment.setFretSong(new File(intent.getData().getPath()));
         }
         Toolbar toolbar = (Toolbar) findViewById(R.id.tool_bar); // Attaching the layout to the toolbar object
@@ -64,7 +63,7 @@ public class FretEditActivity extends AppCompatActivity {
                 publishSong();
                 break;
             case R.id.action_save_song:
-                saveSong();
+                saveSong(false);
                 break;
             case R.id.action_settings:
                 // TODO Either allow settings to be accessed from here or remove this option
@@ -104,7 +103,7 @@ public class FretEditActivity extends AppCompatActivity {
         finish();   //Lets get outta here
     }
 
-    private void saveSong() {
+    private void saveSong(final boolean finish) {
         Log.d(TAG, "saveSong");
 
         if (mFragment != null && mFragment.isEdited()) {
@@ -118,6 +117,11 @@ public class FretEditActivity extends AppCompatActivity {
                     Log.d(TAG, "Update written to file: " + file.getName());
                     Toast.makeText(FretEditActivity.this, getString(R.string.fret_saved) + file.getPath(), Toast.LENGTH_SHORT).show();
                     FretEditActivity.this.setResult(RESULT_EDITED);
+                    if (finish) {
+                        FretEditActivity.this.finish();
+                    } else {
+                        mFragment.setEdited(false);
+                    }
                 }
 
                 @Override
@@ -125,6 +129,9 @@ public class FretEditActivity extends AppCompatActivity {
                     Log.d(TAG, "File write failed: " + file.getName() + " " + msg);
                     Toast.makeText(FretEditActivity.this, R.string.save_failed, Toast.LENGTH_LONG).show();
                     FretEditActivity.this.setResult(RESULT_NOT_EDITED);
+                    if (finish) {
+                        FretEditActivity.this.finish();
+                    }
                 }
             });
             fileWriterTask.execute();
@@ -148,7 +155,7 @@ public class FretEditActivity extends AppCompatActivity {
         saveFileDialog.SetSaveFileListener(new SaveFileDialog.SaveFileListener() {
             @Override
             public void onSave() {
-                saveSong();
+                saveSong(true);
             }
 
             @Override

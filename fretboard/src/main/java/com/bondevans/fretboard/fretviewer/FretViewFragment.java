@@ -144,11 +144,11 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
      *
      * @param fretSong Song to view
      */
-    public void setFretSong(FretSong fretSong) {
+    private void setFretSong(FretSong fretSong) {
         Log.d(TAG, "setFretSong");
         mFretSong = fretSong;
         mSongName.setText(mFretSong.getName());
-        mTrackName.setText(mFretSong.geTrackName(mFretSong.getSoloTrack()));
+        mTrackName.setText(mFretSong.getTrackName(mFretSong.getSoloTrack()));
         mFretTrackView.setTrack(mFretSong.getTrack(mFretSong.getSoloTrack()), mFretSong.getTpqn(), mFretSong.getBpm());
     }
 

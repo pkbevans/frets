@@ -1,6 +1,6 @@
 package com.bondevans.fretboard.fretview;
 
-import com.bondevans.fretboard.utils.Log;
+//import com.bondevans.fretboard.utils.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
  * A collection of Fretevents making up a track
  */
 public class FretTrack extends FretBase {
-    private static final String TAG = FretTrack.class.getSimpleName();
+    //    private static final String TAG = FretTrack.class.getSimpleName();
     public static final String ELEMENT_TRACK = "track";
     public static final String TRACK_ELEMENT_OPEN = "<"+ELEMENT_TRACK+">";
     public static final String TRACK_ELEMENT_CLOSE = "</"+ELEMENT_TRACK+">";
@@ -64,15 +64,19 @@ public class FretTrack extends FretBase {
      * @return String representation of class
      */
     @Override
-    public String toString(){
+    public String toString() {
         StringBuilder sb = new StringBuilder(TRACK_ELEMENT_OPEN
-                +attr(ATTR_NAME, name)
-                );
-        for(FretEvent event: fretEvents){
+                + attr(ATTR_NAME, name)
+        );
+        for (FretEvent event : fretEvents) {
             sb.append(event.toString());
         }
         sb.append(TRACK_ELEMENT_CLOSE);
         return sb.toString();
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }
 

@@ -51,6 +51,7 @@ public class FretEditFragment extends Fragment {
     ArrayAdapter<String> mTrackAdapter;
     private int mSelectedTrack = NO_TRACK_SELECTED;
     private ProgressDialog progressDialog;
+    private ImageButton mDeleteTrackBtn;
 
     public FretEditFragment() {
     }
@@ -82,6 +83,16 @@ public class FretEditFragment extends Fragment {
         mFretEditView = (FretEditView) myView.findViewById(R.id.fretview);
         scrollView.setOnTouchListener(mFretEditView);
         mSongNameText = (EditText) myView.findViewById(R.id.song_name);
+
+        ImageButton editTrackBtn = (ImageButton) myView.findViewById(R.id.editTrackName);
+        editTrackBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d(TAG, "editTrack Button clicked");
+                updateTrackDetails();
+            }
+        });
+
         mSoloTrack = (CheckBox) myView.findViewById(R.id.checkBox);
         mSoloTrack.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -125,19 +136,11 @@ public class FretEditFragment extends Fragment {
         mTrackSpinner = (Spinner) myView.findViewById(R.id.track_spinner);
         mTrackSpinner.setEnabled(false);
 
-        ImageButton deleteTrackBtn = (ImageButton) myView.findViewById(R.id.deleteTrack);
-        deleteTrackBtn.setOnClickListener(new View.OnClickListener() {
+        mDeleteTrackBtn = (ImageButton) myView.findViewById(R.id.deleteTrack);
+        mDeleteTrackBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Log.d(TAG, "deleteTrack Button clicked");
-                deleteCurrentTrack();
-            }
-        });
-        ImageButton editTrackBtn = (ImageButton) myView.findViewById(R.id.editTrackName);
-        editTrackBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d(TAG, "editTrack Button clicked");
                 deleteCurrentTrack();
             }
         });
@@ -189,11 +192,12 @@ public class FretEditFragment extends Fragment {
         mSoloTrack.setChecked(mSelectedTrack == mFretSong.getSoloTrack());
         // Can't de-select the first track as the solo track - you have to positively select
         // the other track as solo - always has t be a solo track and default is zero(first)
+        mDeleteTrackBtn.setEnabled(mFretSong.tracks() > 1);
         mSoloTrack.setEnabled((mFretSong.tracks() > 0) && !(mSelectedTrack == 0 && mSoloTrack.isChecked()));
         mFretEditView.setNotes(mFretTrack.fretEvents.get(mCurrentEvent).fretNotes, mFretTrack.fretEvents.get(mCurrentEvent).bend);
     }
 
-    public void setFretSong(FretSong fretSong) {
+    private void setFretSong(FretSong fretSong) {
         mSongName = fretSong.getName();
         mSongNameText.setText(fretSong.getName());
         mFretSong = fretSong;
@@ -251,6 +255,10 @@ public class FretEditFragment extends Fragment {
         return mEdited;
     }
 
+    public void setEdited(boolean b) {
+        mEdited = b;
+    }
+
     public FretSong getFretSong() {
         return mFretSong;
     }
@@ -267,11 +275,14 @@ public class FretEditFragment extends Fragment {
     }
 
     public void deleteCurrentTrack() {
-        mFretSong.deleteTrack(mSelectedTrack);
-        setFretTrack(mFretSong.getTrack(mFretSong.getSoloTrack()));
-        // Set up spinner again (invalidate??)
-        setupTrackSpinner();
-        mEdited = true;
+        if (mFretSong.tracks() > 1) {
+            // Dont allow them to delete the only track
+            mFretSong.deleteTrack(mSelectedTrack);
+            setFretTrack(mFretSong.getTrack(mFretSong.getSoloTrack()));
+            // Set up spinner again (invalidate??)
+            setupTrackSpinner();
+            mEdited = true;
+        }
     }
 
     private void setupTrackSpinner() {
@@ -316,4 +327,18 @@ public class FretEditFragment extends Fragment {
         super.onPause();
         progressDialog.dismiss();
     }
+
+    public void updateTrackDetails() {
+        // Get the Track name
+        TrackDetailsDialog trackDetailsDialog = TrackDetailsDialog.newInstance(mFretTrack.getName());
+        trackDetailsDialog.setTrackDetailsListener(new TrackDetailsDialog.TrackDetailsListener() {
+            @Override
+            public void OnUpdate(String name) {
+                mFretTrack.setName(name);
+                mEdited = true;
+            }
+        });
+        trackDetailsDialog.show(getFragmentManager(), "dfkjh");
+    }
+
 }

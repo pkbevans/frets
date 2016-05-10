@@ -50,11 +50,7 @@ public class FBWrite {
         contentsRef.setValue(post1);
         // Now store the Song Details entry using id as link to contents
         Firebase detailsRef = firebaseRef.child("songs");
+        // TODO Add uploadedBy, dateUploaded, etc details
         detailsRef.push().setValue(new Songs(songId, fretSong.getName(), description));
-//        post1.clear();
-//        post1.put("id", songId);
-//        post1.put("name", fretSong.getName());
-//        post1.put("description", description);
-//        detailsRef.push().setValue(post1);
     }
 }

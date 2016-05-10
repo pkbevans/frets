@@ -16,6 +16,9 @@ import android.view.View;
 public class FretTrackView extends FretView {
     private static final String TAG = FretTrackView.class.getSimpleName();
     private static final int MINIMUM_TEMPO = 10;
+    private static final int ALTO_SAXOPHONE = 65;
+    private static final int XYLOPHONE = 13;
+    private static final int ELECTRIC_GUITAR = 29;
     private FretTrack mFretTrack;
     private int mTicksPerQtrNote;
     private int mDefaultTempo = 120;
@@ -114,7 +117,7 @@ public class FretTrackView extends FretView {
         setNotes(mFretTrack.fretEvents.get(mCurrentFretEvent).fretNotes, mFretTrack.fretEvents.get(mCurrentFretEvent).bend);
         mTicksPerQtrNote = tpqn;
         // Enable Play
-        setMidiInstrument();
+        setMidiInstrument(ALTO_SAXOPHONE);
         fretListener.OnPlayEnabled(true);
         fretListener.OnTempoChanged(mCurrentBPM);
         invalidate();   // Force redraw
@@ -140,7 +143,7 @@ public class FretTrackView extends FretView {
         if (fretNote.bend > 0) {
             // Send pitch Bend message (will alter current note playing)
             midiBuffer[0] = (byte) (0xE0 | mChannel);
-            getMidiPitchBendValue(fretNote.bend, midiBuffer);
+            setMidiPitchBendEvent(fretNote.bend, midiBuffer);
         } else {
             midiBuffer[0] = (byte) (fretNote.on ? (0x90 | mChannel) : (0x80 | mChannel));
             // Note value
@@ -154,14 +157,14 @@ public class FretTrackView extends FretView {
     /**
      * Converts bend value (0-10) to Midi pitch bend value in range 8192-16383
      *
-     * @param bend
+     * @param bend Bend (UP) value in range 0-10
+     * @param midiBuffer byte buffer to place midi bend event into
      */
-    private void getMidiPitchBendValue(int bend, byte[] midiBuffer) {
+    private void setMidiPitchBendEvent(int bend, byte[] midiBuffer) {
         int midiValue = FretEvent.ZERO_PITCH_BEND - 1 + (bend * (FretEvent.ZERO_PITCH_BEND / FretEvent.MAX_BEND));
         midiBuffer[0] = (byte) (0xE0 | mChannel);
         midiBuffer[1] = (byte) (midiValue & 0x7F);
         midiBuffer[2] = (byte) ((byte) (midiValue >> 7) & 0x7F);
-        return;
     }
 
     private void sendMidiNotesOff2() {
@@ -172,12 +175,12 @@ public class FretTrackView extends FretView {
         fretListener.SendMidi(midiBuffer);
     }
 
-    private void setMidiInstrument() {
-        Log.d(TAG, "setMidiInstrument: Instrument");
-        midiBuffer[0] = (byte) (0xC | mChannel);
-        midiBuffer[1] = 0x00;
-        midiBuffer[2] = (byte) 0;
-        fretListener.SendMidi(midiBuffer);
+    private void setMidiInstrument(int instrument) {
+        Log.d(TAG, "setMidiInstrument: " + instrument);
+        byte[] event = new byte[2];
+        event[0] = (byte) (0xC0 | mChannel);
+        event[1] = (byte) instrument;
+        fretListener.SendMidi(event);
     }
 
     class FretEventHandler extends Handler {

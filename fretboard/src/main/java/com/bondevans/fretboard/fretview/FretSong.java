@@ -162,7 +162,7 @@ public class FretSong extends FretBase {
         return this.soloTrack;
     }
 
-    public String geTrackName(int track) {
+    public String getTrackName(int track) {
         return fretTracks.get(track).getName();
     }
 }

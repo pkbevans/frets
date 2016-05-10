@@ -89,7 +89,7 @@ public class FretListFragment extends ListFragment {
         // See if we've got this song in the cache
         final File cacheFile = new File(getActivity().getExternalFilesDir(null), song.getId() + ".xml");
         if (cacheFile.exists()) {
-            // Always open FretViewer by passing file referece - not song contents
+            // Always open FretViewer by passing file reference
             showFretView(cacheFile);
         } else {
             Log.d(TAG, "NOT in cache: " + cacheFile.getName());
