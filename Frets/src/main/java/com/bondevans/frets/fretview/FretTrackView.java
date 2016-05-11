@@ -16,9 +16,6 @@ import android.view.View;
 public class FretTrackView extends FretView {
     private static final String TAG = FretTrackView.class.getSimpleName();
     private static final int MINIMUM_TEMPO = 10;
-    private static final int ALTO_SAXOPHONE = 65;
-    private static final int XYLOPHONE = 13;
-    private static final int ELECTRIC_GUITAR = 29;
     private FretTrack mFretTrack;
     private int mTicksPerQtrNote;
     private int mDefaultTempo = 120;
@@ -27,7 +24,7 @@ public class FretTrackView extends FretView {
     private GestureDetector gestureDetector;
     private FretEventHandler mFretEventHandler;
     private int mCurrentFretEvent = 0;
-    int mChannel = 0; // TODO hardcoded channel
+    int mChannel = 0; // hardcoded channel
     private FretListener fretListener;
 
     public interface FretListener {
@@ -117,7 +114,6 @@ public class FretTrackView extends FretView {
         setNotes(mFretTrack.fretEvents.get(mCurrentFretEvent).fretNotes, mFretTrack.fretEvents.get(mCurrentFretEvent).bend);
         mTicksPerQtrNote = tpqn;
         // Enable Play
-        setMidiInstrument(ALTO_SAXOPHONE);
         fretListener.OnPlayEnabled(true);
         fretListener.OnTempoChanged(mCurrentBPM);
         invalidate();   // Force redraw
@@ -148,10 +144,25 @@ public class FretTrackView extends FretView {
             midiBuffer[0] = (byte) (fretNote.on ? (0x90 | mChannel) : (0x80 | mChannel));
             // Note value
             midiBuffer[1] = (byte) fretNote.note;
-            // Velocity - TODO Hardcoded volume
-            midiBuffer[2] = (byte) 0x60;
+            // Velocity - Hardcoded volume for NOTE_ON and zero for NOTE_OFF
+            midiBuffer[2] = (byte) (fretNote.on ? 0x60 : 0x00);
         }
         fretListener.SendMidi(midiBuffer);
+    }
+
+    /**
+     * Sends NOTE_OFF message for all current notes.
+     */
+    private void sendMidiNotesOff() {
+        Log.d(TAG, "Sending NEW ALL NOTES OFF");
+        for (FretNote fretNote : mFretNotes) {
+            midiBuffer[0] = (byte) (fretNote.on ? (0x90 | mChannel) : (0x80 | mChannel));
+            // Note value
+            midiBuffer[1] = (byte) fretNote.note;
+            // Velocity - Hardcoded volume
+            midiBuffer[2] = (byte) 0x00;
+            fretListener.SendMidi(midiBuffer);
+        }
     }
 
     /**
@@ -165,22 +176,6 @@ public class FretTrackView extends FretView {
         midiBuffer[0] = (byte) (0xE0 | mChannel);
         midiBuffer[1] = (byte) (midiValue & 0x7F);
         midiBuffer[2] = (byte) ((byte) (midiValue >> 7) & 0x7F);
-    }
-
-    private void sendMidiNotesOff2() {
-        Log.d(TAG, "Sending ALL NOTES OFF");
-        midiBuffer[0] = (byte) (0xB | mChannel);
-        // Note value
-        midiBuffer[1] = (byte) 0x7B;
-        fretListener.SendMidi(midiBuffer);
-    }
-
-    private void setMidiInstrument(int instrument) {
-        Log.d(TAG, "setMidiInstrument: " + instrument);
-        byte[] event = new byte[2];
-        event[0] = (byte) (0xC0 | mChannel);
-        event[1] = (byte) instrument;
-        fretListener.SendMidi(event);
     }
 
     class FretEventHandler extends Handler {
@@ -229,7 +224,7 @@ public class FretTrackView extends FretView {
             mFretEventHandler.sleep(mFretTrack.fretEvents.get(mCurrentFretEvent).deltaTime);
         } else {
             // Pause
-            sendMidiNotesOff2();
+            sendMidiNotesOff();
         }
         invalidate();   // Force redraw with correct play/pause button
     }

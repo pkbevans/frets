@@ -32,7 +32,6 @@ public class MidiFile {
     private int BPM=120;
     private int[] mTrackChunkLength;
     private boolean mHeaderLoaded = false;
-    private List<MidiNoteEvent> mNoteEvents = new ArrayList<>();
     private int mRunningStatus = 0;
     private int mRunningChannel = 0;
 
@@ -101,8 +100,8 @@ public class MidiFile {
      * @throws FretboardException
      * @throws IOException
      */
-    public List<MidiNoteEvent> loadNoteEvents(int track) throws FretboardException, IOException {
-        Log.d(TAG, "loadNoteEvents");
+    public void loadNoteEvents(int track, List<MidiNoteEvent> noteEvents) throws FretboardException, IOException {
+        Log.d(TAG, "loadNoteEvents for track:" + track);
         InputStream in = new ByteArrayInputStream(loadTrack(track));
         MidiEvent ev = getEvent(in);
         int runningTicks = 0;
@@ -115,16 +114,16 @@ public class MidiFile {
                 if(ev.mParam2 == 0 && MidiEvent.NOTE_EVENT_TYPE_NOTE_ON == ev.mNoteEventType){
                     ev.mNoteEventType = MidiEvent.NOTE_EVENT_TYPE_NOTE_OFF;
                 }
-                mNoteEvents.add(new MidiNoteEvent(ev.mParam1, ev.mNoteEventType == MidiEvent.NOTE_EVENT_TYPE_NOTE_ON, ev.mTicks + runningTicks));
+                noteEvents.add(new MidiNoteEvent(ev.mParam1, ev.mNoteEventType == MidiEvent.NOTE_EVENT_TYPE_NOTE_ON, ev.mTicks + runningTicks));
                 runningTicks = 0;
             } else if (ev.mNoteEventType == MidiEvent.NOTE_EVENT_TYPE_PITCHBEND) {
                 Log.d(TAG, "BEND=" + ev.getBend());
-                mNoteEvents.add(new MidiNoteEvent(MidiNoteEvent.TYPE_BEND, ev.mTicks + runningTicks, ev.getBend()));
+                noteEvents.add(new MidiNoteEvent(MidiNoteEvent.TYPE_BEND, ev.mTicks + runningTicks, ev.getBend()));
                 runningTicks = 0;
             }
             else if(ev.mMetaEventType == MidiEvent.META_EVENT_TYPE_SET_TEMPO) {
                 Log.d(TAG, "TEMPO="+ev.getTempo());
-                mNoteEvents.add(new MidiNoteEvent(MidiNoteEvent.TYPE_TEMPO, ev.mTicks + runningTicks, ev.getTempo()));
+                noteEvents.add(new MidiNoteEvent(MidiNoteEvent.TYPE_TEMPO, ev.mTicks + runningTicks, ev.getTempo()));
                 runningTicks=0;
             }
             else
@@ -134,7 +133,8 @@ public class MidiFile {
             }
             ev = getEvent(in);
         }
-        return mNoteEvents;
+        Log.d(TAG, "loadNoteEvents (end) got " + noteEvents.size() + " events for track:" + track);
+        return;
     }
 
     /**

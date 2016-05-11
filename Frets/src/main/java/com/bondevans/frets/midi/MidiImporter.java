@@ -31,7 +31,7 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
         void OnError(String msg);
     }
 
-    public void setFileImportedListener(FileImportedListener fileImportedListener){
+    public void setFileImportedListener(FileImportedListener fileImportedListener) {
         this.fileImportedListener = fileImportedListener;
     }
 
@@ -56,12 +56,12 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
             mTracks = mMidiFile.getTracks();
 
             fretSong = new FretSong(NO_ID_YET, mMidiFile.getSongTitle(), mMidiFile.getTicksPerQtrNote(), mMidiFile.getBPM(), null);
-            for (int i=0; i<mTracks.size();i++) {
+            for (int i = 0; i < mTracks.size(); i++) {
 
                 try {
                     fretSong.addTrack(loadTrack(mTracks.get(i).name, mTracks.get(i).index));
                 } catch (EmptyTrackException e) {
-                    Log.d(TAG, "Ignoring Empty track: "+mTracks.get(i).name);
+                    Log.d(TAG, "Ignoring Empty track: " + mTracks.get(i).name);
                 }
             }
             // Now write out to new file in app cache directory
@@ -79,26 +79,31 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
 
     @Override
     protected void onPostExecute(String errorMessage) {
-        if(errorMessage.isEmpty()){
+        if (errorMessage.isEmpty()) {
             fileImportedListener.OnImportedLoaded(mOutFile);
-        }
-        else{
+        } else {
             fileImportedListener.OnError(errorMessage);
         }
         Log.d(TAG, "onPostExecute");
     }
 
     // Load track
-    private FretTrack loadTrack(String name, int track) throws IOException, FretboardException, EmptyTrackException {
+    private FretTrack loadTrack(String name, int track) throws IOException, EmptyTrackException {
         List<FretEvent> fretEvents;
-//      Log.d(TAG, "Loading track: " + track);
+        Log.d(TAG, "Loading track: " + track);
         // convert MIDI file into list of fretboard events
-        List<MidiNoteEvent> midiNoteEvents;
-        midiNoteEvents = mMidiFile.loadNoteEvents(track);
-//      Log.d(TAG, "Got " + midiNoteEvents.size() + " events");
+        List<MidiNoteEvent> midiNoteEvents = new ArrayList<>();
+        try {
+            mMidiFile.loadNoteEvents(track, midiNoteEvents);
+            Log.d(TAG, "Got " + midiNoteEvents.size() + " events");
+        } catch (FretboardException e) {
+            Log.e(TAG, "ERROR: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
         //  Loop through list of events.  For each set of events with the same time (i.e. chords)
         //  get the fret positions
-//      Log.d(TAG, "Loading Fret Events");
+        Log.d(TAG, "Loading Fret Events");
         fretEvents = new ArrayList<>();
         boolean first = true;
         FretPosition fp = new FretPosition(new FretGuitarStandard());
@@ -143,7 +148,7 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
         if (fretEvents.isEmpty() || !hasNotes) {
             throw new EmptyTrackException("Empty");
         }
-//      Log.d(TAG, "Got [" + fretEvents.size() + "] FretEvents");
+        Log.d(TAG, "Got [" + fretEvents.size() + "] FretEvents");
         return new FretTrack(name, fretEvents);
     }
 }

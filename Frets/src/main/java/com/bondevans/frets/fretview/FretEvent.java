@@ -35,7 +35,11 @@ public class FretEvent extends FretBase {
     public FretEvent(int deltaTime, List<FretNote> fretNotes, int tempo, int bend) {
         this.deltaTime = deltaTime;
         this.tempo = tempo;
-        setBend(bend);
+        if (bend > 0) {
+            setBend(bend);
+        } else {
+            this.bend = 0;
+        }
         this.fretNotes = fretNotes;
     }
 
@@ -105,7 +109,6 @@ public class FretEvent extends FretBase {
      */
     public void setBend(int bendValue) {
         this.bend = bendValue > ZERO_PITCH_BEND ? (bendValue - ZERO_PITCH_BEND) / (ZERO_PITCH_BEND / MAX_BEND) : 0;
-        Log.d(TAG, "HELLO setBend:" + bendValue + "=>" + this.bend);
     }
 }
 

@@ -26,6 +26,9 @@ import java.io.File;
 
 public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStartListener {
     private static final String TAG = FretViewFragment.class.getSimpleName();
+    private static final int ALTO_SAXOPHONE = 65;
+    private static final int XYLOPHONE = 13;
+    private static final int ELECTRIC_GUITAR = 29;
     private FretTrackView mFretTrackView;
     private TextView mSongName;
     private TextView mTrackName;
@@ -91,6 +94,8 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
             public void OnPlayEnabled(boolean flag) {
                 mPlay = true;
                 progressDialog.hide();
+                // Probably need to set up instrument here
+                setMidiInstrument(ELECTRIC_GUITAR);
             }
 
             @Override
@@ -216,5 +221,13 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
     @Override
     public void onMidiStart() {
         Log.d(TAG, "onMidiStart()");
+    }
+
+    private void setMidiInstrument(int instrument) {
+        Log.d(TAG, "setMidiInstrument: " + instrument);
+        byte[] event = new byte[2];
+        event[0] = (byte) (0xC0 | 0);// channel hardcoded to 0
+        event[1] = (byte) instrument;
+        mMidiDriver.write(event);
     }
 }
