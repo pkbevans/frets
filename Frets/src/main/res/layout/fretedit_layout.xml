@@ -9,21 +9,7 @@
     android:orientation="vertical"
     tools:context=".fretviewer.FretViewActivity">
 
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        >
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="@string/song_name"
-            android:id="@+id/textView7"
-            />
-
-        <EditText
+    <EditText
         android:id="@+id/song_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -32,22 +18,14 @@
         android:paddingStart="@dimen/padding_material"
         android:paddingBottom="@dimen/padding_material"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:layout_weight="0.05"/>
-    </LinearLayout>
+        android:layout_weight="0.05"
+        android:inputType="textCapWords"/>
 
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         >
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="@string/track"
-            android:id="@+id/textView6"
-            />
 
         <Spinner
             android:id="@+id/track_spinner"

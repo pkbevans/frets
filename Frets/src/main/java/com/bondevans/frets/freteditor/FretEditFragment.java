@@ -81,6 +81,7 @@ public class FretEditFragment extends Fragment {
         View myView = inflater.inflate(R.layout.fretedit_layout, container, false);
         HorizontalScrollView scrollView = (HorizontalScrollView) myView.findViewById(R.id.horizontalScrollView);
         mFretEditView = (FretEditView) myView.findViewById(R.id.fretview);
+        mFretEditView.setKeepScreenOn(true);
         scrollView.setOnTouchListener(mFretEditView);
         mSongNameText = (EditText) myView.findViewById(R.id.song_name);
 
@@ -202,7 +203,8 @@ public class FretEditFragment extends Fragment {
         mSongNameText.setText(fretSong.getName());
         mFretSong = fretSong;
         setupTrackSpinner();
-        mSelectedTrack = 0;
+        mSelectedTrack = mFretSong.getSoloTrack();
+        mTrackSpinner.setSelection(mSelectedTrack);
         setFretTrack(fretSong.getTrack(mSelectedTrack));    // Start off with first track
     }
 

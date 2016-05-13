@@ -40,7 +40,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:ems="10"
-            android:inputType="textCapSentences"/>
+            android:inputType="textCapWords"/>
 
         <TextView
             android:id="@+id/statusText"

@@ -103,6 +103,8 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
                 mMidiDriver.write(buffer);
             }
         });
+        mFretTrackView.setKeepScreenOn(true);
+
         mTempoText = (TextView) myView.findViewById(R.id.bpmText);
         mSongName = (TextView) myView.findViewById(R.id.song_name);
         mSeekBar = (SeekBar) myView.findViewById(R.id.seekBar);
