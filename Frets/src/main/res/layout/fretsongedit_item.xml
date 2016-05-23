@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content"
+              android:descendantFocusability="blocksDescendants"
+              android:orientation="horizontal"
+              tools:context=".freteditor.FretSongEditActivity">
+
+    <RadioButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/soloButton"
+        android:layout_gravity="center"
+        />
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/track_name"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="marquee"
+            android:paddingLeft="@dimen/frets_padding"
+            android:paddingStart="@dimen/frets_padding"
+            android:paddingRight="@dimen/frets_padding"
+            android:paddingEnd="@dimen/frets_padding"
+            android:scrollHorizontally="true"
+            android:singleLine="true"
+            android:textSize="24sp"/>
+
+        <Spinner
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:id="@+id/instrument_spinner"
+            android:layout_weight="0.25"/>
+
+        <TextView
+            android:id="@+id/events"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:paddingLeft="@dimen/frets_padding"
+            android:paddingStart="@dimen/frets_padding"
+            android:paddingRight="@dimen/frets_padding"
+            android:paddingEnd="@dimen/frets_padding"
+            android:text="@string/events"/>
+
+        <TextView
+            android:id="@+id/solo_text"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:paddingLeft="@dimen/frets_padding"
+            android:paddingStart="@dimen/frets_padding"
+            android:paddingRight="@dimen/frets_padding"
+            android:paddingEnd="@dimen/frets_padding"
+            />
+
+    </LinearLayout>
+</LinearLayout>

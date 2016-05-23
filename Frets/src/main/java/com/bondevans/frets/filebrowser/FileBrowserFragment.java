@@ -73,11 +73,6 @@ public class FileBrowserFragment extends ListFragment {
         }
     }
 
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-    }
-
     /**
      * Called when the activity is first created.
      */

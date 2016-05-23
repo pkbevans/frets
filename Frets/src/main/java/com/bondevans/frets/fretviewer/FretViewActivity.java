@@ -2,7 +2,9 @@ package com.bondevans.frets.fretviewer;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -12,19 +14,23 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.bondevans.frets.R;
 import com.bondevans.frets.freteditor.FretEditActivity;
+import com.bondevans.frets.freteditor.FretSongEditActivity;
+import com.bondevans.frets.fretview.FretSong;
+import com.bondevans.frets.utils.FileLoaderTask;
 
 import java.io.File;
 
 public class FretViewActivity extends AppCompatActivity {
 
     private static final String TAG = FretViewActivity.class.getSimpleName();
-    public static final String INTENT_SONGCONTENTS = "adfgfdg";
     private static final int REQUEST_CODE_READ_STORAGE_PERMISSION = 4522;
     private static final int REQUEST_EDIT_FRET = 678;
     private FretViewFragment fragment;
+    private ProgressDialog progressDialog;
 
     @Override
     @TargetApi(23)
@@ -35,14 +41,31 @@ public class FretViewActivity extends AppCompatActivity {
         fragment = (FretViewFragment) getFragmentManager()
                 .findFragmentById(R.id.fragment);
 
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage(getString(R.string.buffering_msg));
+        progressDialog.setCancelable(true);
+        progressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                finish();
+            }
+        });
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.tool_bar); // Attaching the layout to the toolbar object
+        setSupportActionBar(toolbar);                   // Setting toolbar as the ActionBar with setSupportActionBar() call
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowTitleEnabled(true);
+
         if (savedInstanceState == null) {
             //  We should have the song contents in the intent
             Intent intent = getIntent();
             Log.d(TAG, "Got File");
-            fragment.setFretSong(new File(intent.getData().getPath()));
+            setFretSong(new File(intent.getData().getPath()));
         }
-        Toolbar toolbar = (Toolbar) findViewById(R.id.tool_bar); // Attaching the layout to the toolbar object
-        setSupportActionBar(toolbar);                   // Setting toolbar as the ActionBar with setSupportActionBar() call
+        else{
+            Log.d(TAG, "CONFIG CHANGE");
+            getSupportActionBar().setTitle(fragment.getFretSong().getName());
+        }
     }
 
     private void checkFileAccessPermission() {
@@ -78,7 +101,10 @@ public class FretViewActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == android.R.id.home) {
+            onBackPressed();
+        }
+        else if(id == R.id.action_settings) {
             return true;
         } else if (id == R.id.action_edit) {
             showFretEdit();
@@ -88,7 +114,7 @@ public class FretViewActivity extends AppCompatActivity {
     }
 
     private void showFretEdit() {
-        Intent intent = new Intent(this, FretEditActivity.class);
+        Intent intent = new Intent(this, FretSongEditActivity.class);
         // Add the file location into the intent, so that the editor can update the file
         Log.d(TAG, "setting data: " + getIntent().getDataString());
         intent.setData(getIntent().getData());
@@ -96,7 +122,7 @@ public class FretViewActivity extends AppCompatActivity {
         try {
             startActivityForResult(intent, REQUEST_EDIT_FRET);
         } catch (ActivityNotFoundException e) {
-            Log.e(TAG, "NO ACTIVITY FOUND: FretEditActivity");
+            Log.e(TAG, "NO ACTIVITY FOUND: FretSongEditActivity");
         }
     }
 
@@ -112,8 +138,40 @@ public class FretViewActivity extends AppCompatActivity {
         if (requestCode == REQUEST_EDIT_FRET && resultCode == FretEditActivity.RESULT_EDITED) {
             Log.d(TAG, "HELLO EDIT_FRET Finished");
             // Reload the fretTrack because it has been edited
-            fragment.setFretSong(new File(getIntent().getData().getPath()));
+            setFretSong(new File(getIntent().getData().getPath()));
         }
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private void setFretSong(File file) {
+        progressDialog.show();
+        FileLoaderTask fileLoaderTask = new FileLoaderTask(file);
+        fileLoaderTask.setFileLoadedListener(new FileLoaderTask.FileLoadedListener() {
+            @Override
+            public void OnFileLoaded(String contents) {
+                fragment.setFretSong(new FretSong(contents));
+                getSupportActionBar().setTitle(fragment.getFretSong().getName());
+                progressDialog.hide();
+            }
+
+            @Override
+            public void OnError(String msg) {
+                Toast.makeText(FretViewActivity.this, msg, Toast.LENGTH_SHORT).show();
+            }
+        });
+        fileLoaderTask.execute();
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        Log.d(TAG, "onBackPressed");
+    }
+
+    @Override
+    protected void onStop() {
+        Log.d(TAG, "onStop");
+        progressDialog.dismiss();
+        super.onStop();
     }
 }

@@ -16,9 +16,6 @@ public class FretEvent extends FretBase {
     public static final String ELEMENT_EVENT = "ev";
     public static final String EVENT_ELEMENT_OPEN = "<"+ELEMENT_EVENT+">";
     public static final String EVENT_ELEMENT_CLOSE = "</"+ELEMENT_EVENT+">";
-    private static final String ATTR_DELTATIME = "dt";
-    private static final String ATTR_TEMPO = "te";
-    private static final String ATTR_BEND = "be";
     public static final int ZERO_PITCH_BEND = 8192;
     int deltaTime;
     int tempo;

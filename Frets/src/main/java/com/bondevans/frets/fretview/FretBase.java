@@ -9,6 +9,21 @@ import java.util.regex.Pattern;
 public class FretBase {
 
     private static final String TAG = FretBase.class.getSimpleName();
+    static final String ATTR_MIDI_INSTRUMENT = "mi";
+    static final String ATTR_FRET_INSTRUMENT = "fi";
+    static final String ATTR_DELTATIME = "dt";
+    static final String ATTR_TEMPO = "te";
+    static final String ATTR_BEND = "be";
+    static final String ATTR_NAME = "na";
+    static final String ATTR_TPQN = "tpqn";
+    static final String ATTR_BPM = "bpm";
+    static final String ATTR_SOLO = "so";
+    static final String ATTR_NOTE = "no";
+    static final String ATTR_ON = "on";
+    static final String ATTR_STRING = "st";
+    static final String ATTR_FRET = "fr";
+    static final String ATTR_DESC = "desc";
+
 
     /**
      * Constructor

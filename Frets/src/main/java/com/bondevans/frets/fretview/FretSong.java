@@ -15,28 +15,21 @@ public class FretSong extends FretBase {
     public static final String ELEMENT_SONG = "song";
     public static final String SONG_ELEMENT_OPEN = "<"+ELEMENT_SONG+">";
     public static final String SONG_ELEMENT_CLOSE = "</"+ELEMENT_SONG+">";
-    private static final String ATTR_ID = "id";
-    private static final String ATTR_NAME = "na";
-    private static final String ATTR_TPQN = "tpqn";
-    private static final String ATTR_BPM = "bpm";
-    private static final String ATTR_SOLO = "so";
-    @Deprecated String id;  // Dont think we need this anymore
     private String name;
     private int tpqn;
     private int bpm;
     private int soloTrack;
     private List<FretTrack> fretTracks;
+    private String description;
 
     /**
      * Constructor
-     * @param id Unique ID for this track
      * @param name Songs name
      * @param tpqn Ticks per quarter note
      * @param bpm Beats Per Minute
      * @param fretTracks List of fret events
      */
-    public FretSong(String id, String name, int tpqn, int bpm, List<FretTrack> fretTracks){
-        this.id = id;
+    public FretSong(String name, int tpqn, int bpm, List<FretTrack> fretTracks){
         this.name = name;
         this.tpqn = tpqn;
         this.bpm = bpm;
@@ -44,12 +37,12 @@ public class FretSong extends FretBase {
             this.fretTracks = fretTracks;
         }
         this.soloTrack = 0;   // Assume first track is the solo
+        this.description="";
     }
 
     public FretSong(String song) {
 //        Log.d(TAG, "song=[" + song + "]");
         fretTracks = new ArrayList<>();
-        this.id = getTagString(song, ATTR_ID);
         this.name = getTagString(song, ATTR_NAME);
         this.tpqn = getTagInt(song, ATTR_TPQN);
         this.bpm = getTagInt(song, ATTR_BPM);
@@ -79,11 +72,11 @@ public class FretSong extends FretBase {
     @Override
     public String toString(){
         StringBuilder sb = new StringBuilder(SONG_ELEMENT_OPEN
-                +attr(ATTR_ID, id)
                 +attr(ATTR_NAME, name)
                 +attr(ATTR_TPQN, tpqn)
                 +attr(ATTR_BPM, bpm)
-                + attr(ATTR_SOLO, soloTrack)
+                +attr(ATTR_SOLO, soloTrack)
+                +attr(ATTR_DESC, description)
         );
         for(FretTrack track: fretTracks){
             sb.append(track.toString());
@@ -163,6 +156,17 @@ public class FretSong extends FretBase {
 
     public String getTrackName(int track) {
         return fretTracks.get(track).getName();
+    }
+    public List<FretTrack> getFretTracks(){
+        return fretTracks;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }
 

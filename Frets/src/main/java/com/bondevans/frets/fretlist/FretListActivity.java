@@ -244,6 +244,8 @@ public class FretListActivity extends AppCompatActivity {
                     showSignUpDialog();
                     break;
                 case FirebaseError.NETWORK_ERROR:
+                    Toast.makeText(FretListActivity.this, R.string.no_network, Toast.LENGTH_SHORT).show();
+                    break;
                 case FirebaseError.DISCONNECTED:
                 case FirebaseError.AUTHENTICATION_PROVIDER_DISABLED:
                 case FirebaseError.INVALID_PROVIDER:

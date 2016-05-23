@@ -38,7 +38,7 @@ public class FretEditActivity extends AppCompatActivity {
                 .findFragmentById(R.id.fragment);
 
         if (savedInstanceState == null) {
-            //  We should have the song contents in the intent
+            //  We should have the song file in the intent
             Intent intent = getIntent();
             Log.d(TAG, "Got File");
             mFragment.setFretSong(new File(intent.getData().getPath()));
@@ -87,7 +87,7 @@ public class FretEditActivity extends AppCompatActivity {
             public void OnSongDetailsEntered(String name, String description) {
                 mFragment.mFretSong.setName(name);// TODO Dont need to allow edit of song name again in this dialog
                 // Write to server
-                writeSongToServer(mFragment.getFretSong(), description);
+                writeSongToServer(mFragment.getFretSong());
             }
 
             @Override
@@ -97,8 +97,8 @@ public class FretEditActivity extends AppCompatActivity {
         songDetailsDialog.show(getFragmentManager(), TAG_SONGDETAILS);
     }
 
-    private void writeSongToServer(FretSong fretSong, String description) {
-        FBWrite.addSong(mFirebaseRef, fretSong, description);
+    private void writeSongToServer(FretSong fretSong) {
+        FBWrite.addSong(mFirebaseRef, fretSong);
         Toast.makeText(FretEditActivity.this, fretSong.getName() + getString(R.string.published), Toast.LENGTH_SHORT).show();
         finish();   //Lets get outta here
     }
@@ -164,6 +164,6 @@ public class FretEditActivity extends AppCompatActivity {
                 FretEditActivity.this.finish();
             }
         });
-        saveFileDialog.show(getFragmentManager(), SAVE_FILE);
+        saveFileDialog.show(getSupportFragmentManager(), SAVE_FILE);
     }
 }

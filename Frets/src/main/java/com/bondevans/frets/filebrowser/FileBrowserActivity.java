@@ -17,7 +17,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.bondevans.frets.R;
-import com.bondevans.frets.freteditor.FretEditActivity;
+import com.bondevans.frets.freteditor.FretSongEditActivity;
 import com.bondevans.frets.fretviewer.FretViewActivity;
 import com.bondevans.frets.midi.MidiImporter;
 import com.bondevans.frets.utils.Log;
@@ -186,12 +186,12 @@ public class FileBrowserActivity extends AppCompatActivity implements
     }
 
     private void showFretEdit(File file) {
-        Intent intent = new Intent(this, FretEditActivity.class);
+        Intent intent = new Intent(this, FretSongEditActivity.class);
         intent.setData(Uri.fromFile(file));
         try {
             startActivity(intent);
         } catch (ActivityNotFoundException e) {
-            Log.e(TAG, "NO ACTIVITY FOUND: FretEditActivity");
+            Log.e(TAG, "NO ACTIVITY FOUND: "+FretSongEditActivity.class.getSimpleName());
         }
     }
 }

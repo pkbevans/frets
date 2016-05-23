@@ -1,8 +1,6 @@
 package com.bondevans.frets.fretviewer;
 
 import android.app.Fragment;
-import android.app.ProgressDialog;
-import android.content.DialogInterface;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
@@ -13,24 +11,16 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.bondevans.frets.R;
 import com.bondevans.frets.fretview.FretSong;
 import com.bondevans.frets.fretview.FretTrackView;
-import com.bondevans.frets.utils.FileLoaderTask;
 
 import org.billthefarmer.mididriver.MidiDriver;
 
-import java.io.File;
-
 public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStartListener {
     private static final String TAG = FretViewFragment.class.getSimpleName();
-    private static final int ALTO_SAXOPHONE = 65;
-    private static final int XYLOPHONE = 13;
-    private static final int ELECTRIC_GUITAR = 29;
     private FretTrackView mFretTrackView;
-    private TextView mSongName;
     private TextView mTrackName;
     private ImageButton playPauseButton;
     private SeekBar mSeekBar;
@@ -38,7 +28,6 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
     private int mTempo;
     private int mCurrentEvent;
     private FretSong mFretSong;
-    private ProgressDialog progressDialog;
     private Drawable playDrawable;
     private Drawable pauseDrawable;
     private boolean mPlay;
@@ -54,16 +43,6 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
         Log.d(TAG, "onCreate");
         pauseDrawable = ContextCompat.getDrawable(getActivity(), R.drawable.pausebutton2);
         playDrawable = ContextCompat.getDrawable(getActivity(), R.drawable.playbutton2);
-        progressDialog = new ProgressDialog(getActivity());
-        progressDialog.setMessage(getString(R.string.buffering_msg));
-        progressDialog.setCancelable(true);
-        progressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
-            @Override
-            public void onCancel(DialogInterface dialog) {
-
-            }
-        });
-        progressDialog.show();
         // Instantiate the driver.
         mMidiDriver = new MidiDriver();
         // Set the listener.
@@ -93,9 +72,8 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
             @Override
             public void OnPlayEnabled(boolean flag) {
                 mPlay = true;
-                progressDialog.hide();
                 // Probably need to set up instrument here
-                setMidiInstrument(ELECTRIC_GUITAR);
+                setMidiInstrument(mFretSong.getTrack(mFretSong.getSoloTrack()).getMidiInstrument());
             }
 
             @Override
@@ -106,7 +84,6 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
         mFretTrackView.setKeepScreenOn(true);
 
         mTempoText = (TextView) myView.findViewById(R.id.bpmText);
-        mSongName = (TextView) myView.findViewById(R.id.song_name);
         mSeekBar = (SeekBar) myView.findViewById(R.id.seekBar);
         mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -140,7 +117,6 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
         if (savedInstanceState != null) {
             Log.d(TAG, "savedInstanceState != null");
             // Must be orientation change
-            mSongName.setText(mFretSong.getName());
             mFretTrackView.setTrack(mFretSong.getTrack(mFretSong.getSoloTrack()), mFretSong.getTpqn(), mTempo, mCurrentEvent);
         }
         return myView;
@@ -151,30 +127,11 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
      *
      * @param fretSong Song to view
      */
-    private void setFretSong(FretSong fretSong) {
+    public void setFretSong(FretSong fretSong) {
         Log.d(TAG, "setFretSong");
         mFretSong = fretSong;
-        mSongName.setText(mFretSong.getName());
         mTrackName.setText(mFretSong.getTrackName(mFretSong.getSoloTrack()));
         mFretTrackView.setTrack(mFretSong.getTrack(mFretSong.getSoloTrack()), mFretSong.getTpqn(), mFretSong.getBpm());
-    }
-
-    public void setFretSong(File file) {
-        progressDialog.show();
-        FileLoaderTask fileLoaderTask = new FileLoaderTask(file);
-        fileLoaderTask.setFileLoadedListener(new FileLoaderTask.FileLoadedListener() {
-            @Override
-            public void OnFileLoaded(String contents) {
-                setFretSong(new FretSong(contents));
-                progressDialog.hide();
-            }
-
-            @Override
-            public void OnError(String msg) {
-                Toast.makeText(getActivity(), msg, Toast.LENGTH_SHORT).show();
-            }
-        });
-        fileLoaderTask.execute();
     }
 
     @Override
@@ -184,7 +141,6 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
         // The app is losing focus so need to stop the
         mMidiDriver.stop();
         mFretTrackView.pause();
-        progressDialog.dismiss();
     }
 
     @Override
@@ -231,5 +187,9 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
         event[0] = (byte) (0xC0 | 0);// channel hardcoded to 0
         event[1] = (byte) instrument;
         mMidiDriver.write(event);
+    }
+
+    public FretSong getFretSong() {
+        return mFretSong;
     }
 }

@@ -28,6 +28,10 @@
             android:name="com.bondevans.frets.freteditor.FretEditActivity">
         </activity>
         <activity
+            android:name=".freteditor.FretSongEditActivity"
+            android:windowSoftInputMode="stateHidden">
+        </activity>
+        <activity
             android:name="com.bondevans.frets.fretlist.FretListActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>

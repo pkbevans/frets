@@ -11,11 +11,6 @@ public class FretNote extends FretBase {
     public static final String NOTE_ELEMENT_OPEN = "<" + ELEMENT_NOTE + ">";
     public static final String NOTE_ELEMENT_CLOSE = "</" + ELEMENT_NOTE + ">";
     private static final int NOT_SET = 99;
-    private static final String ATTR_NOTE = "no";
-    private static final String ATTR_ON = "on";
-    private static final String ATTR_STRING = "st";
-    private static final String ATTR_FRET = "fr";
-    private static final String ATTR_NAME = "na";
     int note;               // Midi note value (Bottom E on standard Guitar is 40)
     public boolean on;      // True = turn note ON, False = turn FretNote off
     int string;             // String number from 0 to mStrings (0=highest string - i.e. Top E on standard guitar)

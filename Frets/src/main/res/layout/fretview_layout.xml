@@ -10,21 +10,15 @@
     tools:context=".fretviewer.FretViewActivity">
 
     <TextView
-        android:id="@+id/song_name"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingEnd="@dimen/abc_control_padding_material"
-        android:paddingStart="@dimen/abc_control_padding_material"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:layout_weight="0.05"/>
-
-    <TextView
         android:id="@+id/track_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingEnd="@dimen/abc_control_padding_material"
-        android:paddingStart="@dimen/abc_control_padding_material"
-        android:layout_weight="0.05"/>
+        android:paddingEnd="@dimen/frets_padding"
+        android:paddingStart="@dimen/frets_padding"
+        android:layout_weight="0.05"
+        android:paddingBottom="@dimen/frets_padding"
+        android:paddingTop="@dimen/frets_padding"
+        android:textSize="@dimen/frets_textsize"/>
 
     <FrameLayout
         android:layout_width="match_parent"

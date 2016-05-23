@@ -55,7 +55,7 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
             mMidiFile = new MidiFile(mMidiFilePath);
             mTracks = mMidiFile.getTracks();
 
-            fretSong = new FretSong(NO_ID_YET, mMidiFile.getSongTitle(), mMidiFile.getTicksPerQtrNote(), mMidiFile.getBPM(), null);
+            fretSong = new FretSong(mMidiFile.getSongTitle(), mMidiFile.getTicksPerQtrNote(), mMidiFile.getBPM(), null);
             for (int i = 0; i < mTracks.size(); i++) {
 
                 try {
