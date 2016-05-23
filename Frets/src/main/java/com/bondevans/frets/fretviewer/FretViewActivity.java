@@ -17,7 +17,6 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.bondevans.frets.R;
-import com.bondevans.frets.freteditor.FretEditActivity;
 import com.bondevans.frets.freteditor.FretSongEditActivity;
 import com.bondevans.frets.fretview.FretSong;
 import com.bondevans.frets.utils.FileLoaderTask;
@@ -135,7 +134,7 @@ public class FretViewActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.d(TAG, "HELLO onActivityResult-activity request=[" + requestCode + "]result=[" + resultCode + "]");
-        if (requestCode == REQUEST_EDIT_FRET && resultCode == FretEditActivity.RESULT_EDITED) {
+        if (requestCode == REQUEST_EDIT_FRET && resultCode == FretSongEditActivity.RESULT_EDITED) {
             Log.d(TAG, "HELLO EDIT_FRET Finished");
             // Reload the fretTrack because it has been edited
             setFretSong(new File(getIntent().getData().getPath()));
