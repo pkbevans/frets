@@ -20,16 +20,17 @@ public class FretSong extends FretBase {
     private int bpm;
     private int soloTrack;
     private List<FretTrack> fretTracks;
-    private String description;
+    private String keywords;
 
     /**
      * Constructor
-     * @param name Songs name
+     * @param name Song name
+     * @param keywords keywords for this fret
      * @param tpqn Ticks per quarter note
      * @param bpm Beats Per Minute
      * @param fretTracks List of fret events
      */
-    public FretSong(String name, int tpqn, int bpm, List<FretTrack> fretTracks){
+    public FretSong(String name, String keywords, int tpqn, int bpm, List<FretTrack> fretTracks){
         this.name = name;
         this.tpqn = tpqn;
         this.bpm = bpm;
@@ -37,7 +38,7 @@ public class FretSong extends FretBase {
             this.fretTracks = fretTracks;
         }
         this.soloTrack = 0;   // Assume first track is the solo
-        this.description="";
+        this.keywords=keywords;
     }
 
     public FretSong(String song) {
@@ -47,6 +48,7 @@ public class FretSong extends FretBase {
         this.tpqn = getTagInt(song, ATTR_TPQN);
         this.bpm = getTagInt(song, ATTR_BPM);
         this.soloTrack = getTagInt(song, ATTR_SOLO);
+        this.keywords=getTagString(song, ATTR_KEYW);
         loadFretTracks(song);
     }
 
@@ -76,7 +78,7 @@ public class FretSong extends FretBase {
                 +attr(ATTR_TPQN, tpqn)
                 +attr(ATTR_BPM, bpm)
                 +attr(ATTR_SOLO, soloTrack)
-                +attr(ATTR_DESC, description)
+                +attr(ATTR_KEYW, keywords)
         );
         for(FretTrack track: fretTracks){
             sb.append(track.toString());
@@ -161,12 +163,12 @@ public class FretSong extends FretBase {
         return fretTracks;
     }
 
-    public String getDescription() {
-        return description;
+    public String getKeywords() {
+        return keywords;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setKeywords(String keywords) {
+        this.keywords = keywords;
     }
 }
 

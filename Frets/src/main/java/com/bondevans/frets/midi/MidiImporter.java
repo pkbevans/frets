@@ -20,7 +20,6 @@ import java.util.List;
 
 public class MidiImporter extends AsyncTask<Void, Integer, String> {
     private static final String TAG = MidiImporter.class.getSimpleName();
-    private static final String NO_ID_YET = "";
     private final File mOutFile;
     private File mMidiFilePath;
     private MidiFile mMidiFile;
@@ -55,7 +54,7 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
             mMidiFile = new MidiFile(mMidiFilePath);
             mTracks = mMidiFile.getTracks();
 
-            fretSong = new FretSong(mMidiFile.getSongTitle(), mMidiFile.getTicksPerQtrNote(), mMidiFile.getBPM(), null);
+            fretSong = new FretSong(mMidiFile.getSongTitle(), "", mMidiFile.getTicksPerQtrNote(), mMidiFile.getBPM(), null);
             for (int i = 0; i < mTracks.size(); i++) {
 
                 try {

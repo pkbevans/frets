@@ -33,13 +33,13 @@
             android:id="@+id/textView3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:labelFor="@+id/song_description"
+            android:labelFor="@+id/song_keywords"
             android:text="@string/keywords"
             android:textSize="@dimen/frets_textsize"
             android:inputType="textCapWords"/>
 
         <EditText
-            android:id="@+id/song_description"
+            android:id="@+id/song_keywords"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"

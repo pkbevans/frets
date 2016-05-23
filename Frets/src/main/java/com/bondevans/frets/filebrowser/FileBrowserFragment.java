@@ -10,7 +10,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
-import android.app.ListFragment;
+import android.support.v4.app.ListFragment;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
@@ -47,18 +47,6 @@ public class FileBrowserFragment extends ListFragment {
         void onFileSelected(File songFile);
         void upOneLevel(View v);
         void enableUp(boolean enabled);
-    }
-
-    @Override
-    public void onAttach(Activity activity) {
-        Log.d(TAG, "HELLO onAttach (deprecated)");
-        super.onAttach(activity);
-        try {
-            fileSelectedListener = (OnFileSelectedListener) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                    + " must implement OnFileSelectedListener");
-        }
     }
 
     @Override

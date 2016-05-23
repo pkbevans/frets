@@ -95,8 +95,7 @@ public class MidiFile {
      * TODO It would be better to load up ALL midi events into a List and then remove any events
      * we are not interested in, in a 2nd step.  Would make debugging easier....
      *
-     * @param track
-     * @return
+     * @param track Track number to load
      * @throws FretboardException
      * @throws IOException
      */
@@ -134,7 +133,6 @@ public class MidiFile {
             ev = getEvent(in);
         }
         Log.d(TAG, "loadNoteEvents (end) got " + noteEvents.size() + " events for track:" + track);
-        return;
     }
 
     /**
@@ -205,8 +203,10 @@ public class MidiFile {
                     }
                     break;
                 case MidiEvent.NOTE_EVENT_TYPE_PROGRAM_CHANGE:
+                    Log.d(TAG, "PROGRAM_CHANGE [" + noteEventType + "]["+iToHex(param1)+"]");
+                    break;
                 case MidiEvent.NOTE_EVENT_TYPE_CHANNEL_AFTERTOUCH:
-                    Log.d(TAG, "PROGRAM_CHANGE/AFTERTOUCH [" + noteEventType + "]["+iToHex(param1)+"]");
+                    Log.d(TAG, "AFTERTOUCH [" + noteEventType + "]["+iToHex(param1)+"]");
                     break;
                 default:
                     Log.e(TAG, "OOPS - SOMETHING WENT WRONG [" + noteEventType + "]");

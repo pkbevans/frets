@@ -35,7 +35,7 @@ public class FretSongEditFragment extends ListFragment {
     private FretSong mFretSong;
     private boolean mIsEdited = false;
     private EditText mSongName;
-    private EditText mSongDescription;
+    private EditText mKeywords;
 
     public interface OnTrackSelectedListener {
         void onTrackSelected(int track);
@@ -73,7 +73,7 @@ public class FretSongEditFragment extends ListFragment {
         View contentView = inflater.inflate(R.layout.fretsongedit_layout, container, false);
         Log.d(TAG, "HELLO onCreatView");
         mSongName = (EditText) contentView.findViewById(R.id.song_name);
-        mSongDescription = (EditText) contentView.findViewById(R.id.song_description);
+        mKeywords = (EditText) contentView.findViewById(R.id.song_keywords);
         return contentView;
     }
 
@@ -302,7 +302,7 @@ public class FretSongEditFragment extends ListFragment {
         Log.d(TAG, "setFretSong fretsong");
         mFretSong = fretSong;
         mSongName.setText(mFretSong.getName());
-        mSongDescription.setText(mFretSong.getDescription());
+        mKeywords.setText(mFretSong.getKeywords());
         setUpListView();
     }
 
@@ -318,8 +318,8 @@ public class FretSongEditFragment extends ListFragment {
             mFretSong.setName(mSongName.getText().toString());
             mIsEdited = true;
         }
-        if (mSongDescription.getText().toString().compareTo(mFretSong.getDescription()) > 0) {
-            mFretSong.setDescription(mSongDescription.getText().toString());
+        if (mKeywords.getText().toString().compareTo(mFretSong.getKeywords()) > 0) {
+            mFretSong.setKeywords(mKeywords.getText().toString());
             mIsEdited = true;
         }
         return mIsEdited;

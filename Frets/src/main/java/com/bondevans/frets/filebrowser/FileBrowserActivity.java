@@ -1,7 +1,6 @@
 package com.bondevans.frets.filebrowser;
 
 import android.Manifest;
-import android.app.FragmentManager;
 import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
@@ -9,6 +8,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -42,7 +42,7 @@ public class FileBrowserActivity extends AppCompatActivity implements
         checkFileAccessPermission();
         setContentView(R.layout.filebrowser_activity);// This is the xml with all the different frags
         getActionBar();
-        FragmentManager fm = getFragmentManager();
+        FragmentManager fm = getSupportFragmentManager();
         fileBrowserFragment = (FileBrowserFragment) fm.findFragmentById(R.id.browser_fragment);
         // Setup the progress dialog that is displayed later
         progressDialog = new ProgressDialog(this);

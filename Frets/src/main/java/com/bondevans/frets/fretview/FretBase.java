@@ -22,7 +22,7 @@ public class FretBase {
     static final String ATTR_ON = "on";
     static final String ATTR_STRING = "st";
     static final String ATTR_FRET = "fr";
-    static final String ATTR_DESC = "desc";
+    static final String ATTR_KEYW = "ke";
 
 
     /**
