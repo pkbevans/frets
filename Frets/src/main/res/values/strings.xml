@@ -77,6 +77,7 @@
     <string name="events">Events</string>
     <string name="rhythm_track">Rhythm Track</string>
     <string name="login_signup_text">Welcome to Frets.\n\nPlease login if you are an existing user or SIGN UP if you are new.</string>
+    <string name="drum_track">Drum Track</string>
 
     <string-array name="midi_instrument_names">
         <item>Acoustic Grand Piano</item>

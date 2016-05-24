@@ -21,17 +21,19 @@ public class FretTrack extends FretBase {
     public List<FretEvent> fretEvents;
     private int midiInstrument; // Midi Instrument (from GM) that will play this track
     private int fretInstrument; //  Which fret Instrument is this track designed for
+    private boolean drumTrack;  // Is this a Drum track? (If it is then MidiInstrument is n/a
 
     /**
      * Constructor
      * @param name Songs name
      * @param fretEvents List of fret events
      */
-    public FretTrack(String name, List<FretEvent> fretEvents){
+    public FretTrack(String name, List<FretEvent> fretEvents, int midiInstrument, int fretInstrument, boolean isDrumTrack){
         this.name = name;
         this.fretEvents = fretEvents;
-        this.midiInstrument=0;
-        this.fretInstrument=0;
+        this.midiInstrument=midiInstrument;
+        this.fretInstrument=fretInstrument;
+        this.drumTrack = isDrumTrack;
     }
 
     /**
@@ -39,11 +41,11 @@ public class FretTrack extends FretBase {
      * @param track XML representation of the class
      */
     public FretTrack(String track) {
-//        Log.d(TAG, "track=[" + track + "]");
         fretEvents = new ArrayList<>();
         this.name = getTagString(track, ATTR_NAME);
         this.midiInstrument = getTagInt(track, ATTR_MIDI_INSTRUMENT);
         this.fretInstrument = getTagInt(track, ATTR_FRET_INSTRUMENT);
+        this.drumTrack = getTagInt(track, ATTR_DRUM_TRACK)==1;
         loadFretEvents(track);
     }
 
@@ -76,6 +78,7 @@ public class FretTrack extends FretBase {
                 + attr(ATTR_NAME, name)
                 + attr(ATTR_MIDI_INSTRUMENT, midiInstrument)
                 + attr(ATTR_FRET_INSTRUMENT, fretInstrument)
+                + attr(ATTR_DRUM_TRACK, drumTrack)
         );
         for (FretEvent event : fretEvents) {
             sb.append(event.toString());
@@ -95,6 +98,14 @@ public class FretTrack extends FretBase {
     public void setMidiInstrument(int instrument) {
         Log.d(TAG, "Setting Midi Instrument to: "+ instrument);
         this.midiInstrument = instrument;
+    }
+
+    public boolean isDrumTrack() {
+        return drumTrack;
+    }
+
+    public void setDrumTrack(boolean isChecked) {
+        drumTrack = isChecked;
     }
 }
 

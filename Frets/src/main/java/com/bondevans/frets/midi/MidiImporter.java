@@ -20,6 +20,9 @@ import java.util.List;
 
 public class MidiImporter extends AsyncTask<Void, Integer, String> {
     private static final String TAG = MidiImporter.class.getSimpleName();
+    private static final int DEFAULT_MIDI_INSTRUMENT = 0;
+    private static final int DEFAULT_FRET_INSTRUMENT = 0;
+    private static final boolean DEFAULT_IS_DRUMS = false;
     private final File mOutFile;
     private File mMidiFilePath;
     private MidiFile mMidiFile;
@@ -148,6 +151,6 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
             throw new EmptyTrackException("Empty");
         }
         Log.d(TAG, "Got [" + fretEvents.size() + "] FretEvents");
-        return new FretTrack(name, fretEvents);
+        return new FretTrack(name, fretEvents, DEFAULT_MIDI_INSTRUMENT, DEFAULT_FRET_INSTRUMENT, DEFAULT_IS_DRUMS);
     }
 }

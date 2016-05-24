@@ -16,6 +16,8 @@ import android.view.View;
 public class FretTrackView extends FretView {
     private static final String TAG = FretTrackView.class.getSimpleName();
     private static final int MINIMUM_TEMPO = 10;
+    private static final int MIDI_CHANNEL_DRUMS = 9;
+    private static final int MIDI_CHANNEL_0 = 0;
     private FretTrack mFretTrack;
     private int mTicksPerQtrNote;
     private int mDefaultTempo = 120;
@@ -24,7 +26,7 @@ public class FretTrackView extends FretView {
     private GestureDetector gestureDetector;
     private FretEventHandler mFretEventHandler;
     private int mCurrentFretEvent = 0;
-    int mChannel = 0; // hardcoded channel
+    int mChannel;
     private FretListener fretListener;
 
     public interface FretListener {
@@ -109,6 +111,7 @@ public class FretTrackView extends FretView {
     public void setTrack(FretTrack frettrack, int tpqn, int bpm, int currentFretEvent) {
         Log.d(TAG, "setTrack");
         mFretTrack = frettrack;
+        mChannel = mFretTrack.isDrumTrack()?MIDI_CHANNEL_DRUMS:MIDI_CHANNEL_0;
         mCurrentBPM = bpm;
         mCurrentFretEvent = currentFretEvent;
         setNotes(mFretTrack.fretEvents.get(mCurrentFretEvent).fretNotes, mFretTrack.fretEvents.get(mCurrentFretEvent).bend);

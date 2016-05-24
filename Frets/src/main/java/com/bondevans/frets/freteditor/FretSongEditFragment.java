@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.RadioButton;
@@ -229,6 +230,7 @@ public class FretSongEditFragment extends ListFragment {
                 holder.soloText = (TextView) convertView.findViewById(R.id.solo_text);
                 holder.instrument = (Spinner) convertView.findViewById(R.id.instrument_spinner);
                 holder.soloButton = (RadioButton) convertView.findViewById(R.id.soloButton);
+                holder.drumTrack = (CheckBox) convertView.findViewById(R.id.isDrumTrack);
                 convertView.setTag(holder);
             }
             else{
@@ -239,27 +241,46 @@ public class FretSongEditFragment extends ListFragment {
             holder.trackName.setText(fretTracks.get(position).getName());
             holder.events.setText(String.format(getString(R.string.fret_events), fretTracks.get(position).fretEvents.size()));
 
-            holder.instrument.setAdapter(instrumentAdapter);
-            // Spinner item selection Listener
-            holder.instrument.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            boolean isDrum = fretTracks.get(position).isDrumTrack();
+            holder.drumTrack.setChecked(isDrum);
+            holder.drumTrack.setTag(position);
+            holder.drumTrack.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    final int track = getListView().getPositionForView((View) view.getParent());
-                    Log.d(TAG, "Instrument spinner: " + position + " id: " + id + " track:" + track);
-                    if (fretTracks.get(track).getMidiInstrument() != position) {
-                        fretTracks.get(track).setMidiInstrument(position);
-                        Log.d(TAG, "Instrument updated");
-                        mIsEdited = true;
-                    }
-                }
-
-                @Override
-                public void onNothingSelected(AdapterView<?> parent) {
-                    Log.d(TAG, "Instrument spinner: nothing selected");
+                public void onClick(View v) {
+                    selectedPosition = (Integer) v.getTag();
+                    Log.d(TAG, "drumTrack onClick: "+selectedPosition);
+                    fretTracks.get(selectedPosition).setDrumTrack(!fretTracks.get(selectedPosition).isDrumTrack());
+                    mIsEdited = true;
+                    notifyDataSetChanged();
                 }
             });
-            Log.d(TAG, "Setting Instrument: " + fretTracks.get(position).getMidiInstrument());
-            holder.instrument.setSelection(fretTracks.get(position).getMidiInstrument());
+            if(isDrum) {
+                holder.instrument.setEnabled(false);
+            }
+            else{
+                holder.instrument.setEnabled(true);
+                holder.instrument.setAdapter(instrumentAdapter);
+                // Spinner item selection Listener
+                holder.instrument.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                        final int track = getListView().getPositionForView((View) view.getParent());
+                        Log.d(TAG, "Instrument spinner: " + position + " id: " + id + " track:" + track);
+                        if (fretTracks.get(track).getMidiInstrument() != position) {
+                            fretTracks.get(track).setMidiInstrument(position);
+                            Log.d(TAG, "Instrument updated");
+                            mIsEdited = true;
+                        }
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+                        Log.d(TAG, "Instrument spinner: nothing selected");
+                    }
+                });
+                Log.d(TAG, "Setting Instrument: " + fretTracks.get(position).getMidiInstrument());
+                holder.instrument.setSelection(fretTracks.get(position).getMidiInstrument());
+            }
             holder.soloText.setText(position == mFretSong.getSoloTrack()?FretSongEditFragment.this.getActivity().getString(R.string.solo_track):FretSongEditFragment.this.getActivity().getString(R.string.rhythm_track));
             holder.soloButton.setChecked(position == mFretSong.getSoloTrack());
             holder.soloButton.setTag(position);
@@ -281,6 +302,7 @@ public class FretSongEditFragment extends ListFragment {
             Spinner instrument;
             RadioButton soloButton;
             TextView soloText;
+            CheckBox drumTrack;
         }
     }
 

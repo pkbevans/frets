@@ -38,6 +38,12 @@
             android:id="@+id/instrument_spinner"
             android:layout_weight="0.25"/>
 
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/drum_track"
+            android:id="@+id/isDrumTrack"/>
+
         <TextView
             android:id="@+id/events"
             android:layout_width="fill_parent"
