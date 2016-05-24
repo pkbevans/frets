@@ -13,38 +13,71 @@
         android:layout_alignParentTop="true"
         android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/textView4"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:labelFor="@+id/song_name"
-            android:text="@string/song_name"
-            android:textSize="@dimen/frets_textsize"/>
-
-        <EditText
-            android:id="@+id/song_name"
+        <LinearLayout
+            android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:ems="10"
-            android:inputType="textCapWords"/>
+            android:layout_height="wrap_content">
 
-        <TextView
-            android:id="@+id/textView3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:labelFor="@+id/song_keywords"
-            android:text="@string/keywords"
-            android:textSize="@dimen/frets_textsize"
-            android:inputType="textCapWords"/>
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:weightSum="1">
 
-        <EditText
-            android:id="@+id/song_keywords"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:ems="10"
-            android:inputType="textCapWords"/>
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.50"/>
+
+                <TextView
+                    android:id="@+id/textView4"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:labelFor="@+id/song_name"
+                    android:text="@string/song_name"
+                    android:textSize="@dimen/frets_textsize"
+                    android:padding="@dimen/frets_padding"/>
+
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.42"/>
+
+                <TextView
+                    android:id="@+id/textView3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:labelFor="@+id/song_keywords"
+                    android:text="@string/keywords"
+                    android:textSize="@dimen/frets_textsize"
+                    android:inputType="textCapWords"
+                    android:padding="@dimen/frets_padding"
+                    android:layout_weight="0.52"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1">
+
+                <EditText
+                    android:id="@+id/song_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:ems="10"
+                    android:inputType="textCapWords"/>
+
+                <EditText
+                    android:id="@+id/song_keywords"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:ems="10"
+                    android:inputType="textCapWords"/>
+            </LinearLayout>
+        </LinearLayout>
 
         <TextView
             android:id="@+id/textView6"

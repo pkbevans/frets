@@ -152,7 +152,6 @@ public class FretSong extends FretBase {
     }
 
     public int getSoloTrack() {
-        Log.d(TAG, "SOLO=" + soloTrack);
         return this.soloTrack;
     }
 

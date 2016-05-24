@@ -118,6 +118,7 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
             Log.d(TAG, "savedInstanceState != null");
             // Must be orientation change
             mFretTrackView.setTrack(mFretSong.getTrack(mFretSong.getSoloTrack()), mFretSong.getTpqn(), mTempo, mCurrentEvent);
+            mTrackName.setText(mFretSong.getTrackName(mFretSong.getSoloTrack()));
         }
         return myView;
     }

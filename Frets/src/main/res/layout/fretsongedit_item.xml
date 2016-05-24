@@ -30,7 +30,7 @@
             android:paddingEnd="@dimen/frets_padding"
             android:scrollHorizontally="true"
             android:singleLine="true"
-            android:textSize="24sp"/>
+            android:textSize="@dimen/frets_textsize"/>
 
         <Spinner
             android:layout_width="wrap_content"
