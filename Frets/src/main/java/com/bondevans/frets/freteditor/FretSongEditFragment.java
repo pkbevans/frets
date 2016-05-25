@@ -15,6 +15,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.Spinner;
@@ -231,6 +232,7 @@ public class FretSongEditFragment extends ListFragment {
                 holder.instrument = (Spinner) convertView.findViewById(R.id.instrument_spinner);
                 holder.soloButton = (RadioButton) convertView.findViewById(R.id.soloButton);
                 holder.drumTrack = (CheckBox) convertView.findViewById(R.id.isDrumTrack);
+                holder.deleteButton = (ImageButton) convertView.findViewById(R.id.deleteButton);
                 convertView.setTag(holder);
             }
             else{
@@ -293,6 +295,18 @@ public class FretSongEditFragment extends ListFragment {
                     notifyDataSetChanged();
                 }
             });
+
+            holder.deleteButton.setTag(position);
+            holder.deleteButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    selectedPosition = (Integer) view.getTag();
+                    mFretSong.deleteTrack(selectedPosition);
+                    mIsEdited = true;
+                    notifyDataSetChanged();
+                }
+            });
+
             return convertView;
         }
 
@@ -303,6 +317,7 @@ public class FretSongEditFragment extends ListFragment {
             RadioButton soloButton;
             TextView soloText;
             CheckBox drumTrack;
+            ImageButton deleteButton;
         }
     }
 

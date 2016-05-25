@@ -15,9 +15,10 @@
         />
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                  android:layout_width="wrap_content"
+                  android:layout_width="0dp"
                   android:layout_height="wrap_content"
-                  android:orientation="vertical">
+                  android:orientation="vertical"
+                  android:layout_weight="1">
 
         <TextView
             android:id="@+id/track_name"
@@ -33,26 +34,46 @@
             android:textSize="@dimen/frets_textsize"/>
 
         <Spinner
-            android:layout_width="wrap_content"
+            android:layout_width="fill_parent"
             android:layout_height="0dp"
             android:id="@+id/instrument_spinner"
             android:layout_weight="0.25"/>
 
-        <CheckBox
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/drum_track"
-            android:id="@+id/isDrumTrack"/>
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
-        <TextView
-            android:id="@+id/events"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:paddingLeft="@dimen/frets_padding"
-            android:paddingStart="@dimen/frets_padding"
-            android:paddingRight="@dimen/frets_padding"
-            android:paddingEnd="@dimen/frets_padding"
-            android:text="@string/events"/>
+            <CheckBox
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/drum_track"
+                android:id="@+id/isDrumTrack"/>
+
+            <Space
+                android:layout_width="23dp"
+                android:layout_height="match_parent"
+                />
+
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/deleteButton"
+                android:layout_gravity="center_horizontal"
+                android:src="@android:drawable/ic_delete"
+                android:contentDescription="Use this button to delete this track"/>
+
+            <TextView
+                android:id="@+id/events"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingLeft="@dimen/frets_padding"
+                android:paddingStart="@dimen/frets_padding"
+                android:paddingRight="@dimen/frets_padding"
+                android:paddingEnd="@dimen/frets_padding"
+                android:text="@string/events"/>
+
+        </LinearLayout>
 
         <TextView
             android:id="@+id/solo_text"
