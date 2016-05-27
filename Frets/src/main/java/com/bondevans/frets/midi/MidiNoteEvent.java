@@ -31,7 +31,6 @@ public class MidiNoteEvent {
         this.deltaTime = deltaTime;
         switch (type) {
             case TYPE_BEND:
-                Log.d(TAG, "Adding BEND Note event:" + value);
                 this.bend = value;
                 break;
             case TYPE_TEMPO:

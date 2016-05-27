@@ -106,7 +106,6 @@ public class MidiFile {
         int runningTicks = 0;
 
         while (!ev.isEndOfTrack()) {
-            Log.d(TAG, "Got event");
             if (ev.isNoteOnOrOff()) {
                 Log.d(TAG, "Got Note event");
                 // If velocity is zero then this effectively a FretNote Off message, so we'll store it as such
@@ -116,7 +115,6 @@ public class MidiFile {
                 noteEvents.add(new MidiNoteEvent(ev.mParam1, ev.mNoteEventType == MidiEvent.NOTE_EVENT_TYPE_NOTE_ON, ev.mTicks + runningTicks));
                 runningTicks = 0;
             } else if (ev.mNoteEventType == MidiEvent.NOTE_EVENT_TYPE_PITCHBEND) {
-                Log.d(TAG, "BEND=" + ev.getBend());
                 noteEvents.add(new MidiNoteEvent(MidiNoteEvent.TYPE_BEND, ev.mTicks + runningTicks, ev.getBend()));
                 runningTicks = 0;
             }
@@ -204,6 +202,7 @@ public class MidiFile {
                     break;
                 case MidiEvent.NOTE_EVENT_TYPE_PROGRAM_CHANGE:
                     Log.d(TAG, "PROGRAM_CHANGE [" + noteEventType + "]["+iToHex(param1)+"]");
+                    // TODO Set the track's midi instrument...
                     break;
                 case MidiEvent.NOTE_EVENT_TYPE_CHANNEL_AFTERTOUCH:
                     Log.d(TAG, "AFTERTOUCH [" + noteEventType + "]["+iToHex(param1)+"]");

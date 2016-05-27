@@ -131,8 +131,24 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
     public void setFretSong(FretSong fretSong) {
         Log.d(TAG, "setFretSong");
         mFretSong = fretSong;
+//        doMerge();  //
         mTrackName.setText(mFretSong.getTrackName(mFretSong.getSoloTrack()));
         mFretTrackView.setTrack(mFretSong.getTrack(mFretSong.getSoloTrack()), mFretSong.getTpqn(), mFretSong.getBpm());
+    }
+
+    private void doMerge() {
+        // Start off with the solo track
+        TrackMerger trackMerger = new TrackMerger(mFretSong.getTrack(mFretSong.getSoloTrack()).fretEvents);
+        // then merge in all the other tracks
+        int track=0;
+        while(track<mFretSong.tracks()){
+            if(track!=mFretSong.getSoloTrack()) {//dont want the sol track twice
+                trackMerger.mergeTrack(mFretSong.getTrack(track).fretEvents);
+            }
+            ++track;
+        }
+        trackMerger.log();
+        Log.d(TAG, "Merged Track;"+mFretSong.getTrack(mFretSong.getSoloTrack()).toString());
     }
 
     @Override

@@ -16,11 +16,13 @@ public class FretEvent extends FretBase {
     public static final String ELEMENT_EVENT = "ev";
     public static final String EVENT_ELEMENT_OPEN = "<"+ELEMENT_EVENT+">";
     public static final String EVENT_ELEMENT_CLOSE = "</"+ELEMENT_EVENT+">";
-    public static final int ZERO_PITCH_BEND = 8192;
+    // THESE ELEMENTS ARE WRITTEN OUT IN/READ IN FROM TOSTRING()
     int deltaTime;
     int tempo;
     public int bend;
     public List<FretNote> fretNotes;
+    // INTERNAL PROPERTIES - NOT WRITTEN OUT IN/READ IN FROM TOSTRING()
+    public int track;
 
     /**
      * Constructor
@@ -32,11 +34,7 @@ public class FretEvent extends FretBase {
     public FretEvent(int deltaTime, List<FretNote> fretNotes, int tempo, int bend) {
         this.deltaTime = deltaTime;
         this.tempo = tempo;
-        if (bend > 0) {
-            setBend(bend);
-        } else {
-            this.bend = 0;
-        }
+        this.bend = bend;
         this.fretNotes = fretNotes;
     }
 
@@ -98,14 +96,16 @@ public class FretEvent extends FretBase {
         return false;
     }
 
-    /**
-     * Sets Bend value in range given a midi pitch bend amount in the range 0 - 16383
-     * 8192 = ZERO.  Anything below this is ignored - you can't bend down.
-     *
-     * @param bendValue Midi Pitch Wheel value in range 0-16383
-     */
-    public void setBend(int bendValue) {
-        this.bend = bendValue > ZERO_PITCH_BEND ? (bendValue - ZERO_PITCH_BEND) / (ZERO_PITCH_BEND / MAX_BEND) : 0;
+    public int getTicks() {
+        return deltaTime;
+    }
+
+    public void setTicks(int ticks) {
+        Log.d(TAG, "track:"+track+" setTicks:"+ticks);
+        this.deltaTime = ticks;
+    }
+    public String dbg(){
+        return "TRACK:"+track+" TICKS:"+deltaTime;
     }
 }
 

@@ -21,6 +21,8 @@ import java.util.List;
 public class FretView extends View {
     //    private static final String TAG = FretView.class.getSimpleName();
     private static final double FRET_NUMBER_TEXT_DIVISOR = 1.75;
+    public static final int ZERO_PITCH_BEND = 8192;
+    public static final int MAX_BEND = 10;
     private static final int STRING_TEXT_DIVISOR = 12;
     private static final int TEXT_ALPHA = 90;
     private static final int NOTE_TEXT_DIVISOR = 10;
@@ -254,7 +256,9 @@ public class FretView extends View {
     }
     private float getNoteY(FretNote note) {
         // Get the y coord of the given string - allowing for bent strings
-        return ((note.string + 1) * mStringSpace) + (note.bend * mStringSpace / FretEvent.MAX_BEND);
+        // Turn the midi pitchwheel value into a string-bend value between 0-10
+        int bend = note.bend > ZERO_PITCH_BEND ? (note.bend - ZERO_PITCH_BEND) / (ZERO_PITCH_BEND / MAX_BEND) : 0;
+        return ((note.string + 1) * mStringSpace) + (bend * mStringSpace / FretEvent.MAX_BEND);
     }
 
     private float getNoteX(FretNote note) {

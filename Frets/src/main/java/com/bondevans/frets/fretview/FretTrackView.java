@@ -175,10 +175,9 @@ public class FretTrackView extends FretView {
      * @param midiBuffer byte buffer to place midi bend event into
      */
     private void setMidiPitchBendEvent(int bend, byte[] midiBuffer) {
-        int midiValue = FretEvent.ZERO_PITCH_BEND - 1 + (bend * (FretEvent.ZERO_PITCH_BEND / FretEvent.MAX_BEND));
         midiBuffer[0] = (byte) (0xE0 | mChannel);
-        midiBuffer[1] = (byte) (midiValue & 0x7F);
-        midiBuffer[2] = (byte) ((byte) (midiValue >> 7) & 0x7F);
+        midiBuffer[1] = (byte) (bend & 0x7F);
+        midiBuffer[2] = (byte) ((byte) (bend >> 7) & 0x7F);
     }
 
     class FretEventHandler extends Handler {
