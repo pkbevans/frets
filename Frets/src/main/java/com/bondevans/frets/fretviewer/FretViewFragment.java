@@ -30,7 +30,7 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
     private FretSong mFretSong;
     private Drawable playDrawable;
     private Drawable pauseDrawable;
-    private boolean mPlay;
+    private boolean mPlaying;
     private MidiDriver mMidiDriver;
 
     public FretViewFragment() {
@@ -70,9 +70,9 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
             }
 
             @Override
-            public void OnPlayEnabled(boolean flag) {
-                mPlay = true;
-                // Probably need to set up instrument here
+            public void OnPlayEnabled() {
+                mPlaying = false;
+                // Set up instrument here
                 setMidiInstrument(mFretSong.getTrack(mFretSong.getSoloTrack()).getMidiInstrument());
             }
 
@@ -109,8 +109,8 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
             @Override
             public void onClick(View v) {
                 // Toggle Play/pause
-                mPlay = !mPlay;
-                playPauseButton.setImageDrawable(mPlay ? playDrawable : pauseDrawable);
+                mPlaying = !mPlaying;
+                playPauseButton.setImageDrawable(mPlaying ? pauseDrawable: playDrawable );
                 mFretTrackView.play();
             }
         });
@@ -155,9 +155,14 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
     public void onPause() {
         super.onPause();
         Log.d(TAG, "onPause");
-        // The app is losing focus so need to stop the
+        // The app is losing focus so need to stop the player
         mMidiDriver.stop();
-        mFretTrackView.pause();
+        if(mPlaying) {
+            // Playing so pausing
+            playPauseButton.setImageDrawable(pauseDrawable);
+            mPlaying = false;
+            mFretTrackView.play();
+        }
     }
 
     @Override

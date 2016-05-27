@@ -34,7 +34,7 @@ public class FretTrackView extends FretView {
 
         void OnTempoChanged(int tempo);
 
-        void OnPlayEnabled(boolean flag);
+        void OnPlayEnabled();
 
         void SendMidi(byte[] buffer);
     }
@@ -117,7 +117,7 @@ public class FretTrackView extends FretView {
         setNotes(mFretTrack.fretEvents.get(mCurrentFretEvent).fretNotes, mFretTrack.fretEvents.get(mCurrentFretEvent).bend);
         mTicksPerQtrNote = tpqn;
         // Enable Play
-        fretListener.OnPlayEnabled(true);
+        fretListener.OnPlayEnabled();
         fretListener.OnTempoChanged(mCurrentBPM);
         invalidate();   // Force redraw
     }
@@ -229,15 +229,6 @@ public class FretTrackView extends FretView {
             sendMidiNotesOff();
         }
         invalidate();   // Force redraw with correct play/pause button
-    }
-
-    /**
-     * Public method to pause if the app is being paused.
-     */
-    public void pause() {
-        if (mPlaying) {
-            play();
-        }
     }
 
     /**
