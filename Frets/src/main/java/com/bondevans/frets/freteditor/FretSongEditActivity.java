@@ -73,8 +73,10 @@ public class FretSongEditActivity extends AppCompatActivity implements
             }
             else{
                 Log.d(TAG, "Found FretTrackEditFragment track="+mTrackBeingEdited);
-                // Need to reload the track into the editer
-                fretTrackEditFragment.setFretTrack(fretSongEditFragment.getFretSong().getTrack(mTrackBeingEdited));
+                // Need to reload the track into the editor
+                fretTrackEditFragment.setFretTrack(
+                        fretSongEditFragment.getFretSong().getTrack(mTrackBeingEdited),
+                        mTrackBeingEdited );
             }
         }
 
@@ -213,7 +215,7 @@ public class FretSongEditActivity extends AppCompatActivity implements
         // Instantiate a new fragment.
         mTrackBeingEdited = track;
         fretTrackEditFragment = new FretTrackEditFragment();
-        fretTrackEditFragment.setFretTrack(fretSongEditFragment.getFretSong().getTrack(track));
+        fretTrackEditFragment.setFretTrack(fretSongEditFragment.getFretSong().getTrack(track), track);
         // Add the fragment to the activity, pushing this transaction
         // on to the back stack.
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
@@ -232,12 +234,12 @@ public class FretSongEditActivity extends AppCompatActivity implements
     private void setFretSong(File file) {
         Log.d(TAG, "setFretSong file");
         progressDialog.show();
-        FileLoaderTask fileLoaderTask = new FileLoaderTask(file);
+        FileLoaderTask fileLoaderTask = new FileLoaderTask(file, false);
         fileLoaderTask.setFileLoadedListener(new FileLoaderTask.FileLoadedListener() {
             @Override
-            public void OnFileLoaded(String contents) {
+            public void OnFileLoaded(FretSong fretSong) {
                 Log.d(TAG, "setFretSong file loaded");
-                mFretSong = new FretSong(contents);
+                mFretSong = fretSong;
                 fretSongEditFragment.setFretSong(mFretSong);
                 getSupportActionBar().setTitle(getString(R.string.edit_song));
                 progressDialog.hide();
