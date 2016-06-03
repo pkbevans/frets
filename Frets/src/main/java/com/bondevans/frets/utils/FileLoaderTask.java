@@ -2,6 +2,7 @@ package com.bondevans.frets.utils;
 
 import android.os.AsyncTask;
 
+import com.bondevans.frets.fretview.FretEvent;
 import com.bondevans.frets.fretview.FretSong;
 import com.bondevans.frets.fretviewer.TrackMerger;
 
@@ -38,7 +39,9 @@ public class FileLoaderTask extends AsyncTask<Void, Void, String> {
         try {
             mFretSong = new FretSong(FileLoader.loadFile(file));
             if(merge){
-                doMerge();
+                // Insert the track number into each event.
+                for(FretEvent ev: mFretSong.getTrack(mFretSong.getSoloTrack()).fretEvents)ev.track=mFretSong.getSoloTrack();
+//                doMerge();
             }
         } catch (Exception e) {
             return e.getMessage();

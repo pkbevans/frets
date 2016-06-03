@@ -62,9 +62,6 @@ public class FretListActivity extends AppCompatActivity {
             case R.id.action_import:
                 launchBrowser();
                 return true;
-            case R.id.action_miditest:
-                launchMidiTest();
-                return true;
         }
         return super.onOptionsItemSelected(item);
     }

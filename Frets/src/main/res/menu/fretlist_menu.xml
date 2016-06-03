@@ -8,10 +8,5 @@
         android:icon="@drawable/ic_action_import"
         android:orderInCategory="100"
         app:showAsAction="always"/>
-    <item
-        android:id="@+id/action_miditest"
-        android:title="@string/miditest"
-        android:orderInCategory="101"
-        app:showAsAction="ifRoom"/>
 
 </menu>
