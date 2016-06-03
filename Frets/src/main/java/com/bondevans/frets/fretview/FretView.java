@@ -27,7 +27,7 @@ public class FretView extends View {
     private static final int TEXT_ALPHA = 90;
     private static final int NOTE_TEXT_DIVISOR = 10;
     private static final int NUT_WIDTH = 5;
-    private static final float RANDOM_VALUE = 2;
+    private static final float RANDOM_VALUE = 4;
     private int mFrets = 22;
     private int mStrings = 6;
     private boolean[] mBentStrings;
@@ -105,7 +105,7 @@ public class FretView extends View {
         drawOldNotes(g);
         drawNotes(g);
         drawStrings(g);
-    }
+        }
 
     Rect mRect = new Rect(); // Avoid creating every call to drawStrings
 
@@ -211,12 +211,7 @@ public class FretView extends View {
             for (int i = 0; i < mFretNotes.size(); i++) {
                 if (mFretNotes.get(i).on) {
                     // draw a circle on the relevant string in the middle of the fret
-                    if (mFretNotes.get(i).fret == 0) {
-                        // For open strings, draw an un-filled cicle behind the nut
-                        mPaintNote.setStyle(Paint.Style.STROKE);
-                    } else {
-                        mPaintNote.setStyle(Paint.Style.FILL);
-                    }
+                    mPaintNote.setStyle(Paint.Style.FILL);
                     mPaintNote.setColor(Color.BLACK);
                     mPaintNote.setAlpha(255);
                     float y = getNoteY(mFretNotes.get(i));
@@ -241,12 +236,7 @@ public class FretView extends View {
             for (int i = 0; mOldNotes[n] != null && (i < mOldNotes[n].size()); i++) {
                 if (mOldNotes[n].get(i).on) {
                     // draw a circle on the relevant string in the middle of the fret
-                    if (mOldNotes[n].get(i).fret == 0) {
-                        // For open strings, draw an un-filled cicle behind the nut
-                        mPaintNote.setStyle(Paint.Style.STROKE);
-                    } else {
-                        mPaintNote.setStyle(Paint.Style.FILL);
-                    }
+                    mPaintNote.setStyle(Paint.Style.FILL);
                     mPaintNote.setColor(Color.RED);
                     mPaintNote.setAlpha(150 - (n * 30));  // Gets progressively feinter
                     g.drawCircle(getNoteX(mOldNotes[n].get(i)), getNoteY(mOldNotes[n].get(i)), mRadius, mPaintNote);
@@ -268,26 +258,26 @@ public class FretView extends View {
             ret = (float) (mSpaceBeforeNut + ((note.fret - 1 + 0.5) * mFretWidth));
         } else {
             // If its an open string then we place a Circle just being the nut
-            ret = (float) mSpaceBeforeNut - (mRadius * 2) - RANDOM_VALUE;
+            ret = (float) mSpaceBeforeNut - mRadius - RANDOM_VALUE;
         }
         return ret;
     }
 
-    public void setNotes(List<FretNote> notes, int bend) {
-        // Could be just a bend on current notes, so dont overwrite if notes list empty
-        if (notes.size() > 0) {
+    public void setNotes(FretEvent fretEvent) {
+        // Could be just a bend on current notes, so don't overwrite if notes list empty
+        if (fretEvent.fretNotes.size() > 0) {
             // Store the previous notes so we can draw a ghostly trail of previous notes
             for (int i = mOldNotes.length - 2; i >= 0; i--) {
                 mOldNotes[i + 1] = mOldNotes[i];
             }
             mOldNotes[0] = mFretNotes;
-            mFretNotes = notes;
+            mFretNotes = fretEvent.fretNotes;
         }
         // Apply bend to current notes
         if (mFretNotes != null) {
             for (FretNote fn : mFretNotes) {
                 if (fn.on) {
-                    fn.bend = bend;
+                    fn.bend = fretEvent.bend;
                 }
             }
         }
@@ -302,8 +292,9 @@ public class FretView extends View {
         myFretNotes.add(new FretNote(58, true, 2, 3, "Bb"));
         myFretNotes.add(new FretNote(63, true, 1, 4, "Eb"));
         myFretNotes.add(new FretNote(69, true, 0, 5, "A"));
+        FretEvent fretEvent = new FretEvent(0,myFretNotes,120,0);
 
-        setNotes(myFretNotes, 0);
+        setNotes(fretEvent);
     }
 
     @Override

@@ -17,8 +17,8 @@ public class FretEvent extends FretBase {
     public static final String EVENT_ELEMENT_OPEN = "<"+ELEMENT_EVENT+">";
     public static final String EVENT_ELEMENT_CLOSE = "</"+ELEMENT_EVENT+">";
     // THESE ELEMENTS ARE WRITTEN OUT IN/READ IN FROM TOSTRING()
-    int deltaTime;
-    int tempo;
+    public int deltaTime;
+    public int tempo;
     public int bend;
     public List<FretNote> fretNotes;
     // INTERNAL PROPERTIES - NOT WRITTEN OUT IN/READ IN FROM TOSTRING()
@@ -101,7 +101,7 @@ public class FretEvent extends FretBase {
     }
 
     public void setTicks(int ticks) {
-        Log.d(TAG, "track:"+track+" setTicks:"+ticks);
+//        Log.d(TAG, "track:"+track+" setTicks:"+ticks);
         this.deltaTime = ticks;
     }
     public String dbg(){

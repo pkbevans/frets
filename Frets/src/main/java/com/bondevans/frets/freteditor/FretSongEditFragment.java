@@ -98,7 +98,7 @@ public class FretSongEditFragment extends ListFragment {
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
         Log.d(TAG, "itemClicked: " + position);
-        trackSelectedListener.onTrackSelected(position);
+//        trackSelectedListener.onTrackSelected(position);
     }
 
     /* (non-Javadoc)
@@ -233,6 +233,7 @@ public class FretSongEditFragment extends ListFragment {
                 holder.soloButton = (RadioButton) convertView.findViewById(R.id.soloButton);
                 holder.drumTrack = (CheckBox) convertView.findViewById(R.id.isDrumTrack);
                 holder.deleteButton = (ImageButton) convertView.findViewById(R.id.deleteButton);
+                holder.selectButton = (ImageButton) convertView.findViewById(R.id.selectButton);
                 convertView.setTag(holder);
             }
             else{
@@ -283,7 +284,7 @@ public class FretSongEditFragment extends ListFragment {
                 Log.d(TAG, "Setting Instrument: " + fretTracks.get(position).getMidiInstrument());
                 holder.instrument.setSelection(fretTracks.get(position).getMidiInstrument());
             }
-            holder.soloText.setText(position == mFretSong.getSoloTrack()?FretSongEditFragment.this.getActivity().getString(R.string.solo_track):FretSongEditFragment.this.getActivity().getString(R.string.rhythm_track));
+            holder.soloText.setText(position == mFretSong.getSoloTrack()?FretSongEditFragment.this.getActivity().getString(R.string.solo_track):FretSongEditFragment.this.getActivity().getString(R.string.backing_track));
             holder.soloButton.setChecked(position == mFretSong.getSoloTrack());
             holder.soloButton.setTag(position);
             holder.soloButton.setOnClickListener(new View.OnClickListener() {
@@ -306,6 +307,14 @@ public class FretSongEditFragment extends ListFragment {
                     notifyDataSetChanged();
                 }
             });
+            holder.selectButton.setTag(position);
+            holder.selectButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    selectedPosition = (Integer) view.getTag();
+                    trackSelectedListener.onTrackSelected(selectedPosition);
+                }
+            });
 
             return convertView;
         }
@@ -318,6 +327,7 @@ public class FretSongEditFragment extends ListFragment {
             TextView soloText;
             CheckBox drumTrack;
             ImageButton deleteButton;
+            ImageButton selectButton;
         }
     }
 

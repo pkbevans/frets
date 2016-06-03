@@ -61,7 +61,7 @@
     <string name="action_solo_track">Make Solo track</string>
     <string name="action_rename_track">Rename Track…</string>
     <string name="action_test">MidiTest</string>
-    <string name="solo_track">Solo Track</string>
+    <string name="solo_track">(Solo Track)</string>
     <string name="action_publish">Publish…</string>
     <string name="published">" published"</string>
     <string name="no">No</string>
@@ -75,9 +75,12 @@
     <string name="edit_track">Edit Track</string>
     <string name="no_network">No network connection</string>
     <string name="events">Events</string>
-    <string name="rhythm_track">Rhythm Track</string>
+    <string name="backing_track">(Backing Track)</string>
     <string name="login_signup_text">Welcome to Frets.\n\nPlease login if you are an existing user or SIGN UP if you are new.</string>
     <string name="drum_track">Drum Track</string>
+    <string name="delete_button_help">Use this button to delete this track</string>
+    <string name="select_button_help">Use this button to edit the fret positions</string>
+    <string name="miditest">Midi Test</string>
 
     <string-array name="midi_instrument_names">
         <item>Acoustic Grand Piano</item>

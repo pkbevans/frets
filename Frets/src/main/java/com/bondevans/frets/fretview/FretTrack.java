@@ -107,5 +107,21 @@ public class FretTrack extends FretBase {
     public void setDrumTrack(boolean isChecked) {
         drumTrack = isChecked;
     }
+
+    public void dump(String text) {
+        Log.d(TAG, "DUMP "+text);
+        Log.d(TAG, "TRACK,EV,TICKS,BEND");
+        FretEvent fe;
+        for(int i=0; i<fretEvents.size();i++){
+            fe = fretEvents.get(i);
+            Log.d(TAG, fe.track + ","+i + "," +fe.getTicks());
+//            for(FretNote fn: fe.fretNotes) {
+//                Log.d(TAG, i + "," + fe.track + "," + fn.note+","+(fn.on?"ON":"OFF")+","+fe.getTicks());
+//            }
+//            if(fe.bend>0){
+//                Log.d(TAG, i + "," + fe.track + "," + "-"+","+"-"+","+fe.getTicks()+","+fe.bend);
+//            }
+        }
+    }
 }
 

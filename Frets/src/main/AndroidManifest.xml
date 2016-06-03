@@ -25,6 +25,9 @@
             android:name="com.bondevans.frets.filebrowser.FileBrowserActivity">
         </activity>
         <activity
+            android:name="com.bondevans.frets.fretlist.MidiTest">
+        </activity>
+        <activity
             android:name=".freteditor.FretSongEditActivity"
             android:windowSoftInputMode="stateHidden">
         </activity>

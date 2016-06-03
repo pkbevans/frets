@@ -29,6 +29,7 @@ public class FretTrackEditFragment extends Fragment {
     private int mCurrentEvent = 0;
     private FretPosition mFretPosition;
     private boolean mEdited = false;
+    private int mTrack;
 
     public FretTrackEditFragment() {
     }
@@ -89,11 +90,11 @@ public class FretTrackEditFragment extends Fragment {
             Log.d(TAG, "savedInstanceState != null");
             // Must be orientation change
             mTrackName.setText(mFretTrack.getName());
-            mFretEditView.setNotes(mFretTrack.fretEvents.get(mCurrentEvent).fretNotes, mFretTrack.fretEvents.get(mCurrentEvent).bend);
+            mFretEditView.setNotes(mFretTrack.fretEvents.get(mCurrentEvent));
         }
         mTrackName.setText(mFretTrack.getName());
         mCurrentEvent = 0;
-        mFretEditView.setNotes(mFretTrack.fretEvents.get(mCurrentEvent).fretNotes, mFretTrack.fretEvents.get(mCurrentEvent).bend);
+        mFretEditView.setNotes(mFretTrack.fretEvents.get(mCurrentEvent));
         return myView;
     }
 
@@ -115,9 +116,10 @@ public class FretTrackEditFragment extends Fragment {
                 }
             }
         }
-        while (!mFretTrack.fretEvents.get(mCurrentEvent).hasOnNotes());
+        while (mFretTrack.fretEvents.get(mCurrentEvent).track!=mTrack||
+                !mFretTrack.fretEvents.get(mCurrentEvent).hasOnNotes());
 
-        mFretEditView.setNotes(mFretTrack.fretEvents.get(mCurrentEvent).fretNotes, mFretTrack.fretEvents.get(mCurrentEvent).bend);
+        mFretEditView.setNotes(mFretTrack.fretEvents.get(mCurrentEvent));
         mFretEditView.invalidate();
     }
 
@@ -126,9 +128,10 @@ public class FretTrackEditFragment extends Fragment {
      *
      * @param fretTrack Track to edit
      */
-    public void setFretTrack(FretTrack fretTrack) {
+    public void setFretTrack(FretTrack fretTrack, int track) {
         Log.d(TAG, "setFretTrack");
         mFretTrack = fretTrack;
+        mTrack = track;
     }
 
     /**

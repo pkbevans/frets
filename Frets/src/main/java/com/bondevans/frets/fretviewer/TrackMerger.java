@@ -10,21 +10,18 @@ public class TrackMerger {
     private List<FretEvent> events;
     private Tracker t1;
     private Tracker t2;
-    private int tracks;
 
-    public TrackMerger(List<FretEvent> events){
+    public TrackMerger(List<FretEvent> events, int track){
         this.events = events;
         t1 = new Tracker(events);
         // Set all events to track ZERO
-        tracks = 0;
-        for(FretEvent ev: events)ev.track=tracks;
+        for(FretEvent ev: events)ev.track=track;
     }
-    public void mergeTrack(List<FretEvent> events){
+    public void mergeTrack(List<FretEvent> events, int track){
         t2 = new Tracker(events);
         // Set track number for each event
-        ++tracks;
-        Log.d(TAG, "mergeTrack:"+tracks);
-        for(FretEvent ev: events)ev.track=tracks;
+        Log.d(TAG, "mergeTrack:"+track);
+        for(FretEvent ev: events)ev.track=track;
         // merge t2 into t1
         doMerge();
     }
@@ -78,7 +75,6 @@ public class TrackMerger {
                 // t1 and t2 are the same. Add t2 after t1 and set t2 ticks to zero
                 t2.getCurrent().setTicks(0);
                 events.add(++t1.currentPos,t2.getCurrent());
-//                t1.next();
                 t2.next();
             }
         }

@@ -3,6 +3,8 @@ package com.bondevans.frets.fretviewer;
 import android.app.Fragment;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -13,13 +15,20 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.bondevans.frets.R;
+import com.bondevans.frets.fretview.FretEvent;
+import com.bondevans.frets.fretview.FretNote;
 import com.bondevans.frets.fretview.FretSong;
+import com.bondevans.frets.fretview.FretTrack;
 import com.bondevans.frets.fretview.FretTrackView;
 
 import org.billthefarmer.mididriver.MidiDriver;
 
 public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStartListener {
     private static final String TAG = FretViewFragment.class.getSimpleName();
+    private static final int NOTE_ON=0x9;
+    private static final int NOTE_OFF=0x8;
+    private static final int PITCH_WHEEL=0xE0;
+    private static final int SET_INSTRUMENT=0xC0;
     private FretTrackView mFretTrackView;
     private TextView mTrackName;
     private ImageButton playPauseButton;
@@ -32,6 +41,12 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
     private Drawable pauseDrawable;
     private boolean mPlaying;
     private MidiDriver mMidiDriver;
+    private FretEventHandler mFretEventHandler;
+    private int mCurrentFretEvent = 0;
+    private byte[] midiBuffer = new byte[3];
+    private static final int MIDI_CHANNEL_DRUMS = 9;
+    private FretTrack mFretTrack;
+    private int mTicksPerQtrNote;
 
     public FretViewFragment() {
     }
@@ -47,6 +62,7 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
         mMidiDriver = new MidiDriver();
         // Set the listener.
         mMidiDriver.setOnMidiStartListener(this);
+        mFretEventHandler = new FretEventHandler();
     }
 
     @Override
@@ -58,27 +74,9 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
         mFretTrackView = (FretTrackView) myView.findViewById(R.id.fretview);
         mFretTrackView.setFretListener(new FretTrackView.FretListener() {
             @Override
-            public void OnProgressUpdated(int length, int current) {
-                mCurrentEvent = current;
-                mSeekBar.setProgress(current * 100 / length);
-            }
-
-            @Override
             public void OnTempoChanged(int tempo) {
                 mTempo = tempo;
                 mTempoText.setText(String.valueOf(tempo));
-            }
-
-            @Override
-            public void OnPlayEnabled() {
-                mPlaying = false;
-                // Set up instrument here
-                setMidiInstrument(mFretSong.getTrack(mFretSong.getSoloTrack()).getMidiInstrument());
-            }
-
-            @Override
-            public void SendMidi(byte[] buffer) {
-                mMidiDriver.write(buffer);
             }
         });
         mFretTrackView.setKeepScreenOn(true);
@@ -88,36 +86,30 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
         mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-//                Log.d(TAG, "onProgressChanged [" + progress + "] " + (fromUser ? "FROM USER" : "" + ""));
                 // If user moves the position, then need to update current fretEvent in Fretboard view
                 // progress = a value between 0-100 - e.g. percent of way through the song
                 if (fromUser) {
-                    mFretTrackView.moveTo(progress);
+                    moveTo(progress);
                 }
             }
 
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
+            public void onStartTrackingTouch(SeekBar seekBar) {}
 
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-            }
+            public void onStopTrackingTouch(SeekBar seekBar) {}
         });
         playPauseButton = (ImageButton) myView.findViewById(R.id.playPauseButton);
         playPauseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Toggle Play/pause
-                mPlaying = !mPlaying;
-                playPauseButton.setImageDrawable(mPlaying ? pauseDrawable: playDrawable );
-                mFretTrackView.play();
+                play(); // Toggle Play/pause
             }
         });
         if (savedInstanceState != null) {
             Log.d(TAG, "savedInstanceState != null");
             // Must be orientation change
-            mFretTrackView.setTrack(mFretSong.getTrack(mFretSong.getSoloTrack()), mFretSong.getTpqn(), mTempo, mCurrentEvent);
+            setTrack(mFretSong.getTrack(mFretSong.getSoloTrack()), mFretSong.getTpqn(), mTempo, mCurrentEvent);
             mTrackName.setText(mFretSong.getTrackName(mFretSong.getSoloTrack()));
         }
         return myView;
@@ -131,24 +123,8 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
     public void setFretSong(FretSong fretSong) {
         Log.d(TAG, "setFretSong");
         mFretSong = fretSong;
-//        doMerge();  //
         mTrackName.setText(mFretSong.getTrackName(mFretSong.getSoloTrack()));
-        mFretTrackView.setTrack(mFretSong.getTrack(mFretSong.getSoloTrack()), mFretSong.getTpqn(), mFretSong.getBpm());
-    }
-
-    private void doMerge() {
-        // Start off with the solo track
-        TrackMerger trackMerger = new TrackMerger(mFretSong.getTrack(mFretSong.getSoloTrack()).fretEvents);
-        // then merge in all the other tracks
-        int track=0;
-        while(track<mFretSong.tracks()){
-            if(track!=mFretSong.getSoloTrack()) {//dont want the sol track twice
-                trackMerger.mergeTrack(mFretSong.getTrack(track).fretEvents);
-            }
-            ++track;
-        }
-        trackMerger.log();
-        Log.d(TAG, "Merged Track;"+mFretSong.getTrack(mFretSong.getSoloTrack()).toString());
+        setTrack(mFretSong.getTrack(mFretSong.getSoloTrack()), mFretSong.getTpqn(), mFretSong.getBpm(),0);
     }
 
     @Override
@@ -158,10 +134,8 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
         // The app is losing focus so need to stop the player
         mMidiDriver.stop();
         if(mPlaying) {
-            // Playing so pausing
-            playPauseButton.setImageDrawable(pauseDrawable);
-            mPlaying = false;
-            mFretTrackView.play();
+            // Playing so pause
+            play();
         }
     }
 
@@ -203,15 +177,188 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
         Log.d(TAG, "onMidiStart()");
     }
 
-    private void setMidiInstrument(int instrument) {
-        Log.d(TAG, "setMidiInstrument: " + instrument);
+    private void setMidiInstruments(){
+        for(int track=0; track<mFretSong.tracks();track++){
+            FretTrack fretTrack = mFretSong.getTrack(track);
+            if(!fretTrack.isDrumTrack()) {
+                // No instrument for drum track - just channel 10
+                Log.d(TAG, "setMidiInstrument: track:" +track+" channel "+"=" + fretTrack.getMidiInstrument());
+                setMidiInstrument( track, fretTrack.getMidiInstrument());
+            }
+            else{
+                Log.d(TAG, "setMidiInstrument: track:" +track+" channel "+"=DRUMS");
+            }
+        }
+    }
+    private void setMidiInstrument(int channel, int instrument) {
         byte[] event = new byte[2];
-        event[0] = (byte) (0xC0 | 0);// channel hardcoded to 0
+        event[0] = (byte) (SET_INSTRUMENT | channel);
         event[1] = (byte) instrument;
         mMidiDriver.write(event);
     }
 
     public FretSong getFretSong() {
         return mFretSong;
+    }
+
+    class FretEventHandler extends Handler {
+
+        @Override
+        public void handleMessage(Message msg) {
+//            Log.d(TAG, "handleMessage fretEvent[" + mCurrentFretEvent + "]");
+            if (mPlaying) {
+                // Handle event
+                handleEvent(mFretTrack.fretEvents.get(mCurrentFretEvent));
+            }
+        }
+
+        public void sleep(long delayMillis) {
+            this.removeMessages(0);
+            sendMessageDelayed(obtainMessage(0), delayMillis);
+        }
+    }
+
+    private void handleEvent(FretEvent fretEvent) {
+        // Send next set of notes to Fretboard View
+        if (fretEvent.tempo > 0) {
+            mTempo = fretEvent.tempo;
+        }
+        sendMidiNotes(fretEvent);
+        if(fretEvent.track == mFretSong.getSoloTrack()) {
+            mFretTrackView.setNotes(fretEvent);
+            // Force redraw
+            mFretTrackView.invalidate();
+        }
+
+        if (++mCurrentFretEvent >= mFretTrack.fretEvents.size()) {
+            mCurrentFretEvent = 0;
+        }
+        long delay = delayFromClicks(mFretTrack.fretEvents.get(mCurrentFretEvent).deltaTime);
+
+        // Update progress listener (so it can update the seekbar (or whatever)
+        updateProgress(mFretTrack.fretEvents.size(), mCurrentFretEvent);
+        mFretEventHandler.sleep(delay);
+    }
+    /**
+     * Plays/pauses the current track
+     */
+    public void play() {
+        // toggle play/pause
+        mPlaying = !mPlaying;
+        playPauseButton.setImageDrawable(mPlaying ? pauseDrawable: playDrawable );
+        if (mPlaying) {
+            // Play
+            setMidiInstruments();
+            mFretEventHandler.sleep(mFretTrack.fretEvents.get(mCurrentFretEvent).deltaTime);
+        } else {
+            // Pause
+            sendMidiNotesOff();
+        }
+    }
+
+
+    private void sendMidiNotes(FretEvent fretEvent) {
+        if (fretEvent.fretNotes != null) {
+            for (int i = 0; i < fretEvent.fretNotes.size(); i++) {
+                // Send the MIDI notes
+                // Is it a drum track? - Channel 10, else use track position
+                Log.d(TAG, "Ticks:"+fretEvent.getTicks()+" Channel:"+fretEvent.track);
+                sendMidiNote(fretEvent.fretNotes.get(i), mFretSong.getTrack(fretEvent.track).isDrumTrack()?MIDI_CHANNEL_DRUMS:fretEvent.track);
+            }
+        }
+        if(fretEvent.bend>0){
+            // Send pitch Bend message (will alter current note playing)
+            midiBuffer[0] = (byte) (PITCH_WHEEL | fretEvent.track);
+            midiBuffer[1] = (byte) (fretEvent.bend & 0x7F);
+            midiBuffer[2] = (byte) ((byte) (fretEvent.bend >> 7) & 0x7F);
+            sendMidi(midiBuffer);
+        }
+    }
+
+    private void sendMidiNote(FretNote fretNote, int channel) {
+        Log.d(TAG, (fretNote.on?"NOTE ON": "NOTE OFF")+ " note: "+ fretNote.note+ " to channel "+channel+"");
+        midiBuffer[0] = (byte) (fretNote.on ? (NOTE_ON | channel) : (NOTE_OFF | channel));
+        // Note value
+        midiBuffer[1] = (byte) fretNote.note;
+        // Velocity - Hardcoded volume for NOTE_ON and zero for NOTE_OFF
+        midiBuffer[2] = (byte) (fretNote.on ? 0x60 : 0x00);
+        sendMidi(midiBuffer);
+    }
+
+    /**
+     * Sends NOTE_OFF message for all current notes.
+     */
+    private void sendMidiNotesOff() {
+        Log.d(TAG, "Sending NEW ALL NOTES OFF");
+        for(int channel=0;channel<mFretSong.tracks();channel++) {
+            Log.d(TAG, "channel:"+channel);
+            for (int noteValue = 0; noteValue < 256; noteValue++) {
+                midiBuffer[0] = (byte) (NOTE_OFF | (channel==mFretSong.getSoloTrack()?MIDI_CHANNEL_DRUMS:channel));
+                // Note value
+                midiBuffer[1] = (byte) noteValue;
+                // Velocity - ZERO volume
+                midiBuffer[2] = (byte) 0x00;
+                sendMidi(midiBuffer);
+            }
+        }
+    }
+
+    private void sendMidi(byte[] buffer) {
+        mMidiDriver.write(buffer);
+    }
+
+    public void updateProgress(int length, int current) {
+        mCurrentEvent = current;
+        mSeekBar.setProgress(current * 100 / length);
+    }
+
+    /**
+     * Moves to new position in the midi event list - in response to user moving the seek bar
+     *
+     * @param progress - percentage through the song
+     *
+     */
+    private void moveTo(int progress) {
+        mCurrentFretEvent = (mFretTrack.fretEvents.size() * progress / 100) - 1;
+        if (mCurrentFretEvent < 0) {
+            mCurrentFretEvent = 0;
+        }
+        Log.d(TAG, "mCurrentFretEvent [" + mCurrentFretEvent + "]");
+    }
+
+    /**
+     * Calculates the time between FretEvents from the delta time (clicks) and the mTicks per beat setting
+     * in the file
+     *
+     * @param deltaTicks The delta time in ticks for this event
+     * @return Returns the actual delay in millisecs for this event
+     */
+    private long delayFromClicks(int deltaTicks) {
+        long ret = 0;
+
+        if (mTicksPerQtrNote > 0 && deltaTicks > 0) {
+            // Avoid divide by zero error
+            double x = ((60 * 1000) / mTempo);
+            double y = x / mTicksPerQtrNote;
+            double z = deltaTicks * y;
+            ret = (long) z;
+        }
+
+        return ret;
+    }
+
+    private void setTrack(FretTrack frettrack, int tpqn, int tempo, int currentFretEvent) {
+        Log.d(TAG, "setTrack");
+        mFretTrack = frettrack;
+        mTempo = tempo;
+        mCurrentFretEvent = currentFretEvent;
+        mFretTrackView.setNotes(mFretTrack.fretEvents.get(mCurrentFretEvent));
+        mTicksPerQtrNote = tpqn;
+        // Enable Play
+        mPlaying = false;
+        // Set up instrument here
+        setMidiInstruments();
+        mFretTrackView.invalidate();   // Force redraw
+        mTempoText.setText(String.valueOf(tempo));
     }
 }

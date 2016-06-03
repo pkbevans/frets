@@ -144,12 +144,12 @@ public class FretViewActivity extends AppCompatActivity {
 
     private void setFretSong(File file) {
         progressDialog.show();
-        FileLoaderTask fileLoaderTask = new FileLoaderTask(file);
+        FileLoaderTask fileLoaderTask = new FileLoaderTask(file, true);
         fileLoaderTask.setFileLoadedListener(new FileLoaderTask.FileLoadedListener() {
             @Override
-            public void OnFileLoaded(String contents) {
-                fragment.setFretSong(new FretSong(contents));
-                getSupportActionBar().setTitle(fragment.getFretSong().getName());
+            public void OnFileLoaded(FretSong fretSong) {
+                fragment.setFretSong(fretSong);
+                getSupportActionBar().setTitle(fretSong.getName());
                 progressDialog.hide();
             }
 

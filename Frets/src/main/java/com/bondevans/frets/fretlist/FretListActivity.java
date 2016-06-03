@@ -61,9 +61,21 @@ public class FretListActivity extends AppCompatActivity {
         switch (id) {
             case R.id.action_import:
                 launchBrowser();
-                return (true);
+                return true;
+            case R.id.action_miditest:
+                launchMidiTest();
+                return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void launchMidiTest() {
+        Intent intent = new Intent(this, MidiTest.class);
+        try {
+            startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            Log.e(TAG, "NO ACTIVITY FOUND: "+MidiTest.class.getSimpleName());
+        }
     }
 
     private void launchBrowser() {
@@ -71,7 +83,7 @@ public class FretListActivity extends AppCompatActivity {
         try {
             startActivity(intent);
         } catch (ActivityNotFoundException e) {
-            Log.e(TAG, "NO ACTIVITY FOUND: FileBrowserActivity");
+            Log.e(TAG, "NO ACTIVITY FOUND: "+FileBrowserActivity.class.getSimpleName());
         }
     }
 
