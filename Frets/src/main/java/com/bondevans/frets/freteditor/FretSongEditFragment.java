@@ -267,12 +267,14 @@ public class FretSongEditFragment extends ListFragment {
                 holder.instrument.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                     @Override
                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                        final int track = getListView().getPositionForView((View) view.getParent());
-                        Log.d(TAG, "Instrument spinner: " + position + " id: " + id + " track:" + track);
-                        if (fretTracks.get(track).getMidiInstrument() != position) {
-                            fretTracks.get(track).setMidiInstrument(position);
-                            Log.d(TAG, "Instrument updated");
-                            mIsEdited = true;
+                        if(view != null) {
+                            final int track = getListView().getPositionForView((View) view.getParent());
+                            Log.d(TAG, "Instrument spinner: " + position + " id: " + id + " track:" + track);
+                            if (fretTracks.get(track).getMidiInstrument() != position) {
+                                fretTracks.get(track).setMidiInstrument(position);
+                                Log.d(TAG, "Instrument updated");
+                                mIsEdited = true;
+                            }
                         }
                     }
 
@@ -281,8 +283,6 @@ public class FretSongEditFragment extends ListFragment {
                         Log.d(TAG, "Instrument spinner: nothing selected");
                     }
                 });
-                Log.d(TAG, "Setting Instrument: " + fretTracks.get(position).getMidiInstrument());
-                holder.instrument.setSelection(fretTracks.get(position).getMidiInstrument());
             }
             holder.soloText.setText(position == mFretSong.getSoloTrack()?FretSongEditFragment.this.getActivity().getString(R.string.solo_track):FretSongEditFragment.this.getActivity().getString(R.string.backing_track));
             holder.soloButton.setChecked(position == mFretSong.getSoloTrack());
@@ -315,6 +315,8 @@ public class FretSongEditFragment extends ListFragment {
                     trackSelectedListener.onTrackSelected(selectedPosition);
                 }
             });
+            Log.d(TAG, "Setting Instrument: " + fretTracks.get(position).getMidiInstrument());
+            holder.instrument.setSelection(fretTracks.get(position).getMidiInstrument());
 
             return convertView;
         }

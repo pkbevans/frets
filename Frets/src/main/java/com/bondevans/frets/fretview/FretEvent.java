@@ -13,16 +13,17 @@ import java.util.regex.Pattern;
 public class FretEvent extends FretBase {
     private static final String TAG = FretEvent.class.getSimpleName();
     public static final int MAX_BEND = 10;
-    public static final String ELEMENT_EVENT = "ev";
-    public static final String EVENT_ELEMENT_OPEN = "<"+ELEMENT_EVENT+">";
-    public static final String EVENT_ELEMENT_CLOSE = "</"+ELEMENT_EVENT+">";
+    private static final String ELEMENT_EVENT = "ev";
+    private static final String EVENT_ELEMENT_OPEN = "<"+ELEMENT_EVENT+">";
+    private static final String EVENT_ELEMENT_CLOSE = "</"+ELEMENT_EVENT+">";
     // THESE ELEMENTS ARE WRITTEN OUT IN/READ IN FROM TOSTRING()
     public int deltaTime;
     public int tempo;
     public int bend;
     public List<FretNote> fretNotes;
-    // INTERNAL PROPERTIES - NOT WRITTEN OUT IN/READ IN FROM TOSTRING()
     public int track;
+    private int totalTicks;
+    // INTERNAL PROPERTIES - NOT WRITTEN OUT IN/READ IN FROM TOSTRING()
 
     /**
      * Constructor
@@ -30,20 +31,24 @@ public class FretEvent extends FretBase {
      * @param fretNotes array of notes to play at the same time
      * @param tempo New tempo if > 0
      * @param bend Apply bend if > 0
+     * @param totalTicks
      */
-    public FretEvent(int deltaTime, List<FretNote> fretNotes, int tempo, int bend) {
+    public FretEvent(int deltaTime, List<FretNote> fretNotes, int tempo, int bend, int totalTicks) {
         this.deltaTime = deltaTime;
         this.tempo = tempo;
         this.bend = bend;
         this.fretNotes = fretNotes;
+        this.totalTicks = totalTicks;
     }
 
     public FretEvent(String ev) {
-//        Log.d(TAG, "ev=[" + ev + "]");
+//        Log.d(TAG, "ev");
         fretNotes = new ArrayList<>();
         this.deltaTime = getTagInt(ev, ATTR_DELTATIME);
         this.tempo = getTagInt(ev, ATTR_TEMPO);
         this.bend = getTagInt(ev, ATTR_BEND);
+        this.track = getTagInt(ev, ATTR_EV_TRACK);
+        this.totalTicks = getTagInt(ev, ATTR_EV_TOTALTICKS);
         fretNotes = getNotes(ev);
     }
 
@@ -72,8 +77,10 @@ public class FretEvent extends FretBase {
     public String toString(){
         StringBuilder sb = new StringBuilder(EVENT_ELEMENT_OPEN+
                 attr(ATTR_DELTATIME,deltaTime)+
+                attr(ATTR_EV_TRACK, track) +
                 attr(ATTR_TEMPO, tempo) +
-                attr(ATTR_BEND, bend));
+                attr(ATTR_BEND, bend) +
+                attr(ATTR_EV_TOTALTICKS, totalTicks));
         for(FretNote note: fretNotes){
             sb.append(note.toString());
         }

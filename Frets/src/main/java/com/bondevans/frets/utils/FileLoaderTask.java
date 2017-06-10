@@ -7,6 +7,7 @@ import com.bondevans.frets.fretview.FretSong;
 import com.bondevans.frets.fretviewer.TrackMerger;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * Async Wrapper for FileLoader
@@ -41,7 +42,7 @@ public class FileLoaderTask extends AsyncTask<Void, Void, String> {
             if(merge){
                 // Insert the track number into each event.
                 for(FretEvent ev: mFretSong.getTrack(mFretSong.getSoloTrack()).fretEvents)ev.track=mFretSong.getSoloTrack();
-//                doMerge();
+                doMerge();
             }
         } catch (Exception e) {
             return e.getMessage();
@@ -59,7 +60,7 @@ public class FileLoaderTask extends AsyncTask<Void, Void, String> {
         }
     }
 
-    private void doMerge() {
+    void doMerge() {
         // Start off with the solo track
         mFretSong.getTrack(mFretSong.getSoloTrack()).dump("BEFORE");
         TrackMerger trackMerger = new TrackMerger(mFretSong.getTrack(mFretSong.getSoloTrack()).fretEvents, mFretSong.getSoloTrack());
@@ -74,5 +75,11 @@ public class FileLoaderTask extends AsyncTask<Void, Void, String> {
             ++track;
         }
         mFretSong.getTrack(mFretSong.getSoloTrack()).dump("END");
+        try {
+            File tmpFile = new File(file.getAbsolutePath()+".paul");
+            FileWriter.writeFile(tmpFile, mFretSong.getTrack(mFretSong.getSoloTrack()).toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

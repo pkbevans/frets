@@ -7,19 +7,19 @@ import java.util.List;
 
 public class TrackMerger {
     private static final String TAG = TrackMerger.class.getSimpleName();
-    private List<FretEvent> events;
+    private List<FretEvent> mergedEvents;
     private Tracker t1;
     private Tracker t2;
 
     public TrackMerger(List<FretEvent> events, int track){
-        this.events = events;
+        this.mergedEvents = events;
         t1 = new Tracker(events);
-        // Set all events to track ZERO
+        // Set all events to specified track
         for(FretEvent ev: events)ev.track=track;
     }
     public void mergeTrack(List<FretEvent> events, int track){
         t2 = new Tracker(events);
-        // Set track number for each event
+        // Set track number to specified track
         Log.d(TAG, "mergeTrack:"+track);
         for(FretEvent ev: events)ev.track=track;
         // merge t2 into t1
@@ -51,7 +51,7 @@ public class TrackMerger {
                     // Amend t2 ticks to reflect time since last t1 event
                     t2.getCurrent().setTicks(t2.ticksTotal-t1.ticksTotal);
                     // Add on the end. currentPos will point to new entry
-                    events.add(++t1.currentPos,t2.getCurrent());
+                    mergedEvents.add(++t1.currentPos,t2.getCurrent());
                     // Update the total ticks for the entry just added
                     t1.ticksTotal= t2.ticksTotal;
                     t2.next();
@@ -65,7 +65,7 @@ public class TrackMerger {
                 Log.d(TAG, "t2<t1");
                 t2.getCurrent().setTicks(t1.getCurrent().getTicks()-(t1.ticksTotal-t2.ticksTotal));
                 t1.getCurrent().setTicks(t1.ticksTotal-t2.ticksTotal);
-                events.add(t1.currentPos,t2.getCurrent());
+                mergedEvents.add(t1.currentPos,t2.getCurrent());
                 // t1.currentPos now points to new one added, so need to update total ticks
                 t1.ticksTotal=t2.ticksTotal;
                 t2.next();
@@ -74,7 +74,7 @@ public class TrackMerger {
                 Log.d(TAG, "t2==t1");
                 // t1 and t2 are the same. Add t2 after t1 and set t2 ticks to zero
                 t2.getCurrent().setTicks(0);
-                events.add(++t1.currentPos,t2.getCurrent());
+                mergedEvents.add(++t1.currentPos,t2.getCurrent());
                 t2.next();
             }
         }
@@ -82,7 +82,7 @@ public class TrackMerger {
 
     public void log() {
         int i=0;
-        for(FretEvent ev: events){
+        for(FretEvent ev: mergedEvents){
             Log.d(TAG, "EV:" + (i++)+" "+ev.dbg());
         }
     }

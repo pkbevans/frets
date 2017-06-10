@@ -95,6 +95,7 @@ public class FretTrackEditFragment extends Fragment {
         mTrackName.setText(mFretTrack.getName());
         mCurrentEvent = 0;
         mFretEditView.setNotes(mFretTrack.fretEvents.get(mCurrentEvent));
+        Log.d(TAG, "onCreateView-end");
         return myView;
     }
 

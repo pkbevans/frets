@@ -267,9 +267,7 @@ public class FretView extends View {
         // Could be just a bend on current notes, so don't overwrite if notes list empty
         if (fretEvent.fretNotes.size() > 0) {
             // Store the previous notes so we can draw a ghostly trail of previous notes
-            for (int i = mOldNotes.length - 2; i >= 0; i--) {
-                mOldNotes[i + 1] = mOldNotes[i];
-            }
+            System.arraycopy(mOldNotes, 0, mOldNotes, 1, mOldNotes.length - 2 + 1);
             mOldNotes[0] = mFretNotes;
             mFretNotes = fretEvent.fretNotes;
         }
@@ -292,7 +290,7 @@ public class FretView extends View {
         myFretNotes.add(new FretNote(58, true, 2, 3, "Bb"));
         myFretNotes.add(new FretNote(63, true, 1, 4, "Eb"));
         myFretNotes.add(new FretNote(69, true, 0, 5, "A"));
-        FretEvent fretEvent = new FretEvent(0,myFretNotes,120,0);
+        FretEvent fretEvent = new FretEvent(0,myFretNotes,120,0,0);
 
         setNotes(fretEvent);
     }

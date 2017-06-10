@@ -2,9 +2,7 @@ package com.bondevans.frets.fretviewer;
 
 import android.Manifest;
 import android.annotation.TargetApi;
-import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -14,6 +12,8 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.bondevans.frets.R;
@@ -29,7 +29,7 @@ public class FretViewActivity extends AppCompatActivity {
     private static final int REQUEST_CODE_READ_STORAGE_PERMISSION = 4522;
     private static final int REQUEST_EDIT_FRET = 678;
     private FretViewFragment fragment;
-    private ProgressDialog progressDialog;
+    private ProgressBar progressBar;
 
     @Override
     @TargetApi(23)
@@ -40,20 +40,11 @@ public class FretViewActivity extends AppCompatActivity {
         fragment = (FretViewFragment) getFragmentManager()
                 .findFragmentById(R.id.fragment);
 
-        progressDialog = new ProgressDialog(this);
-        progressDialog.setMessage(getString(R.string.buffering_msg));
-        progressDialog.setCancelable(true);
-        progressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
-            @Override
-            public void onCancel(DialogInterface dialog) {
-                finish();
-            }
-        });
-
         Toolbar toolbar = (Toolbar) findViewById(R.id.tool_bar); // Attaching the layout to the toolbar object
         setSupportActionBar(toolbar);                   // Setting toolbar as the ActionBar with setSupportActionBar() call
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowTitleEnabled(true);
+        progressBar = (ProgressBar) findViewById(R.id.progress_bar); // Attaching the layout to the toolbar object
 
         if (savedInstanceState == null) {
             //  We should have the song contents in the intent
@@ -143,14 +134,14 @@ public class FretViewActivity extends AppCompatActivity {
     }
 
     private void setFretSong(File file) {
-        progressDialog.show();
+        progressBar.setVisibility(View.VISIBLE);
         FileLoaderTask fileLoaderTask = new FileLoaderTask(file, true);
         fileLoaderTask.setFileLoadedListener(new FileLoaderTask.FileLoadedListener() {
             @Override
             public void OnFileLoaded(FretSong fretSong) {
                 fragment.setFretSong(fretSong);
                 getSupportActionBar().setTitle(fretSong.getName());
-                progressDialog.hide();
+                progressBar.setVisibility(View.INVISIBLE);
             }
 
             @Override
@@ -170,7 +161,6 @@ public class FretViewActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         Log.d(TAG, "onStop");
-        progressDialog.dismiss();
         super.onStop();
     }
 }

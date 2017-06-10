@@ -1,4 +1,5 @@
 <LinearLayout
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/layout5"
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
@@ -9,11 +10,20 @@
         android:id="@+id/tool_bar"
         layout="@layout/toolbar">
     </include>
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:layout_gravity="center"
+        android:indeterminate="true"
+        android:visibility="gone" />
 
     <fragment
         android:id="@+id/fragment"
         android:name="com.bondevans.frets.fretviewer.FretViewFragment"
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        tools:layout="@layout/fretview_layout"/>
 </LinearLayout>

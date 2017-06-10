@@ -3,6 +3,7 @@ package com.bondevans.frets.midi;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.bondevans.frets.R;
 import com.bondevans.frets.exception.EmptyTrackException;
 import com.bondevans.frets.exception.FretboardException;
 import com.bondevans.frets.fretview.FretEvent;
@@ -20,9 +21,7 @@ import java.util.List;
 
 public class MidiImporter extends AsyncTask<Void, Integer, String> {
     private static final String TAG = MidiImporter.class.getSimpleName();
-    private static final int DEFAULT_MIDI_INSTRUMENT = 0;
     private static final int DEFAULT_FRET_INSTRUMENT = 0;
-    private static final boolean DEFAULT_IS_DRUMS = false;
     private final File mOutFile;
     private File mMidiFilePath;
     private MidiFile mMidiFile;
@@ -92,7 +91,7 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
     // Load track
     private FretTrack loadTrack(String name, int track) throws IOException, EmptyTrackException {
         List<FretEvent> fretEvents;
-        Log.d(TAG, "Loading track: " + track);
+        Log.d(TAG, "Loading track: " + name+ " (" + track+")");
         // convert MIDI file into list of fretboard events
         List<MidiNoteEvent> midiNoteEvents = new ArrayList<>();
         try {
@@ -114,13 +113,15 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
         int tempo = 0;
         int bend = 0;
         boolean hasNotes = false;
+        int totalTicks=0;
         for (MidiNoteEvent ev : midiNoteEvents) {
             if (!first && ev.deltaTime > 0) {
                 // If we get an event with a delay then get fret positions for the previous set,
                 // reset count to zero and start building the next set.
 //              Log.d(TAG, "Getting positions for [" + count + "] notes");
                 fretNotes = fp.getFretPositions(fretNotes);
-                fretEvents.add(new FretEvent(deltaTime, fretNotes, tempo, bend));
+                totalTicks+=deltaTime;
+                fretEvents.add(new FretEvent(deltaTime, fretNotes, tempo, bend, totalTicks));
                 // calculate delay time and save for later
                 deltaTime = ev.deltaTime;
                 //reset the list of notes
@@ -144,13 +145,23 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
         // Don't forget the last one - and dont add one if there weren't any events (first=true)
         if (!first) {
 //          Log.d(TAG, "Getting positions for [" + count + "] notes (Last one)");
-            fretEvents.add(new FretEvent(deltaTime, fp.getFretPositions(fretNotes), 0, bend));
+            fretEvents.add(new FretEvent(deltaTime, fp.getFretPositions(fretNotes), tempo, 0, bend));
         }
         // If no FretEvents at all then we want to ignore this track (throw an exception)
         if (fretEvents.isEmpty() || !hasNotes) {
             throw new EmptyTrackException("Empty");
         }
         Log.d(TAG, "Got [" + fretEvents.size() + "] FretEvents");
-        return new FretTrack(name, fretEvents, DEFAULT_MIDI_INSTRUMENT, DEFAULT_FRET_INSTRUMENT, DEFAULT_IS_DRUMS);
+        // See if we can work out what sort of instrument to assign to this track
+        boolean isDrums = false;
+        int instrument = 0;
+        if(name.toLowerCase().matches(".*"+"drums"+".*")){
+            isDrums=true;
+        }else if(name.toLowerCase().matches(".*"+"guitar"+".*")){
+            instrument=29;
+        }else if(name.toLowerCase().matches(".*"+"bass"+".*")){
+            instrument=33;
+        }
+        return new FretTrack(name, fretEvents, instrument, DEFAULT_FRET_INSTRUMENT, isDrums);
     }
 }

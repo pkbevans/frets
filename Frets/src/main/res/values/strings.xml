@@ -69,7 +69,7 @@
     <string name="action_save_song">Save song</string>
     <string name="track_details">Please enter the Track details</string>
     <string name="track_name">Track Name</string>
-    <string name="fret_events">Fret events: %s</string>
+    <string name="fret_events">Fret events: %d</string>
     <string name="tracks">Tracks</string>
     <string name="edit_song">Edit Song</string>
     <string name="edit_track">Edit Track</string>
@@ -81,6 +81,7 @@
     <string name="delete_button_help">Use this button to delete this track</string>
     <string name="select_button_help">Use this button to edit the fret positions</string>
     <string name="miditest">Midi Test</string>
+    <string name="drums">drums</string>
 
     <string-array name="midi_instrument_names">
         <item>Acoustic Grand Piano</item>

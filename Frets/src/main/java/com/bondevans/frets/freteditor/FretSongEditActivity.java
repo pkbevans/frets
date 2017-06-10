@@ -1,6 +1,5 @@
 package com.bondevans.frets.freteditor;
 
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
@@ -9,6 +8,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.bondevans.frets.R;
@@ -32,7 +33,7 @@ public class FretSongEditActivity extends AppCompatActivity implements
     private static final String KEY_EDITED_TRACK = "et";
     private FretSongEditFragment fretSongEditFragment = null;
     private Firebase mFirebaseRef;
-    private ProgressDialog progressDialog;
+    private ProgressBar progressBar;
     private FretTrackEditFragment fretTrackEditFragment;
     private FretSong mFretSong;
     private int mTrackBeingEdited;
@@ -52,9 +53,8 @@ public class FretSongEditActivity extends AppCompatActivity implements
             ft.add(R.id.edit_frag, fretSongEditFragment, TAG_TRACKLIST); // f1_container is your FrameLayout container
             ft.commit();
         }
-        progressDialog = new ProgressDialog(this);
-        progressDialog.setMessage(getString(R.string.buffering_msg));
-        progressDialog.setCancelable(false);
+
+        progressBar = (ProgressBar) findViewById(R.id.progress_bar);
 
         mFirebaseRef = new Firebase(getString(R.string.firebase_url));
 
@@ -233,7 +233,7 @@ public class FretSongEditActivity extends AppCompatActivity implements
      */
     private void setFretSong(File file) {
         Log.d(TAG, "setFretSong file");
-        progressDialog.show();
+        progressBar.setVisibility(View.VISIBLE);
         FileLoaderTask fileLoaderTask = new FileLoaderTask(file, false);
         fileLoaderTask.setFileLoadedListener(new FileLoaderTask.FileLoadedListener() {
             @Override
@@ -242,7 +242,7 @@ public class FretSongEditActivity extends AppCompatActivity implements
                 mFretSong = fretSong;
                 fretSongEditFragment.setFretSong(mFretSong);
                 getSupportActionBar().setTitle(getString(R.string.edit_song));
-                progressDialog.hide();
+                progressBar.setVisibility(View.INVISIBLE);
             }
 
             @Override
@@ -256,6 +256,5 @@ public class FretSongEditActivity extends AppCompatActivity implements
     @Override
     protected void onStop() {
         super.onStop();
-        progressDialog.dismiss();
     }
 }

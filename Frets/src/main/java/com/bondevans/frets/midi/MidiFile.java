@@ -34,6 +34,7 @@ public class MidiFile {
     private boolean mHeaderLoaded = false;
     private int mRunningStatus = 0;
     private int mRunningChannel = 0;
+    private int mTotalTicks;
 
 
     public MidiFile(File midiFile) throws FretboardException {
@@ -104,15 +105,17 @@ public class MidiFile {
         InputStream in = new ByteArrayInputStream(loadTrack(track));
         MidiEvent ev = getEvent(in);
         int runningTicks = 0;
+        mTotalTicks=0;
 
         while (!ev.isEndOfTrack()) {
             if (ev.isNoteOnOrOff()) {
-                Log.d(TAG, "Got Note event");
                 // If velocity is zero then this effectively a FretNote Off message, so we'll store it as such
                 if(ev.mParam2 == 0 && MidiEvent.NOTE_EVENT_TYPE_NOTE_ON == ev.mNoteEventType){
                     ev.mNoteEventType = MidiEvent.NOTE_EVENT_TYPE_NOTE_OFF;
                 }
-                noteEvents.add(new MidiNoteEvent(ev.mParam1, ev.mNoteEventType == MidiEvent.NOTE_EVENT_TYPE_NOTE_ON, ev.mTicks + runningTicks));
+                MidiNoteEvent xxx = new MidiNoteEvent(ev.mParam1, ev.mNoteEventType == MidiEvent.NOTE_EVENT_TYPE_NOTE_ON, ev.mTicks + runningTicks);
+//                Log.d(TAG, "HELLO GOT NOTE EVENT,"+xxx.deltaTime+","+xxx.note+","+(xxx.on?"ON":"OFF"));
+                noteEvents.add(xxx);
                 runningTicks = 0;
             } else if (ev.mNoteEventType == MidiEvent.NOTE_EVENT_TYPE_PITCHBEND) {
                 noteEvents.add(new MidiNoteEvent(MidiNoteEvent.TYPE_BEND, ev.mTicks + runningTicks, ev.getBend()));
@@ -143,11 +146,12 @@ public class MidiFile {
         int param1, param2 = 0;
         int channel;
         int ticks = getTimeTicks(in);
-        Log.d(TAG, "TICKS["+ticks+"]");
+        mTotalTicks+=ticks;
+//        Log.d(TAG, "TICKS["+ticks+"]");
         int type = in.read();
-        Log.d(TAG, "TYPE["+iToHex(type)+"]");
         // What sort of event is it?
         if (type == 0xff) {
+//            Log.d(TAG, "TYPE["+iToHex(type)+"]");
             int len;
             // Meta event (or END OF TRACK)
             int metaType = in.read();
@@ -164,6 +168,7 @@ public class MidiFile {
             }
             return new MidiEvent(MidiEvent.TYPE_META_EVENT, metaType, len, in);
         } else if (type == 0xf0) {
+//            Log.d(TAG, "TYPE["+iToHex(type)+"]");
             Log.d(TAG, "SYSEX - OOPS TODO TODO TODO");
             int len = getVariableLen(in);
             return new MidiEvent(MidiEvent.TYPE_SYSEX_EVENT, 0, len, in);
@@ -176,19 +181,21 @@ public class MidiFile {
                 param1 = type;
                 noteEventType = mRunningStatus;
                 channel = mRunningChannel;
-                Log.d(TAG, "Running status [" + noteEventType + "]");
+//                Log.d(TAG, "Running status TYPE [" + noteEventType + "]");
             } else {
                 // mChannel = bottom 4 bits
                 channel = type & 0x0f;
                 param1 = in.read();
             }
+//            Log.d(TAG, "TYPE: "+iToHex(type)+"=>"+noteEventType+channel);
 
             switch (noteEventType) {
                 case MidiEvent.NOTE_EVENT_TYPE_NOTE_OFF:
                 case MidiEvent.NOTE_EVENT_TYPE_NOTE_ON:
                     // 1st byte is note, 2nd byte is velocity
                     param2 = in.read();
-                    Log.d(TAG, (noteEventType == MidiEvent.NOTE_EVENT_TYPE_NOTE_OFF?"NOTE_OFF [":"NOTE_ON [") + noteEventType + "]["+iToHex(param1)+"]["+iToHex(param2)+"]["+noteName(param1)+"] TICKS ["+ticks+"]");
+//                    Log.d(TAG, "HELLO NOTE: "+ticks + " "+ iToHex(type)+"=>"+noteEventType+channel
+//                            +" "+ iToHex(param1)+" "+iToHex(param2)+" "+noteName(param1)+ " "+(param2==0?"OFF":"ON")+ " TotTICKS: "+mTotalTicks);
                     break;
                 case MidiEvent.NOTE_EVENT_TYPE_NOTE_AFTER_TOUCH:
                 case MidiEvent.NOTE_EVENT_TYPE_CONTROLLER:
@@ -243,12 +250,17 @@ public class MidiFile {
     private int getTimeTicks(InputStream in) throws IOException {
         int ticks=0;
         int trackByte = in.read();
+        StringBuilder sb = new StringBuilder("TICKS: "+iToHex(trackByte));
+//        Log.d(TAG, "HELLO NOTE (TICK BYTE)," + iToHex(trackByte));
         while ((trackByte & 0x80) > 0) {
             ticks = (ticks<<7) | (trackByte & 0x7F);
-//            Log.d(TAG, "getTimeTicks=[" + ticks + "]");
             trackByte = in.read();
+//            Log.d(TAG, "HELLO NOTE (TICK BYTE)," + iToHex(trackByte));
+            sb.append(" "+ iToHex(trackByte));
         }
         ticks = (ticks<<7) | (trackByte & 0x7F);
+        sb.append(" "+ticks);
+        Log.d(TAG, sb.toString());
         return ticks;
     }
 

@@ -46,6 +46,7 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
     private byte[] midiBuffer = new byte[3];
     private static final int MIDI_CHANNEL_DRUMS = 9;
     private FretTrack mFretTrack;
+    private FretEvent mFretEvent;
     private int mTicksPerQtrNote;
     private int mSoloTrack;
 
@@ -101,6 +102,7 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
             public void onStopTrackingTouch(SeekBar seekBar) {}
         });
         playPauseButton = (ImageButton) myView.findViewById(R.id.playPauseButton);
+        playPauseButton.setVisibility(View.INVISIBLE);
         playPauseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -207,7 +209,7 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
 //            Log.d(TAG, "handleMessage fretEvent[" + mCurrentFretEvent + "]");
             if (mPlaying) {
                 // Handle event
-                handleEvent(mFretTrack.fretEvents.get(mCurrentFretEvent));
+                handleEvent();
             }
         }
 
@@ -216,22 +218,26 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
             sendMessageDelayed(obtainMessage(0), delayMillis);
         }
     }
-
-    private void handleEvent(FretEvent fretEvent) {
+    private void handleEvent() {
         // Send next set of notes to Fretboard View
-        if (fretEvent.tempo > 0) {
-            mTempo = fretEvent.tempo;
-        }
-        sendMidiNotes(fretEvent);
-        if(fretEvent.track == mSoloTrack) {
-            mFretTrackView.setNotes(fretEvent);
-            // Force redraw
-            mFretTrackView.invalidate();
-        }
+        // Send all events with deltaTime = ZERO - i.e. that all happen at the same time
+        do {
+            mFretEvent = mFretTrack.fretEvents.get(mCurrentFretEvent);
+            if (mFretEvent.tempo > 0) {
+                mTempo = mFretEvent.tempo;
+            }
+            sendMidiNotes(mFretEvent);
+            if(mFretEvent.track == mSoloTrack) {
+                mFretTrackView.setNotes(mFretEvent);
+                // Force redraw
+                mFretTrackView.invalidate();
+            }
 
-        if (++mCurrentFretEvent >= mFretTrack.fretEvents.size()) {
-            mCurrentFretEvent = 0;
+            if (++mCurrentFretEvent >= mFretTrack.fretEvents.size()) {
+                mCurrentFretEvent = 0;
+            }
         }
+        while (mFretTrack.fretEvents.get(mCurrentFretEvent).deltaTime==0);
 
         // Update progress listener (so it can update the seekbar (or whatever)
         updateProgress(mFretTrack.fretEvents.size(), mCurrentFretEvent);
@@ -354,5 +360,6 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
         mPlaying = false;
         mFretTrackView.invalidate();   // Force redraw
         mTempoText.setText(String.valueOf(tempo));
+        playPauseButton.setVisibility(View.VISIBLE);
     }
 }

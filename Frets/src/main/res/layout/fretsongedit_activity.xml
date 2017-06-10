@@ -10,6 +10,15 @@
         layout="@layout/toolbar">
     </include>
 
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:layout_gravity="center"
+        android:indeterminate="true"
+        android:visibility="gone" />
+
     <FrameLayout
         android:id="@+id/edit_frag"
         android:layout_width="match_parent"

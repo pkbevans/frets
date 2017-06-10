@@ -14,6 +14,8 @@ public class FretBase {
     static final String ATTR_DELTATIME = "dt";
     static final String ATTR_TEMPO = "te";
     static final String ATTR_BEND = "be";
+    static final String ATTR_EV_TRACK = "et";
+    static final String ATTR_EV_TOTALTICKS = "tt";
     static final String ATTR_NAME = "na";
     static final String ATTR_TPQN = "tpqn";
     static final String ATTR_BPM = "bpm";
