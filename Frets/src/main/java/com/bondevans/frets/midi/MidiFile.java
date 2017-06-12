@@ -164,7 +164,7 @@ public class MidiFile {
             }
             else
             {
-                Log.d(TAG, "META EVENT=mNoteEventType[" + metaType + "] mLen["+len+"]");
+                Log.d(TAG, "META EVENT=mNoteEventType[" + metaType + "] mLen["+len+"]: "+MidiEvent.metaEventType(metaType));
             }
             return new MidiEvent(MidiEvent.TYPE_META_EVENT, metaType, len, in);
         } else if (type == 0xf0) {
@@ -194,8 +194,8 @@ public class MidiFile {
                 case MidiEvent.NOTE_EVENT_TYPE_NOTE_ON:
                     // 1st byte is note, 2nd byte is velocity
                     param2 = in.read();
-//                    Log.d(TAG, "HELLO NOTE: "+ticks + " "+ iToHex(type)+"=>"+noteEventType+channel
-//                            +" "+ iToHex(param1)+" "+iToHex(param2)+" "+noteName(param1)+ " "+(param2==0?"OFF":"ON")+ " TotTICKS: "+mTotalTicks);
+                    Log.d(TAG, "HELLO NOTE: "+ticks + " "+ iToHex(type)+"=>"+noteEventType+channel
+                            +" "+ iToHex(param1)+" "+iToHex(param2)+" "+noteName(param1)+ " "+(param2==0?"OFF":"ON")+ " TotTICKS: "+mTotalTicks);
                     break;
                 case MidiEvent.NOTE_EVENT_TYPE_NOTE_AFTER_TOUCH:
                 case MidiEvent.NOTE_EVENT_TYPE_CONTROLLER:

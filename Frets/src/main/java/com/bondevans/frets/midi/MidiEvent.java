@@ -18,10 +18,19 @@ class MidiEvent {
     public static final int NOTE_EVENT_TYPE_PROGRAM_CHANGE = 12;
     public static final int NOTE_EVENT_TYPE_CHANNEL_AFTERTOUCH = 13;
     public static final int NOTE_EVENT_TYPE_PITCHBEND = 14;
+    public static final int META_EVENT_TYPE_TRACK_SEQ = 0;
+    public static final int META_EVENT_TYPE_TRACK_TEXT = 1;
+    public static final int META_EVENT_TYPE_TRACK_COPYRIGHT = 2;
     public static final int META_EVENT_TYPE_TRACK_NAME = 3;
     public static final int META_EVENT_TYPE_INSTRUMENT_NAME = 4;
+    public static final int META_EVENT_TYPE_LYRIC = 5;
+    public static final int META_EVENT_TYPE_MARKER = 6;
+    public static final int META_EVENT_TYPE_CUE_POINT = 7;
     public static final int META_EVENT_TYPE_END_OF_TRACK = 0x2f;
     public static final int META_EVENT_TYPE_SET_TEMPO = 0x51;
+    public static final int META_EVENT_TYPE_SET_TIMESIG = 0x58;
+    public static final int META_EVENT_TYPE_SET_KEYSIG = 0x59;
+    public static final int META_EVENT_TYPE_SET_SEQUENCER = 0x7f;
 
     int mChannel;
     int mTicks;
@@ -109,4 +118,37 @@ class MidiEvent {
         }
         return 0;
     }
+    public static String metaEventType(int type){
+        switch (type){
+            case META_EVENT_TYPE_TRACK_SEQ:
+                return "Track SEQUENCE";
+            case META_EVENT_TYPE_TRACK_TEXT:
+                return "Track TEXT";
+            case META_EVENT_TYPE_TRACK_COPYRIGHT:
+                return "Track COPYRIGHT";
+            case META_EVENT_TYPE_TRACK_NAME:
+                return "Track TRACK NAME";
+            case META_EVENT_TYPE_INSTRUMENT_NAME:
+                return "Track INSTRUMENT NAME";
+            case META_EVENT_TYPE_LYRIC:
+                return "Track LYRIC";
+            case META_EVENT_TYPE_MARKER:
+                return "Track MARKER";
+            case META_EVENT_TYPE_CUE_POINT:
+                return "Track CUEPOINT";
+            case META_EVENT_TYPE_END_OF_TRACK:
+                return "Track EOT";
+            case META_EVENT_TYPE_SET_TEMPO:
+                return "Track TEMPO";
+            case META_EVENT_TYPE_SET_TIMESIG:
+                return "Track TIMESIG";
+            case META_EVENT_TYPE_SET_KEYSIG:
+                return "Track KEYSIG";
+            case META_EVENT_TYPE_SET_SEQUENCER:
+                return "Track SEQUENCER STUFF";
+            default:
+                return "UNKNOWN";
+        }
+    }
+
 }

@@ -129,6 +129,9 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
                 tempo = 0;
                 bend = 0;
             }
+            else if(first){
+                deltaTime = ev.deltaTime;
+            }
 //          Log.d(TAG, "Got event [" + ev.on + "][" + ev.name + "][" + ev.note + "]["+ev.instrument+"]");
             first = false;
             if (ev.type == MidiNoteEvent.TYPE_NOTE) {

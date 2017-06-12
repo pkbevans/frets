@@ -76,8 +76,8 @@ public class FretPosition {
                 }
             }
             if (!found) {
-                // If we get here something went wrong!!
-                Log.d(TAG, "OOPS - Can find position for note: [" + fretNote.note + "]");
+                // If we get here something went wrong!! (or its not a guitar track)
+//                Log.d(TAG, "OOPS - Can find position for note: [" + fretNote.note + "]");
             }
             found = false;
             --i;
