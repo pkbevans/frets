@@ -1,6 +1,5 @@
 package com.bondevans.frets.filebrowser;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -36,14 +35,13 @@ public class FileBrowserFragment extends ListFragment {
     private static final String KEY_CURDIR = "KEY7";
     private static final String PREF_KEY_FILEDIR = "fileDir";
     private static final String DEFAULT_FILEDIR = "/";
-    private static final String MIDI_FILE_EXTN = ".mid";
     public File mCurrentDirectory;
     private OnFileSelectedListener fileSelectedListener;
     private TextView mCurrentFolder;
     private String mSdCardRoot;
     ArrayList<String> midiFiles;
 
-    public interface OnFileSelectedListener {
+    interface OnFileSelectedListener {
         void onFileSelected(File songFile);
         void upOneLevel(View v);
         void enableUp(boolean enabled);
@@ -70,16 +68,16 @@ public class FileBrowserFragment extends ListFragment {
         Log.d(TAG, "HELLO onCreate1");
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getActivity());
         // See whether we've changed directory before changing orientation
+        mSdCardRoot = Environment.getExternalStorageDirectory().getPath();
         String curDir;
         if (savedInstanceState != null) {
             curDir = savedInstanceState.getString(KEY_CURDIR);
         } else {
-            curDir = settings.getString(PREF_KEY_FILEDIR, DEFAULT_FILEDIR);
+            curDir = settings.getString(PREF_KEY_FILEDIR, mSdCardRoot);
         }
 
         mCurrentDirectory = new File(curDir);
         Log.d(TAG, "HELLO onCreate3[" + mCurrentDirectory + "]");
-        mSdCardRoot = Environment.getExternalStorageDirectory().getPath();
     }
 
 
@@ -145,10 +143,10 @@ public class FileBrowserFragment extends ListFragment {
         }
     }
 
-    class ListFilesTask extends AsyncTask<Void, String, Void>{
+    private class ListFilesTask extends AsyncTask<Void, String, Void>{
         File folder;
 
-        public ListFilesTask(File folder) {
+        ListFilesTask(File folder) {
             this.folder = folder;
             if (folder.getPath().equalsIgnoreCase("/")) {
                 mCurrentFolder.setText("/");
@@ -170,7 +168,7 @@ public class FileBrowserFragment extends ListFragment {
 
             // Now add the midi files
             if (folder.listFiles(new MidiFileFilter()) != null) {
-                for (File currentFile : folder.listFiles()) {
+                for (File currentFile : folder.listFiles(new MidiFileFilter())) {
                     Log.d(TAG, "HELLO FILENAME: [" + currentFile.getName() + "]");
                     if (currentFile.getName().startsWith(".")) {
                         // Don't add anything starting with a . (i.e. hidden folders and files)
@@ -191,10 +189,12 @@ public class FileBrowserFragment extends ListFragment {
         }
 
         class MidiFileFilter implements FileFilter{
+            private static final String XML_FILE_EXTN = ".xml";
+            private static final String MIDI_FILE_EXTN = ".mid";
 
             @Override
             public boolean accept(File pathname) {
-                return(pathname.getName().endsWith(MIDI_FILE_EXTN));
+                return( pathname.getName().endsWith(MIDI_FILE_EXTN) || pathname.getName().endsWith(XML_FILE_EXTN) || pathname.isDirectory());
             }
         }
         @Override
@@ -322,11 +322,11 @@ public class FileBrowserFragment extends ListFragment {
         super.onConfigurationChanged(newConfig);
     }
 
-    public class FileArrayAdapter extends ArrayAdapter<String> {
+    private class FileArrayAdapter extends ArrayAdapter<String> {
         private final Context context;
         private final ArrayList<String> fileNames;
 
-        public FileArrayAdapter(Context context, ArrayList<String> values) {
+        FileArrayAdapter(Context context, ArrayList<String> values) {
             super(context, R.layout.filebrowser_item, values);
             this.context = context;
             this.fileNames = values;
