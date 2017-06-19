@@ -1,7 +1,5 @@
 package com.bondevans.frets.fretview;
 
-import com.bondevans.frets.utils.Log;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -17,7 +15,7 @@ public class FretEvent extends FretBase {
     private static final String EVENT_ELEMENT_OPEN = "<"+ELEMENT_EVENT+">";
     private static final String EVENT_ELEMENT_CLOSE = "</"+ELEMENT_EVENT+">";
     // THESE ELEMENTS ARE WRITTEN OUT IN/READ IN FROM TOSTRING()
-    public int deltaTime;
+    public int deltaTicks;
     public int tempo;
     public int bend;
     public List<FretNote> fretNotes;
@@ -27,14 +25,14 @@ public class FretEvent extends FretBase {
 
     /**
      * Constructor
-     * @param deltaTime time in ticks since previous event
+     * @param deltaTicks time in ticks since previous event
      * @param fretNotes array of notes to play at the same time
      * @param tempo New tempo if > 0
      * @param bend Apply bend if > 0
      * @param totalTicks
      */
-    public FretEvent(int deltaTime, List<FretNote> fretNotes, int tempo, int bend, int totalTicks) {
-        this.deltaTime = deltaTime;
+    public FretEvent(int deltaTicks, List<FretNote> fretNotes, int tempo, int bend, int totalTicks) {
+        this.deltaTicks = deltaTicks;
         this.tempo = tempo;
         this.bend = bend;
         this.fretNotes = fretNotes;
@@ -44,7 +42,7 @@ public class FretEvent extends FretBase {
     public FretEvent(String ev) {
 //        Log.d(TAG, "ev");
         fretNotes = new ArrayList<>();
-        this.deltaTime = getTagInt(ev, ATTR_DELTATIME);
+        this.deltaTicks = getTagInt(ev, ATTR_DELTATICKS);
         this.tempo = getTagInt(ev, ATTR_TEMPO);
         this.bend = getTagInt(ev, ATTR_BEND);
         this.track = getTagInt(ev, ATTR_EV_TRACK);
@@ -76,7 +74,7 @@ public class FretEvent extends FretBase {
     @Override
     public String toString(){
         StringBuilder sb = new StringBuilder(EVENT_ELEMENT_OPEN+
-                attr(ATTR_DELTATIME,deltaTime)+
+                attr(ATTR_DELTATICKS, deltaTicks)+
                 attr(ATTR_EV_TRACK, track) +
                 attr(ATTR_TEMPO, tempo) +
                 attr(ATTR_BEND, bend) +
@@ -104,15 +102,15 @@ public class FretEvent extends FretBase {
     }
 
     public int getTicks() {
-        return deltaTime;
+        return deltaTicks;
     }
 
     public void setTicks(int ticks) {
 //        Log.d(TAG, "track:"+track+" setTicks:"+ticks);
-        this.deltaTime = ticks;
+        this.deltaTicks = ticks;
     }
     public String dbg(){
-        return "TRACK:"+track+" TICKS:"+deltaTime;
+        return "TRACK:"+track+" TICKS:"+ deltaTicks;
     }
 }
 

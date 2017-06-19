@@ -14,6 +14,7 @@ import com.bondevans.frets.fretview.FretTrack;
 import com.bondevans.frets.instruments.FretGuitarStandard;
 import com.bondevans.frets.utils.FileWriter;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -122,7 +123,7 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
                 fretNotes = fp.getFretPositions(fretNotes);
                 totalTicks+=deltaTime;
                 fretEvents.add(new FretEvent(deltaTime, fretNotes, tempo, bend, totalTicks));
-                // calculate delay time and save for later
+                // save delay time for later
                 deltaTime = ev.deltaTime;
                 //reset the list of notes
                 fretNotes = new ArrayList<>();
@@ -138,8 +139,6 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
                 hasNotes = true;
                 fretNotes.add(new FretNote(ev.note, ev.on));
             } else if (ev.type == MidiNoteEvent.TYPE_BEND) {
-                // If we get a pitch bend event then it applies to the previous (i.e. current) FretNote list
-                // Get previous event
                 bend = ev.bend;
             } else {
                 tempo = ev.tempo;
@@ -148,7 +147,7 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
         // Don't forget the last one - and dont add one if there weren't any events (first=true)
         if (!first) {
 //          Log.d(TAG, "Getting positions for [" + count + "] notes (Last one)");
-            fretEvents.add(new FretEvent(deltaTime, fp.getFretPositions(fretNotes), tempo, 0, bend));
+            fretEvents.add(new FretEvent(deltaTime, fp.getFretPositions(fretNotes), tempo, bend, totalTicks));
         }
         // If no FretEvents at all then we want to ignore this track (throw an exception)
         if (fretEvents.isEmpty() || !hasNotes) {

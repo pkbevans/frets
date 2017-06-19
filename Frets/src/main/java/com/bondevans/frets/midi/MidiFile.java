@@ -24,6 +24,7 @@ public class MidiFile {
     private static final int TRACK_HEADER_LENGTH = 8;
     private static final String UNKNOWN_TRACKNAME = "<UNKNOWN>";
     private static final int DEFAULT_TEMPO = 120;
+    private static final int BEND_MIN_TICKS = 40;
 
     private File mMidiFile;
     private String songTitle;
@@ -114,12 +115,21 @@ public class MidiFile {
                     ev.mNoteEventType = MidiEvent.NOTE_EVENT_TYPE_NOTE_OFF;
                 }
                 MidiNoteEvent xxx = new MidiNoteEvent(ev.mParam1, ev.mNoteEventType == MidiEvent.NOTE_EVENT_TYPE_NOTE_ON, ev.mTicks + runningTicks);
-//                Log.d(TAG, "HELLO GOT NOTE EVENT,"+xxx.deltaTime+","+xxx.note+","+(xxx.on?"ON":"OFF"));
+//                Log.d(TAG, "HELLO GOT NOTE EVENT,"+xxx.deltaTicks+","+xxx.note+","+(xxx.on?"ON":"OFF"));
                 noteEvents.add(xxx);
                 runningTicks = 0;
-            } else if (ev.mNoteEventType == MidiEvent.NOTE_EVENT_TYPE_PITCHBEND) {
-                noteEvents.add(new MidiNoteEvent(MidiNoteEvent.TYPE_BEND, ev.mTicks + runningTicks, ev.getBend()));
-                runningTicks = 0;
+            }
+            else if (ev.mNoteEventType == MidiEvent.NOTE_EVENT_TYPE_PITCHBEND) {
+                // Dont add too many consecutive bend events in a short space of time
+                if(noteEvents.size()>0 && noteEvents.get(noteEvents.size()-1).type== MidiNoteEvent.TYPE_BEND &&
+                        (ev.mTicks+runningTicks)<BEND_MIN_TICKS){
+                    // Ignore this bend event - but add the delta on to the next one
+                    Log.d(TAG, "ignoring bend:"+ev.mTicks);
+                    runningTicks += ev.mTicks;
+                }else {
+                    noteEvents.add(new MidiNoteEvent(MidiNoteEvent.TYPE_BEND, ev.mTicks + runningTicks, ev.getBend()));
+                    runningTicks = 0;
+                }
             }
             else if(ev.mMetaEventType == MidiEvent.META_EVENT_TYPE_SET_TEMPO) {
                 Log.d(TAG, "TEMPO="+ev.getTempo());

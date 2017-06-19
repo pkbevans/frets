@@ -213,14 +213,15 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
             }
         }
 
-        public void sleep(long delayMillis) {
+        void sleep(long delayMillis) {
             this.removeMessages(0);
             sendMessageDelayed(obtainMessage(0), delayMillis);
         }
     }
     private void handleEvent() {
         // Send next set of notes to Fretboard View
-        // Send all events with deltaTime = ZERO - i.e. that all happen at the same time
+//        Log.d(TAG, "current event: "+mCurrentEvent);
+        boolean redraw=false;
         do {
             mFretEvent = mFretTrack.fretEvents.get(mCurrentFretEvent);
             if (mFretEvent.tempo > 0) {
@@ -230,18 +231,21 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
             if(mFretEvent.track == mSoloTrack) {
                 mFretTrackView.setNotes(mFretEvent);
                 // Force redraw
-                mFretTrackView.invalidate();
+                redraw = true;
             }
 
             if (++mCurrentFretEvent >= mFretTrack.fretEvents.size()) {
                 mCurrentFretEvent = 0;
             }
-        }
-        while (mFretTrack.fretEvents.get(mCurrentFretEvent).deltaTime==0);
+        } while (mFretTrack.fretEvents.get(mCurrentFretEvent).deltaTicks==0);
 
+        if(redraw){
+            mFretTrackView.invalidate();
+        }
         // Update progress listener (so it can update the seekbar (or whatever)
         updateProgress(mFretTrack.fretEvents.size(), mCurrentFretEvent);
-        mFretEventHandler.sleep(delayFromClicks(mFretTrack.fretEvents.get(mCurrentFretEvent).deltaTime));
+//        Log.d(TAG, "sleeping: "+mFretTrack.fretEvents.get(mCurrentFretEvent).deltaTicks+" milisecs:"+delayFromClicks(mFretTrack.fretEvents.get(mCurrentFretEvent).deltaTicks));
+        mFretEventHandler.sleep(delayFromClicks(mFretTrack.fretEvents.get(mCurrentFretEvent).deltaTicks));
     }
     /**
      * Plays/pauses the current track
@@ -253,7 +257,7 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
         if (mPlaying) {
             // Play
             setMidiInstruments();
-            mFretEventHandler.sleep(mFretTrack.fretEvents.get(mCurrentFretEvent).deltaTime);
+            mFretEventHandler.sleep(mFretTrack.fretEvents.get(mCurrentFretEvent).deltaTicks);
         } else {
             // Pause
             sendMidiNotesOff();
@@ -284,19 +288,19 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
         midiBuffer[0] = (byte) (fretNote.on ? (NOTE_ON | channel) : (NOTE_OFF | channel));
         // Note value
         midiBuffer[1] = (byte) fretNote.note;
-        // Velocity - Hardcoded volume for NOTE_ON and zero for NOTE_OFF
+        // Velocity - Hardcoded volume for NOTE_ON and zero for NOTE_OFF - TODO Dont hardcode - use the volume from the midi file
         midiBuffer[2] = (byte) (fretNote.on ? 0x60 : 0x00);
         sendMidi(midiBuffer);
     }
 
     /**
-     * Sends NOTE_OFF message for all current notes.
+     * Sends NOTE_OFF message for all 128 notes on all channels used.
      */
     private void sendMidiNotesOff() {
         Log.d(TAG, "Sending NEW ALL NOTES OFF");
         for(int channel=0;channel<mFretSong.tracks();channel++) {
-            for (int noteValue = 0; noteValue < 256; noteValue++) {
-                midiBuffer[0] = (byte) (NOTE_OFF | (channel==mSoloTrack?MIDI_CHANNEL_DRUMS:channel));
+            for (int noteValue = 0; noteValue < 128; noteValue++) {
+                midiBuffer[0] = (byte) (NOTE_OFF | (mFretSong.getTrack(channel).isDrumTrack()?MIDI_CHANNEL_DRUMS:channel));
                 // Note value
                 midiBuffer[1] = (byte) noteValue;
                 // Velocity - ZERO volume

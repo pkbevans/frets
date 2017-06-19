@@ -11,7 +11,7 @@ public class FretBase {
     private static final String TAG = FretBase.class.getSimpleName();
     static final String ATTR_MIDI_INSTRUMENT = "mi";
     static final String ATTR_FRET_INSTRUMENT = "fi";
-    static final String ATTR_DELTATIME = "dt";
+    static final String ATTR_DELTATICKS = "dt";
     static final String ATTR_TEMPO = "te";
     static final String ATTR_BEND = "be";
     static final String ATTR_EV_TRACK = "et";
