@@ -1,6 +1,8 @@
 package com.bondevans.frets.freteditor;
 
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -15,9 +17,11 @@ import android.widget.Toast;
 import com.bondevans.frets.R;
 import com.bondevans.frets.firebase.FBWrite;
 import com.bondevans.frets.fretview.FretSong;
+import com.bondevans.frets.fretview.FretTrack;
 import com.bondevans.frets.utils.FileLoaderTask;
 import com.bondevans.frets.utils.FileWriterTask;
 import com.bondevans.frets.utils.Log;
+import com.bondevans.frets.utils.TrackLoaderTask;
 import com.firebase.client.Firebase;
 
 import java.io.File;
@@ -29,14 +33,13 @@ public class FretSongEditActivity extends AppCompatActivity implements
     public static final int RESULT_NOT_EDITED = 0;
     private static final String SAVE_FILE = "sdkfjhi";
     private static final String TAG_TRACKLIST = "tracList";
-    private static final String TAG_TRACKEDIT = "trackedit";
-    private static final String KEY_EDITED_TRACK = "et";
+    public static final String  KEY_EDITED_TRACK = "et";
+    private static final int REQUEST_EDIT_TRACK = 8768;
     private FretSongEditFragment fretSongEditFragment = null;
     private Firebase mFirebaseRef;
     private ProgressBar progressBar;
-    private FretTrackEditFragment fretTrackEditFragment;
-    private FretSong mFretSong;
     private int mTrackBeingEdited;
+    private File mTrackTmpFile;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -67,17 +70,6 @@ public class FretSongEditActivity extends AppCompatActivity implements
         else{
             Log.d(TAG, "CONFIG CHANGE");
             mTrackBeingEdited=savedInstanceState.getInt(KEY_EDITED_TRACK);
-            // See if we've got a FretTrackEditFragment
-            if(null==(fretTrackEditFragment = (FretTrackEditFragment) fm.findFragmentByTag(TAG_TRACKEDIT))) {
-                Log.d(TAG, "No FretTrackEditFragment");
-            }
-            else{
-                Log.d(TAG, "Found FretTrackEditFragment track="+mTrackBeingEdited);
-                // Need to reload the track into the editor
-                fretTrackEditFragment.setFretTrack(
-                        fretSongEditFragment.getFretSong().getTrack(mTrackBeingEdited),
-                        mTrackBeingEdited );
-            }
         }
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.tool_bar); // Attaching the layout to the toolbar object
@@ -121,16 +113,7 @@ public class FretSongEditActivity extends AppCompatActivity implements
     @Override
     public void onBackPressed() {
         Log.d(TAG, "onBackPressed");
-        if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
-            // FretTrackEdit fragment is active
-            Log.d(TAG, "onBackPressed and BACKSTACK count > 0");
-            if(fretTrackEditFragment.isEdited()) {
-                fretSongEditFragment.setEdited(true);
-            }
-            getSupportFragmentManager().popBackStack();
-            getSupportActionBar().setTitle(getString(R.string.edit_song));
-        }
-        else if(fretSongEditFragment.isEdited()) {
+        if(fretSongEditFragment.isEdited()) {
             Log.d(TAG, "onBackPressed and SONG CHANGED");
             showSaveFileDialog();
         }
@@ -192,6 +175,28 @@ public class FretSongEditActivity extends AppCompatActivity implements
         }
     }
 
+    private void saveTrackToTempFile(final File file, final int track) {
+        Log.d(TAG, "saveTrack");
+
+            Log.d(TAG, "HELLO Writing to file[" + file.toString() + "]");
+            FileWriterTask fileWriterTask = new FileWriterTask(file, fretSongEditFragment.getFretSong().getTrack(track).toString());
+            fileWriterTask.setFileWrittenListener(new FileWriterTask.FileWrittenListener() {
+                @Override
+                public void OnFileWritten() {
+                    Log.d(TAG, "Track written to file: " + file.getName());
+                    // Launch FretTrackEditActivity for return and wait for the return
+                    showTrackEdit(file, track);
+                }
+
+                @Override
+                public void OnError(String msg) {
+                    Log.d(TAG, "File write failed: " + file.getName() + " " + msg);
+                    Toast.makeText(FretSongEditActivity.this, R.string.save_failed, Toast.LENGTH_LONG).show();
+                }
+            });
+            fileWriterTask.execute();
+    }
+
     private void showSaveFileDialog() {
 
         SaveFileDialog saveFileDialog = new SaveFileDialog();
@@ -214,16 +219,9 @@ public class FretSongEditActivity extends AppCompatActivity implements
     public void onTrackSelected(int track) {
         // Instantiate a new fragment.
         mTrackBeingEdited = track;
-        fretTrackEditFragment = new FretTrackEditFragment();
-        fretTrackEditFragment.setFretTrack(fretSongEditFragment.getFretSong().getTrack(track), track);
-        // Add the fragment to the activity, pushing this transaction
-        // on to the back stack.
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.replace(R.id.edit_frag, fretTrackEditFragment, TAG_TRACKEDIT);
-        ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-        ft.addToBackStack(null);
-        ft.commit();
-        getSupportActionBar().setTitle(getString(R.string.edit_track));
+        // Write out the track to a temporary file
+        mTrackTmpFile = new File(this.getExternalFilesDir(null), fretSongEditFragment.getFretSong().getName()+"-Track-"+track+ "tmp.xml");
+        saveTrackToTempFile(mTrackTmpFile, track);
         fretSongEditFragment.setEdited(true);
     }
 
@@ -239,8 +237,7 @@ public class FretSongEditActivity extends AppCompatActivity implements
             @Override
             public void OnFileLoaded(FretSong fretSong) {
                 Log.d(TAG, "setFretSong file loaded");
-                mFretSong = fretSong;
-                fretSongEditFragment.setFretSong(mFretSong);
+                fretSongEditFragment.setFretSong(fretSong);
                 getSupportActionBar().setTitle(getString(R.string.edit_song));
                 progressBar.setVisibility(View.INVISIBLE);
             }
@@ -256,5 +253,43 @@ public class FretSongEditActivity extends AppCompatActivity implements
     @Override
     protected void onStop() {
         super.onStop();
+    }
+
+    private void showTrackEdit(File file, int track) {
+        Intent intent = new Intent(this, FretTrackEditActivity.class);
+        // Add the file location into the intent, so that the editor can update the file
+        Log.d(TAG, "setting data: " + Uri.fromFile(file).toString());
+        intent.setData(Uri.fromFile(file));
+        intent.putExtra(KEY_EDITED_TRACK, track);
+        try {
+            startActivityForResult(intent, REQUEST_EDIT_TRACK);
+        } catch (ActivityNotFoundException e) {
+            Log.e(TAG, "NO ACTIVITY FOUND: FretTrackEditActivity");
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.d(TAG, "HELLO onActivityResult-activity request=[" + requestCode + "]result=[" + resultCode + "]");
+        if (requestCode == REQUEST_EDIT_TRACK && resultCode == FretSongEditActivity.RESULT_EDITED) {
+            Log.d(TAG, "HELLO EDIT_FRET Finished");
+            // Reload the fretTrack because it has been edited
+            TrackLoaderTask trackLoaderTask = new TrackLoaderTask(mTrackTmpFile);
+            trackLoaderTask.setFileLoadedListener(new TrackLoaderTask.FileLoadedListener() {
+                @Override
+                public void OnFileLoaded(FretTrack fretTrack) {
+                    Log.d(TAG, "setFretTrack file loaded");
+                    fretSongEditFragment.getFretSong().updateTrack(mTrackBeingEdited, fretTrack);
+                }
+                @Override
+                public void OnError(String msg) {
+                    // TODO - Something
+//                Toast.makeText(FretTrackEditFragment, msg, Toast.LENGTH_SHORT).show();
+                }
+            });
+            trackLoaderTask.execute();
+
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 }

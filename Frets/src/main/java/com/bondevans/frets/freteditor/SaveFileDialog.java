@@ -12,9 +12,8 @@ public class SaveFileDialog extends DialogFragment {
 
     private SaveFileListener mSaveFileListener;
 
-    public interface SaveFileListener {
+    interface SaveFileListener {
         void onSave();
-
         void onCancel();
     }
 

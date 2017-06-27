@@ -1,14 +1,9 @@
 package com.bondevans.frets.freteditor;
 
 import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
-import android.view.ContextMenu;
 import android.view.LayoutInflater;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -26,7 +21,6 @@ import com.bondevans.frets.fretview.FretSong;
 import com.bondevans.frets.fretview.FretTrack;
 import com.bondevans.frets.utils.Log;
 
-import java.io.File;
 import java.util.ArrayList;
 
 import static android.R.layout.simple_spinner_item;
@@ -86,19 +80,11 @@ public class FretSongEditFragment extends ListFragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         Log.d(TAG, "HELLO onViewCreated");
         final ListView lv = getListView();
-        registerForContextMenu(lv);
 
-        lv.setTextFilterEnabled(true);
         lv.setItemsCanFocus(false);
         lv.setLongClickable(true);
         lv.setFastScrollEnabled(true);
         Log.d(TAG, "HELLO onViewCreated2");
-    }
-
-    @Override
-    public void onListItemClick(ListView l, View v, int position, long id) {
-        Log.d(TAG, "itemClicked: " + position);
-//        trackSelectedListener.onTrackSelected(position);
     }
 
     /* (non-Javadoc)
@@ -141,60 +127,6 @@ public class FretSongEditFragment extends ListFragment {
     public void onDestroy() {
         Log.d(TAG, "HELLO Being Destroyed");
         super.onDestroy();
-    }
-
-    /* (non-Javadoc)
-     * @see android.app.Activity#onCreateContextMenu(android.view.ContextMenu, android.view.View, android.view.ContextMenu.ContextMenuInfo)
-     */
-    @Override
-    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
-        String selectedItem = (String) getListView().getItemAtPosition(info.position);
-        super.onCreateContextMenu(menu, v, menuInfo);
-        MenuInflater inflater = getActivity().getMenuInflater();
-        inflater.inflate(R.menu.filebrowser_menu, menu);
-        menu.setHeaderTitle("Options");
-        if (selectedItem.endsWith(File.separator) || selectedItem.equals("..")) {
-            // Directory, so can't edit or delete or convert or save_as or add to set
-            menu.removeItem(R.id.share);
-        }
-    }
-
-    /* (non-Javadoc)
-     * @see android.app.Activity#onContextItemSelected(android.view.MenuItem)
-     */
-    @Override
-    public boolean onContextItemSelected(MenuItem item) {
-        if (item.getGroupId() != R.id.context_group_browser) {
-            Log.d(TAG, "HELLO onContextItemSelected - sonvView Context Menu");
-
-            return super.onContextItemSelected(item);
-        }
-        Log.d(TAG, "HELLO onContextItemSelected");
-        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-        String selectedItem = (String) getListView().getItemAtPosition(info.position);
-        Log.d(TAG, "HELLO selectedItem=[" + selectedItem + "]");
-        if (item.getItemId() == R.id.share) {
-            shareFile(selectedItem);
-            return true;
-        } else {
-            return super.onContextItemSelected(item);
-        }
-    }
-
-    public void shareFile(String fileName) {
-        File aFile = new File(fileName);
-        Intent theIntent = new Intent(Intent.ACTION_SEND);
-        theIntent.setType("text/plain");
-        // the formatted text.
-        theIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(aFile));
-        //next line specific to email attachments
-        theIntent.putExtra(Intent.EXTRA_SUBJECT, "Sending " + aFile.getName());
-        try {
-            startActivity(Intent.createChooser(theIntent, "Share With...."));
-        } catch (Exception e) {
-            Log.d(TAG, "OOPS - Sharing failure");
-        }
     }
 
     private class FretTrackAdapter extends ArrayAdapter<FretTrack> {

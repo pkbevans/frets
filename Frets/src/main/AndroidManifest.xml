@@ -32,6 +32,9 @@
             android:windowSoftInputMode="stateHidden">
         </activity>
         <activity
+            android:name=".freteditor.FretTrackEditActivity">
+        </activity>
+        <activity
             android:name="com.bondevans.frets.fretlist.FretListActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>

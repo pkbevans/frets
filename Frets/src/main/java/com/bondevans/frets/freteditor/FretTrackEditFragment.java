@@ -1,7 +1,7 @@
 package com.bondevans.frets.freteditor;
 
+import android.app.Fragment;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,11 +25,10 @@ public class FretTrackEditFragment extends Fragment {
     private static final int NOTE_PREV = 2;
     private FretEditView mFretEditView;
     private EditText mTrackName;
-    private FretTrack mFretTrack;
+    FretTrack mFretTrack;
     private int mCurrentEvent = 0;
     private FretPosition mFretPosition;
     private boolean mEdited = false;
-    private int mTrack;
 
     public FretTrackEditFragment() {
     }
@@ -37,7 +36,7 @@ public class FretTrackEditFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        setRetainInstance(true);  Doesn't work for fragments added to the backstack
+        setRetainInstance(true);  //Doesn't work for fragments added to the backstack
         Log.d(TAG, "onCreate");
         mFretPosition = new FretPosition(new FretGuitarStandard());
     }
@@ -92,9 +91,6 @@ public class FretTrackEditFragment extends Fragment {
             mTrackName.setText(mFretTrack.getName());
             mFretEditView.setNotes(mFretTrack.fretEvents.get(mCurrentEvent));
         }
-        mTrackName.setText(mFretTrack.getName());
-        mCurrentEvent = 0;
-        mFretEditView.setNotes(mFretTrack.fretEvents.get(mCurrentEvent));
         Log.d(TAG, "onCreateView-end");
         return myView;
     }
@@ -108,16 +104,18 @@ public class FretTrackEditFragment extends Fragment {
         // Get next note
         do {
             if (nextPrev == NOTE_NEXT) {
-                if (++mCurrentEvent >= mFretTrack.fretEvents.size()) {
+                ++mCurrentEvent;
+                if (mCurrentEvent >= mFretTrack.fretEvents.size()) {
                     mCurrentEvent = 0;
                 }
             } else {
-                if (--mCurrentEvent < 0) {
+                --mCurrentEvent;
+                if (mCurrentEvent < 0) {
                     mCurrentEvent = mFretTrack.fretEvents.size() - 1;
                 }
             }
         }
-        while (mFretTrack.fretEvents.get(mCurrentEvent).track!=mTrack||
+        while (//mFretTrack.fretEvents.get(mCurrentEvent).track!=mTrack||
                 !mFretTrack.fretEvents.get(mCurrentEvent).hasOnNotes());
 
         mFretEditView.setNotes(mFretTrack.fretEvents.get(mCurrentEvent));
@@ -127,12 +125,14 @@ public class FretTrackEditFragment extends Fragment {
     /**
      * Set the <code>FretTrack</code>
      *
-     * @param fretTrack Track to edit
+     * @param fretTrack Fret Track
      */
-    public void setFretTrack(FretTrack fretTrack, int track) {
+    public void setFretTrack(FretTrack fretTrack) {
         Log.d(TAG, "setFretTrack");
         mFretTrack = fretTrack;
-        mTrack = track;
+        mTrackName.setText(mFretTrack.getName());
+        mCurrentEvent = 0;
+        mFretEditView.setNotes(mFretTrack.fretEvents.get(mCurrentEvent));
     }
 
     /**
@@ -165,7 +165,7 @@ public class FretTrackEditFragment extends Fragment {
 
     /**
      * Returns true if the track (name or notes) have been updated.
-     * @return
+     * @return true/false
      */
     public boolean isEdited() {
         if (mTrackName.getText().toString().compareTo(mFretTrack.getName())!=0) {

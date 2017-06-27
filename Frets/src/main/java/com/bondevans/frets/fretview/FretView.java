@@ -100,12 +100,12 @@ public class FretView extends View {
     @Override
     protected void onDraw(Canvas g) {
         initialiseStuff();
-        drawFrets(g);
         drawBackground(g);
+        drawFrets(g);
         drawOldNotes(g);
         drawNotes(g);
         drawStrings(g);
-        }
+    }
 
     Rect mRect = new Rect(); // Avoid creating every call to drawStrings
 
@@ -172,7 +172,7 @@ public class FretView extends View {
             textWidth = (int) mPaintText.measureText("" + (fret + 1));
             // Write fret number (but not zero)
             if (fret > 0) {
-                float y = (mStringSpace * 3) + mStringSpace - ((mStringSpace - mPaintText.getTextSize()) / 2);
+                float y = mStringSpace/2;
                 g.drawText(fret + "", fretX - (mFretWidth / 2) - (textWidth / 2), y, mPaintText);
             }
             // Add fret markers at frets 3, 5, 7, 9, 12, 15, 17, 19

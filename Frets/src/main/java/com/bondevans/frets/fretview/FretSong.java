@@ -169,5 +169,9 @@ public class FretSong extends FretBase {
     public void setKeywords(String keywords) {
         this.keywords = keywords;
     }
+    public void updateTrack(int track, FretTrack fretTrack){
+        fretTracks.set(track,fretTrack);
+    }
+
 }
 
