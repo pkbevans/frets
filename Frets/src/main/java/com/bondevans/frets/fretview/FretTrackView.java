@@ -68,7 +68,7 @@ public class FretTrackView extends FretView {
         }
     }
 
-    class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
+    private class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
 //            Log.d(TAG, "HELLO onFling");

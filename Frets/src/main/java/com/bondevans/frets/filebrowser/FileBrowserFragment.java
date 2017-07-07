@@ -34,7 +34,6 @@ public class FileBrowserFragment extends ListFragment {
     private final static String TAG = "FileBrowserFragment";
     private static final String KEY_CURDIR = "KEY7";
     private static final String PREF_KEY_FILEDIR = "fileDir";
-    private static final String DEFAULT_FILEDIR = "/";
     public File mCurrentDirectory;
     private OnFileSelectedListener fileSelectedListener;
     private TextView mCurrentFolder;
@@ -188,13 +187,13 @@ public class FileBrowserFragment extends ListFragment {
             return null;
         }
 
+        // Only show midi files
         class MidiFileFilter implements FileFilter{
-            private static final String XML_FILE_EXTN = ".xml";
             private static final String MIDI_FILE_EXTN = ".mid";
 
             @Override
             public boolean accept(File pathname) {
-                return( pathname.getName().endsWith(MIDI_FILE_EXTN) || pathname.getName().endsWith(XML_FILE_EXTN) || pathname.isDirectory());
+                return( pathname.getName().toLowerCase().endsWith(MIDI_FILE_EXTN) || pathname.isDirectory());
             }
         }
         @Override

@@ -1,7 +1,6 @@
 package com.bondevans.frets.fretviewer;
 
 import android.Manifest;
-import android.annotation.TargetApi;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -19,7 +18,7 @@ import android.widget.Toast;
 import com.bondevans.frets.R;
 import com.bondevans.frets.freteditor.FretSongEditActivity;
 import com.bondevans.frets.fretview.FretSong;
-import com.bondevans.frets.utils.FileLoaderTask;
+import com.bondevans.frets.utils.SongLoaderTask;
 
 import java.io.File;
 
@@ -94,8 +93,6 @@ public class FretViewActivity extends AppCompatActivity {
         }
         else if(id == R.id.action_settings) {
             return true;
-        } else if (id == R.id.action_edit) {
-            showFretEdit();
         }
 
         return super.onOptionsItemSelected(item);
@@ -133,8 +130,8 @@ public class FretViewActivity extends AppCompatActivity {
 
     private void setFretSong(File file) {
         progressBar.setVisibility(View.VISIBLE);
-        FileLoaderTask fileLoaderTask = new FileLoaderTask(file, true);
-        fileLoaderTask.setFileLoadedListener(new FileLoaderTask.FileLoadedListener() {
+        SongLoaderTask songLoaderTask = new SongLoaderTask(file);
+        songLoaderTask.setSongLoadedListener(new SongLoaderTask.SongLoadedListener() {
             @Override
             public void OnFileLoaded(FretSong fretSong) {
                 fragment.setFretSong(fretSong);
@@ -147,7 +144,7 @@ public class FretViewActivity extends AppCompatActivity {
                 Toast.makeText(FretViewActivity.this, msg, Toast.LENGTH_SHORT).show();
             }
         });
-        fileLoaderTask.execute();
+        songLoaderTask.execute();
     }
 
     @Override

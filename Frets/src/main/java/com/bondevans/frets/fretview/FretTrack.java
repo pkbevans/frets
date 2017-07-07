@@ -14,9 +14,9 @@ import java.util.regex.Pattern;
  */
 public class FretTrack extends FretBase {
     private static final String TAG = FretTrack.class.getSimpleName();
-    public static final String ELEMENT_TRACK = "track";
-    public static final String TRACK_ELEMENT_OPEN = "<"+ELEMENT_TRACK+">";
-    public static final String TRACK_ELEMENT_CLOSE = "</"+ELEMENT_TRACK+">";
+    private static final String ELEMENT_TRACK = "track";
+    private static final String TRACK_ELEMENT_OPEN = "<"+ELEMENT_TRACK+">";
+    private static final String TRACK_ELEMENT_CLOSE = "</"+ELEMENT_TRACK+">";
     private String name;
     public List<FretEvent> fretEvents;
     private int midiInstrument; // Midi Instrument (from GM) that will play this track
@@ -108,6 +108,9 @@ public class FretTrack extends FretBase {
         drumTrack = isChecked;
     }
 
+    public void removeEvents(){
+        fretEvents.clear();
+    }
     public void dump(String text) {
         Log.d(TAG, "DUMP "+text);
         Log.d(TAG, "TRACK,EV,TICKS,BEND");

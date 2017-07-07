@@ -38,7 +38,7 @@ public class MidiFile {
     private int mTotalTicks;
 
 
-    public MidiFile(File midiFile) throws FretboardException {
+    MidiFile(File midiFile) throws FretboardException {
         // Open up file and load header and track details
         this.mMidiFile = midiFile;
 
@@ -46,7 +46,7 @@ public class MidiFile {
         mHeaderLoaded = true;
     }
 
-    public List<MidiTrack> getTracks() throws FretboardException {
+    List<MidiTrack> getTracks() throws FretboardException {
         if (!mHeaderLoaded) {
             throw new FretboardException("ERRROR - Header not loaded");
         }
@@ -94,14 +94,13 @@ public class MidiFile {
     /**
      * Loads a track into a List of MidiNoteEvents
      * <p/>
-     * TODO It would be better to load up ALL midi events into a List and then remove any events
      * we are not interested in, in a 2nd step.  Would make debugging easier....
      *
      * @param track Track number to load
-     * @throws FretboardException
-     * @throws IOException
+     * @throws FretboardException FretboardException
+     * @throws IOException IOException
      */
-    public void loadNoteEvents(int track, List<MidiNoteEvent> noteEvents) throws FretboardException, IOException {
+    void loadNoteEvents(int track, List<MidiNoteEvent> noteEvents) throws FretboardException, IOException {
         Log.d(TAG, "loadNoteEvents for track:" + track);
         InputStream in = new ByteArrayInputStream(loadTrack(track));
         MidiEvent ev = getEvent(in);
@@ -150,7 +149,7 @@ public class MidiFile {
      * Gets the next event in the midi track
      * @param in Track InputStream
      * @return MidiEvent
-     * @throws IOException
+     * @throws IOException in the event of a file read failure
      */
     private MidiEvent getEvent(InputStream in) throws IOException {
         int param1, param2 = 0;
@@ -219,7 +218,6 @@ public class MidiFile {
                     break;
                 case MidiEvent.NOTE_EVENT_TYPE_PROGRAM_CHANGE:
                     Log.d(TAG, "PROGRAM_CHANGE [" + noteEventType + "]["+iToHex(param1)+"]");
-                    // TODO Set the track's midi instrument...
                     break;
                 case MidiEvent.NOTE_EVENT_TYPE_CHANNEL_AFTERTOUCH:
                     Log.d(TAG, "AFTERTOUCH [" + noteEventType + "]["+iToHex(param1)+"]");
@@ -255,7 +253,7 @@ public class MidiFile {
      * Get the number of mTicks betfore the midi event - variable length 7bit/byte
      * @param in track InputStream
      * @return mTicks
-     * @throws IOException
+     * @throws IOException in the event of a file read failure
      */
     private int getTimeTicks(InputStream in) throws IOException {
         int ticks=0;
@@ -266,10 +264,10 @@ public class MidiFile {
             ticks = (ticks<<7) | (trackByte & 0x7F);
             trackByte = in.read();
 //            Log.d(TAG, "HELLO NOTE (TICK BYTE)," + iToHex(trackByte));
-            sb.append(" "+ iToHex(trackByte));
+            sb.append(" ").append(iToHex(trackByte));
         }
         ticks = (ticks<<7) | (trackByte & 0x7F);
-        sb.append(" "+ticks);
+        sb.append(" ").append(ticks);
         Log.d(TAG, sb.toString());
         return ticks;
     }
@@ -278,9 +276,9 @@ public class MidiFile {
      * Load midi file header and set up the track names and lengths
      *
      * @param file Path to midi file
-     * @throws FretboardException
+     * @throws FretboardException if an error occurs
      */
-    public void loadHeader(File file) throws FretboardException {
+    private void loadHeader(File file) throws FretboardException {
         Log.d(TAG, "loadHeader");
         BufferedInputStream in;
         byte[] buffer = new byte[BUF_LEN];
@@ -336,11 +334,15 @@ public class MidiFile {
                     // Lets get the tempo from the first track.
                     this.BPM = getTempo(in);
                 }
-                // SKIP track mData
-                if (in.skip(trackLen) != trackLen) {
-                    throw new FretboardException("Error - Reading track header");
-                }
                 mTrackChunkLength[track] = trackLen;
+                // SKIP track mData
+                while(trackLen>0) {
+                    long skipped = in.skip(trackLen);
+                    if(skipped<0){
+                        throw new FretboardException("Error - Skipping track data ("+trackLen+")");
+                    }
+                    trackLen-=skipped;
+                }
                 ++track;
             }
             in.close();
@@ -354,7 +356,7 @@ public class MidiFile {
      *
      * @param in BufferedInputStream containing track mData
      * @return Track name or instrument name
-     * @throws IOException
+     * @throws IOException in the event of a file io error
      */
     private String getTrackName(BufferedInputStream in) throws IOException {
         // Get the first event
@@ -396,7 +398,7 @@ public class MidiFile {
      * @param in Integer
      * @return hex string
      */
-    public static String iToHex(int in){
+    static String iToHex(int in){
         String hex = Integer.toHexString(in);
         if( hex.length()<2){
             hex = "0" + hex;
@@ -404,15 +406,15 @@ public class MidiFile {
         return hex;
     }
 
-    public String getSongTitle() {
+    String getSongTitle() {
         return songTitle;
     }
 
-    public int getTicksPerQtrNote() {
+    int getTicksPerQtrNote() {
         return mTicksPerQtrNote;
     }
 
-    public int getBPM() {
+    int getBPM() {
         return BPM;
     }
 }

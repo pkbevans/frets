@@ -12,7 +12,6 @@ public class FretPosition {
     private int mNumStrings;    // Nunmber of strings on this instrument
     private int mNumFrets;      // Number of frets on this instrument
     private int[] mTuning;  // Tuning - e.g. on guitar EADGBE = 40, 45, 50, 55, 59, 64
-    private String[] mStringNames;  // For Debugging purposes mainly.
     private boolean[] mStringAvailable;
 
     /**
@@ -24,7 +23,6 @@ public class FretPosition {
         this.mNumStrings = instrument.numStrings();
         this.mNumFrets = instrument.numFrets();
         this.mTuning = instrument.TUNING();
-        this.mStringNames = instrument.STRING_NAMES();
         // Initialise arrays
         this.mStringAvailable = new boolean[mNumStrings];
     }
@@ -32,8 +30,8 @@ public class FretPosition {
     /**
      * Updates list of <code>FretNote</code>s with Fret positions (if found)
      *
-     * @param fretNotes
-     * @return
+     * @param fretNotes list of fret notes
+     * @return updated list of fret notes
      */
     public List<FretNote> getFretPositions(List<FretNote> fretNotes) {
         if(fretNotes == null){
@@ -48,7 +46,6 @@ public class FretPosition {
         }
         // Work out string/fret positions for each note
         FretNote fretNote;
-        boolean found = false;
         // Loop round each note in the array - starting with the last (assume it is the highest) TODO - sort into high-to-low order
         int i = mFretNotes.size() - 1;
         while (i >= 0) {
@@ -70,16 +67,10 @@ public class FretPosition {
 //                                "] name [" + fretNote.name + "]");
                         // Update FretNote list with updated element
                         mFretNotes.set(i,fretNote);
-                        found = true;
                         break;
                     }
                 }
             }
-            if (!found) {
-                // If we get here something went wrong!! (or its not a guitar track)
-//                Log.d(TAG, "OOPS - Can find position for note: [" + fretNote.note + "]");
-            }
-            found = false;
             --i;
         }
         return mFretNotes;

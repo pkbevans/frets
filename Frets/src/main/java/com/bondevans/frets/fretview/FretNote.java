@@ -6,16 +6,16 @@ import com.bondevans.frets.midi.MidiFile;
  * A note on the fretboard
  */
 public class FretNote extends FretBase {
-    private static final String TAG = FretNote.class.getSimpleName();
-    public static final String ELEMENT_NOTE = "nt";
-    public static final String NOTE_ELEMENT_OPEN = "<" + ELEMENT_NOTE + ">";
-    public static final String NOTE_ELEMENT_CLOSE = "</" + ELEMENT_NOTE + ">";
+//    private static final String TAG = FretNote.class.getSimpleName();
+    static final String ELEMENT_NOTE = "nt";
+    private static final String NOTE_ELEMENT_OPEN = "<" + ELEMENT_NOTE + ">";
+    private static final String NOTE_ELEMENT_CLOSE = "</" + ELEMENT_NOTE + ">";
     private static final int NOT_SET = 99;
     public int note;        // Midi note value (Bottom E on standard Guitar is 40)
     public boolean on;      // True = turn note ON, False = turn FretNote off
     int string;             // String number from 0 to mStrings (0=highest string - i.e. Top E on standard guitar)
     int fret;               // fret position
-    public int bend;        // bend value applied to this note
+    int bend;               // bend value applied to this note
     String name;            // FretNote name (e.g. E, F#, etc)
 
     /**

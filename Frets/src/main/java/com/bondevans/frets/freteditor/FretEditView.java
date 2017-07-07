@@ -60,7 +60,7 @@ public class FretEditView extends FretView implements View.OnTouchListener {
         return false;
     }
 
-    class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
+    private class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
         @Override
         public void onLongPress(MotionEvent e) {
             Log.d(TAG, "LONG PRESS");

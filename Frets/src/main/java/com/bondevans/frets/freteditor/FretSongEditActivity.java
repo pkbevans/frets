@@ -18,13 +18,17 @@ import com.bondevans.frets.R;
 import com.bondevans.frets.firebase.FBWrite;
 import com.bondevans.frets.fretview.FretSong;
 import com.bondevans.frets.fretview.FretTrack;
-import com.bondevans.frets.utils.FileLoaderTask;
+import com.bondevans.frets.fretviewer.FretViewActivity;
+import com.bondevans.frets.fretviewer.TrackMerger;
+import com.bondevans.frets.utils.FileWriter;
 import com.bondevans.frets.utils.FileWriterTask;
 import com.bondevans.frets.utils.Log;
+import com.bondevans.frets.utils.SongLoaderTask;
 import com.bondevans.frets.utils.TrackLoaderTask;
 import com.firebase.client.Firebase;
 
 import java.io.File;
+import java.io.IOException;
 
 public class FretSongEditActivity extends AppCompatActivity implements
         FretSongEditFragment.OnTrackSelectedListener {
@@ -35,6 +39,8 @@ public class FretSongEditActivity extends AppCompatActivity implements
     private static final String TAG_TRACKLIST = "tracList";
     public static final String  KEY_EDITED_TRACK = "et";
     private static final int REQUEST_EDIT_TRACK = 8768;
+    private static final int MAX_TRACKS = 2;
+    private static final String TOOMANYTRACKS = "7yytyi8";
     private FretSongEditFragment fretSongEditFragment = null;
     private Firebase mFirebaseRef;
     private ProgressBar progressBar;
@@ -98,16 +104,29 @@ public class FretSongEditActivity extends AppCompatActivity implements
             case R.id.action_publish:
                 publishSong();
                 break;
+            case R.id.action_preview_song:
+                previewSong();
+                break;
             case R.id.action_save_song:
                 saveSong(false);
                 break;
             case R.id.action_settings:
-                // TODO Either allow settings to be accessed from here or remove this option
+                // Either allow settings to be accessed from here or remove this option
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
         return true;
+    }
+
+    private void previewSong() {
+        Intent intent = new Intent(this, FretViewActivity.class);
+        intent.setData(Uri.fromFile(new File(getIntent().getData().getPath())));
+        try {
+            startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            Log.e(TAG, "NO ACTIVITY FOUND: FretViewActivity");
+        }
     }
 
     @Override
@@ -131,19 +150,22 @@ public class FretSongEditActivity extends AppCompatActivity implements
     }
 
     private void publishSong() {
-        writeSongToServer(fretSongEditFragment.getFretSong());
-    }
-
-    private void writeSongToServer(FretSong fretSong) {
-        FBWrite.addSong(mFirebaseRef, fretSong);
-        Toast.makeText(FretSongEditActivity.this, fretSong.getName() + getString(R.string.published), Toast.LENGTH_SHORT).show();
+        // Merge tracks into solo track and remove FretEvents from other tracks
+        mergeTracks();
+        // Write song to FireBase
+        FBWrite.addSong(mFirebaseRef, fretSongEditFragment.getFretSong());
+        Toast.makeText(FretSongEditActivity.this, fretSongEditFragment.getFretSong().getName() + getString(R.string.published), Toast.LENGTH_SHORT).show();
         finish();   //Lets get outta here
     }
 
     private void saveSong(final boolean finish) {
         Log.d(TAG, "saveSong");
 
-        if (fretSongEditFragment != null && fretSongEditFragment.isEdited()) {
+        // Only allow two tracks
+        if(getSong().tracks()>MAX_TRACKS){
+            TooManyTracksDialog tooManyTracksDialog = new TooManyTracksDialog();
+            tooManyTracksDialog.show(getSupportFragmentManager(), TOOMANYTRACKS);
+        }else if (fretSongEditFragment != null && fretSongEditFragment.isEdited()) {
             Log.d(TAG, "saving Song");
             final File file = new File(getIntent().getData().getPath());
             Log.d(TAG, "HELLO Writing to file[" + file.toString() + "]");
@@ -232,8 +254,8 @@ public class FretSongEditActivity extends AppCompatActivity implements
     private void setFretSong(File file) {
         Log.d(TAG, "setFretSong file");
         progressBar.setVisibility(View.VISIBLE);
-        FileLoaderTask fileLoaderTask = new FileLoaderTask(file, false);
-        fileLoaderTask.setFileLoadedListener(new FileLoaderTask.FileLoadedListener() {
+        SongLoaderTask songLoaderTask = new SongLoaderTask(file);
+        songLoaderTask.setSongLoadedListener(new SongLoaderTask.SongLoadedListener() {
             @Override
             public void OnFileLoaded(FretSong fretSong) {
                 Log.d(TAG, "setFretSong file loaded");
@@ -247,7 +269,7 @@ public class FretSongEditActivity extends AppCompatActivity implements
                 Toast.makeText(FretSongEditActivity.this, msg, Toast.LENGTH_SHORT).show();
             }
         });
-        fileLoaderTask.execute();
+        songLoaderTask.execute();
     }
 
     @Override
@@ -283,13 +305,42 @@ public class FretSongEditActivity extends AppCompatActivity implements
                 }
                 @Override
                 public void OnError(String msg) {
-                    // TODO - Something
-//                Toast.makeText(FretTrackEditFragment, msg, Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "FretTrack load error: "+msg);
+                    Toast.makeText(FretSongEditActivity.this, msg, Toast.LENGTH_SHORT).show();
                 }
             });
             trackLoaderTask.execute();
 
         }
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private void mergeTracks() {
+        // Start off with the solo track
+        getSong().getTrack(getSong().getSoloTrack()).dump("BEFORE");
+        TrackMerger trackMerger = new TrackMerger(getSong().getTrack(getSong().getSoloTrack()).fretEvents, getSong().getSoloTrack());
+        // then merge in all the other tracks
+        int track=0;
+        while(track<getSong().tracks()){
+            if(track!=getSong().getSoloTrack()) {//dont want the solo track twice
+                getSong().getTrack(track).dump("MERGING IN track:"+track);
+                trackMerger.mergeTrack(getSong().getTrack(track).fretEvents, track);
+                getSong().getTrack(getSong().getSoloTrack()).dump("AFTER merging track:"+track);
+                // Remove the events from the merged-in tracks.  No longer required.
+                getSong().getTrack(track).removeEvents();
+            }
+            ++track;
+        }
+        getSong().getTrack(getSong().getSoloTrack()).dump("END");
+        // TODO  (REMOVE) Write out the merged track - for debugging purposes only
+        try {
+            File tmpFile = new File(new File(getIntent().getData().getPath())+".merged.xml");
+            FileWriter.writeFile(tmpFile, getSong().getTrack(getSong().getSoloTrack()).toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    private FretSong getSong(){
+        return fretSongEditFragment.getFretSong();
     }
 }

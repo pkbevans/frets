@@ -9,10 +9,17 @@
         android:icon="@drawable/ic_save"
         app:showAsAction="always"/>
     <item
-        android:id="@+id/action_publish"
+        android:id="@+id/action_preview_song"
         android:orderInCategory="102"
+        android:title="@string/action_preview_song"
+        android:icon="@drawable/ic_preview"
+        app:showAsAction="always"/>
+    <item
+        android:id="@+id/action_publish"
+        android:orderInCategory="103"
         android:title="@string/action_publish"
-        app:showAsAction="never"/>
+        android:icon="@drawable/ic_publish_song"
+        app:showAsAction="ifRoom"/>
     <item
         android:id="@+id/action_settings"
         android:orderInCategory="110"

@@ -9,8 +9,8 @@ import java.util.regex.Pattern;
  * A FretEvent is an event that impacts on the Fretboard
  */
 public class FretEvent extends FretBase {
-    private static final String TAG = FretEvent.class.getSimpleName();
-    public static final int MAX_BEND = 10;
+//    private static final String TAG = FretEvent.class.getSimpleName();
+    static final int MAX_BEND = 10;
     private static final String ELEMENT_EVENT = "ev";
     private static final String EVENT_ELEMENT_OPEN = "<"+ELEMENT_EVENT+">";
     private static final String EVENT_ELEMENT_CLOSE = "</"+ELEMENT_EVENT+">";
@@ -29,7 +29,7 @@ public class FretEvent extends FretBase {
      * @param fretNotes array of notes to play at the same time
      * @param tempo New tempo if > 0
      * @param bend Apply bend if > 0
-     * @param totalTicks
+     * @param totalTicks total ticks for this event
      */
     public FretEvent(int deltaTicks, List<FretNote> fretNotes, int tempo, int bend, int totalTicks) {
         this.deltaTicks = deltaTicks;

@@ -6,9 +6,9 @@ import java.util.regex.Pattern;
 /**
  * Base class for FretSong/FretTrack/FretEvent/FretNote
  */
-public class FretBase {
+class FretBase {
 
-    private static final String TAG = FretBase.class.getSimpleName();
+//    private static final String TAG = FretBase.class.getSimpleName();
     static final String ATTR_MIDI_INSTRUMENT = "mi";
     static final String ATTR_FRET_INSTRUMENT = "fi";
     static final String ATTR_DELTATICKS = "dt";
@@ -31,7 +31,7 @@ public class FretBase {
     /**
      * Constructor
      */
-    public FretBase() {
+    FretBase() {
     }
 
     protected String attr(String name, boolean value) {
@@ -44,7 +44,7 @@ public class FretBase {
     protected String attr(String name, String value) {
         return name + "=" + "\""+value+"\" ";
     }
-    protected static String getTagString(String ev, String tag){
+    static String getTagString(String ev, String tag){
         String ret="";
         Pattern tagPattern = Pattern.compile(tag+"=\"(.*?)[\"<]",
                 Pattern.DOTALL|Pattern.CASE_INSENSITIVE);
@@ -54,7 +54,7 @@ public class FretBase {
         }
         return ret;
     }
-    protected static int getTagInt(String ev, String tag){
+    static int getTagInt(String ev, String tag){
         int ret;
         try {
             ret = Integer.decode(getTagString(ev, tag));

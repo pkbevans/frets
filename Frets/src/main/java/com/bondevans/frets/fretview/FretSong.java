@@ -12,9 +12,9 @@ import java.util.regex.Pattern;
  */
 public class FretSong extends FretBase {
     private static final String TAG = FretSong.class.getSimpleName();
-    public static final String ELEMENT_SONG = "song";
-    public static final String SONG_ELEMENT_OPEN = "<"+ELEMENT_SONG+">";
-    public static final String SONG_ELEMENT_CLOSE = "</"+ELEMENT_SONG+">";
+    private static final String ELEMENT_SONG = "song";
+    private static final String SONG_ELEMENT_OPEN = "<"+ELEMENT_SONG+">";
+    private static final String SONG_ELEMENT_CLOSE = "</"+ELEMENT_SONG+">";
     private String name;
     private int tpqn;
     private int bpm;
@@ -111,15 +111,6 @@ public class FretSong extends FretBase {
         return bpm;
     }
 
-    public List<String> getTrackNames() {
-        List<String> ret = new ArrayList<>();
-        int i=0;
-        for( FretTrack t: fretTracks){
-            ret.add(t.getName());
-        }
-        return ret;
-    }
-
     /**
      * Get specified track
      * @param index index of track
@@ -133,6 +124,10 @@ public class FretSong extends FretBase {
         this.name = name;
     }
 
+    /**
+     * <code>FretSong.tracks()</code>returns the number of tracks in the song
+     * @return the number of tracks in this song
+     */
     public int tracks() {
         return fretTracks.size();
     }
