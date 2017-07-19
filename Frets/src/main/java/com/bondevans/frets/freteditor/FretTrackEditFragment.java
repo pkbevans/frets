@@ -1,7 +1,7 @@
 package com.bondevans.frets.freteditor;
 
-import android.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,6 +15,7 @@ import com.bondevans.frets.fretview.FretEvent;
 import com.bondevans.frets.fretview.FretNote;
 import com.bondevans.frets.fretview.FretPosition;
 import com.bondevans.frets.fretview.FretTrack;
+import com.bondevans.frets.fretview.FretView;
 import com.bondevans.frets.instruments.FretGuitarStandard;
 
 import java.util.List;
@@ -23,6 +24,7 @@ public class FretTrackEditFragment extends Fragment {
     private static final String TAG = FretTrackEditFragment.class.getSimpleName();
     private static final int NOTE_NEXT = 1;
     private static final int NOTE_PREV = 2;
+    private static final java.lang.String GROUP_NOTES = "grp";
     private FretEditView mFretEditView;
     private EditText mTrackName;
     FretTrack mFretTrack;
@@ -49,6 +51,16 @@ public class FretTrackEditFragment extends Fragment {
         HorizontalScrollView scrollView = (HorizontalScrollView) myView.findViewById(R.id.horizontalScrollView);
         mFretEditView = (FretEditView) myView.findViewById(R.id.fretview);
         mFretEditView.setKeepScreenOn(true);
+        mFretEditView.setFretEditListener(new FretEditView.FretEditListener() {
+            @Override
+            public void OnFretSelected(int fret) {
+                Log.d(TAG, "OnFretSelected: "+fret);
+                // Show the GroupNotesAtFret dialog if fret != -1
+                if(fret != FretView.BAD_FRET) {
+                    showGroupNotesAtFretDialog(fret);
+                }
+            }
+        });
         scrollView.setOnTouchListener(mFretEditView);
         mTrackName = (EditText) myView.findViewById(R.id.track_name);
 
@@ -173,5 +185,26 @@ public class FretTrackEditFragment extends Fragment {
             mEdited=true;
         }
         return mEdited;
+    }
+    private void showGroupNotesAtFretDialog(int fret) {
+
+        GroupNotesAtFretDialog groupNotesAtFretDialog = new GroupNotesAtFretDialog();
+        groupNotesAtFretDialog.setFret(fret);
+        groupNotesAtFretDialog.setOkListener(new GroupNotesAtFretDialog.OkListener() {
+            @Override
+            public void onOkClicked(int fret) {
+                groupNotesAtFret(fret);
+            }
+        });
+        groupNotesAtFretDialog.show(getActivity().getSupportFragmentManager(),GROUP_NOTES);
+    }
+
+    private void groupNotesAtFret(int targetFret) {
+        Log.d(TAG, "groupNotesAtFret: "+targetFret);
+        // Go through the FretNotes
+        for (FretEvent fretEvent: mFretTrack.fretEvents) {
+            mFretPosition.getFretPositions(fretEvent.fretNotes, targetFret);
+        }
+        mEdited=true;
     }
 }

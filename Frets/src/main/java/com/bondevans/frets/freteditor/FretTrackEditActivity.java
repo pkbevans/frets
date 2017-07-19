@@ -32,7 +32,7 @@ public class FretTrackEditActivity extends AppCompatActivity {
         Log.d(TAG, "HELLO onCreate");
         setContentView(R.layout.frettrackedit_activity);
         progressBar = (ProgressBar) findViewById(R.id.progress_bar);
-        fretTrackEditFragment = (FretTrackEditFragment) getFragmentManager().findFragmentById(R.id.fragment);
+        fretTrackEditFragment = (FretTrackEditFragment) getSupportFragmentManager().findFragmentById(R.id.fragment);
 
         if (savedInstanceState == null) {
             //  We should have the track file in the intent
@@ -73,7 +73,7 @@ public class FretTrackEditActivity extends AppCompatActivity {
                 break;
             case R.id.action_settings:
                 // TODO Either allow settings to be accessed from here or remove this option
-                return true;
+                break;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -83,14 +83,8 @@ public class FretTrackEditActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         Log.d(TAG, "onBackPressed");
-        if(fretTrackEditFragment.isEdited()) {
-            // Ask whether to save or not
-            saveTrack(true);
-        }
-        else {
-            Log.d(TAG, "HELLO - BACK PRESSED and calling super");
-            super.onBackPressed();
-        }
+        // Save if necessary
+        saveTrack(true);
     }
 
     @Override
@@ -183,5 +177,4 @@ public class FretTrackEditActivity extends AppCompatActivity {
         });
         trackLoaderTask.execute();
     }
-
-}
+ }

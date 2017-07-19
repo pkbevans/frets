@@ -46,7 +46,8 @@ public class FretPosition {
         }
         // Work out string/fret positions for each note
         FretNote fretNote;
-        // Loop round each note in the array - starting with the last (assume it is the highest) TODO - sort into high-to-low order
+        // Loop round each note in the array - starting with the last (assume it is the highest)
+        // TODO - sort into high-to-low order
         int i = mFretNotes.size() - 1;
         while (i >= 0) {
             fretNote = mFretNotes.get(i);
@@ -72,6 +73,54 @@ public class FretPosition {
                 }
             }
             --i;
+        }
+        return mFretNotes;
+    }
+
+    /**
+     * Get the <code>FretPostion</code> closest to the specified fret
+     * @param fretNotes <code>FretNote</code> list
+     * @param targetFret Target fret
+     * @return Updated <code>FretNote</code> list
+     */
+    public List<FretNote> getFretPositions(List<FretNote> fretNotes, int targetFret) {
+        if(fretNotes == null){
+            return null;
+        }
+        List<FretNote> mFretNotes;
+//        Log.d(TAG, "getFretPositions");
+        mFretNotes = fretNotes;
+        // reset mStringAvailable
+        for (int i = 0; i < mNumStrings; i++) {
+            mStringAvailable[i] = true;
+        }
+        // Work out string/fret positions for each note
+        FretNote fretNote;
+        // Loop round each note in the array - starting with the last (assume it is the highest)
+        // TODO - sort into high-to-low order
+        for(int i = mFretNotes.size() - 1;i >= 0;i--) {
+            fretNote = mFretNotes.get(i);
+            // Start with highest note and top string
+            for (int j = 0; j < mNumStrings; j++) {
+                if (mStringAvailable[j]) {
+                    // String is available
+                    if (fretNote.note >= mTuning[j] && fretNote.note <= (mTuning[j] + mNumFrets)) {
+                        // This note can be played on this string
+                        if (Math.abs((fretNote.note - mTuning[j]) - targetFret) < Math.abs(fretNote.fret - targetFret)) {
+                            // This fret position is closer to the target than the current position
+                            fretNote.string = j;
+                            fretNote.fret = fretNote.note - mTuning[j];
+                            fretNote.name = setName(fretNote.note);
+                            if (fretNote.on) {
+                                // Only use up a string for ON notes
+                                mStringAvailable[j] = false;
+                            }
+                        }
+                    }
+                }
+            }
+            // Update FretNote list with updated element
+            mFretNotes.set(i,fretNote);
         }
         return mFretNotes;
     }

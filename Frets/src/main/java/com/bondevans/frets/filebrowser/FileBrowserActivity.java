@@ -8,6 +8,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -23,6 +24,8 @@ import com.bondevans.frets.midi.MidiImporter;
 import com.bondevans.frets.utils.Log;
 
 import java.io.File;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class FileBrowserActivity extends AppCompatActivity implements
         FileBrowserFragment.OnFileSelectedListener {
@@ -118,7 +121,7 @@ public class FileBrowserActivity extends AppCompatActivity implements
 
                 @Override
                 public void OnError(String msg) {
-                    Toast.makeText(FileBrowserActivity.this, msg, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(FileBrowserActivity.this, getString(R.string.midi_file_error)+msg, Toast.LENGTH_LONG).show();
                 }
             });
             midiImporter.execute();
@@ -174,7 +177,7 @@ public class FileBrowserActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         // TODO need to handle user not allowing access.
         Log.d(TAG, "onRequestPermissionsResult");

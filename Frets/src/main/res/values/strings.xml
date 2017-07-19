@@ -84,7 +84,10 @@
     <string name="drums">drums</string>
     <string name="load_failed">Oops! File problem:</string>
     <string name="too_many_tracks">You have too many tracks - maximum two</string>
-    <string name="action_preview_song">Preview...</string>
+    <string name="action_preview_song">Preview…</string>
+    <string name="group_frets">Do you want to group the notes around fret: %1$s</string>
+    <string name="solo_track_is_drums">Oi numbnuts.  The Solo track can\'t be a drum track!</string>
+    <string name="midi_file_error">There was a problem importing the midi file:</string>
 
     <string-array name="midi_instrument_names">
         <item>Acoustic Grand Piano</item>

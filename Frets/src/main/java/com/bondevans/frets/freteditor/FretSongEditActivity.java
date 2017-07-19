@@ -112,7 +112,7 @@ public class FretSongEditActivity extends AppCompatActivity implements
                 break;
             case R.id.action_settings:
                 // Either allow settings to be accessed from here or remove this option
-                return true;
+                break;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -161,11 +161,14 @@ public class FretSongEditActivity extends AppCompatActivity implements
     private void saveSong(final boolean finish) {
         Log.d(TAG, "saveSong");
 
-        // Only allow two tracks
         if(getSong().tracks()>MAX_TRACKS){
-            TooManyTracksDialog tooManyTracksDialog = new TooManyTracksDialog();
-            tooManyTracksDialog.show(getSupportFragmentManager(), TOOMANYTRACKS);
-        }else if (fretSongEditFragment != null && fretSongEditFragment.isEdited()) {
+            // Only allow two tracks
+            Toast.makeText(FretSongEditActivity.this, R.string.too_many_tracks, Toast.LENGTH_LONG).show();
+        }else if(fretSongEditFragment.getFretSong().getTrack(fretSongEditFragment.getFretSong().getSoloTrack()).isDrumTrack()){
+            // Solo track cant be a drum track
+            Toast.makeText(FretSongEditActivity.this, R.string.solo_track_is_drums, Toast.LENGTH_LONG).show();
+        }
+        else if (fretSongEditFragment != null && fretSongEditFragment.isEdited()) {
             Log.d(TAG, "saving Song");
             final File file = new File(getIntent().getData().getPath());
             Log.d(TAG, "HELLO Writing to file[" + file.toString() + "]");
@@ -343,4 +346,4 @@ public class FretSongEditActivity extends AppCompatActivity implements
     private FretSong getSong(){
         return fretSongEditFragment.getFretSong();
     }
-}
+ }

@@ -28,6 +28,7 @@ public class FretView extends View {
     private static final int NOTE_TEXT_DIVISOR = 10;
     private static final int NUT_WIDTH = 5;
     private static final float RANDOM_VALUE = 4;
+    public static final int BAD_FRET = -1;
     private int mFrets = 22;
     private int mStrings = 6;
     private boolean[] mBentStrings;
@@ -306,5 +307,26 @@ public class FretView extends View {
 
         //MUST CALL THIS
         setMeasuredDimension(width, height);
+    }
+
+    /**
+     * Get the fret for a given Y Coordinate
+     * @param xCoord X Coordinate
+     * @return the fret that the given X coordinate falls on
+     */
+    protected int getFret(float xCoord){
+        for (int fret=mFrets;fret >=0 ;fret--) {
+            //Draw vertical line - from top to bottom string
+            int fretX = mSpaceBeforeNut + (fret * mFretWidth);
+            if(fretX<xCoord){
+                if(fret==mFrets){
+                    // Higher than the last fret
+                    return BAD_FRET;
+                }
+                return fret+1;
+            }
+        }
+        // Lower than the first fret
+        return BAD_FRET;
     }
 }

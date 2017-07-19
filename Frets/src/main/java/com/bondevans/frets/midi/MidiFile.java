@@ -282,7 +282,7 @@ public class MidiFile {
         Log.d(TAG, "loadHeader");
         BufferedInputStream in;
         byte[] buffer = new byte[BUF_LEN];
-//        int format; //  0=single track, 1=multiple Tracks
+        int format; //  0=single track, 1=multiple Tracks
         int tracks; //  Number of tracks in this file
 
         // Open up the file and read the header
@@ -292,7 +292,7 @@ public class MidiFile {
                 //error - abort
                 throw new FretboardException("Error - Reading file header");
             }
-//            format = buffer[9] & 0xFF;
+            format = buffer[9] & 0xFF;
             tracks = buffer[11] & 0xFF;
             if( (buffer[12] & 0x80) == 0){
                 // Time division is ticks per beat
@@ -303,7 +303,7 @@ public class MidiFile {
                 Log.e(TAG, "OOPS - time division is frames per sec");
                 throw new FretboardException("OOPS - time division is frames per sec");
             }
-//            Log.d(TAG, "format=" + format + " tracks=" + tracks + " ticksPerQtrBeat=" + mTicksPerQtrNote);
+            Log.d(TAG, "format=" + format + " tracks=" + tracks + " ticksPerQtrBeat=" + mTicksPerQtrNote);
 
             this.mTracks = new ArrayList<>();
             this.mTrackChunkLength = new int[tracks];
@@ -317,19 +317,14 @@ public class MidiFile {
                     throw new FretboardException("Error - Reading track header");
                 }
                 int trackLen = ((buffer[4] & 0xFF) << 24) + ((buffer[5] & 0xFF) << 16) + ((buffer[6] & 0xFF) << 8) + ((buffer[7] & 0xFF));
-//                Log.d(TAG, "Track: " + t + " mLen: " + trackLen);
+                Log.d(TAG, "Track: " + track + " mLen: " + trackLen);
                 String trackName = getTrackName(in);
-                if(trackName.equals(UNKNOWN_TRACKNAME)) {
-                    Log.d(TAG, "Ignoring track: " + trackName);
+                Log.d(TAG, "Adding track: " + trackName);
+                if(track==0) {
+                    // If this is the first track then assume that we have got the song title
+                    this.songTitle = trackName;
                 }
-                else {
-                    Log.d(TAG, "Adding track: " + trackName);
-                    if(track==0) {
-                        // If this is the first track then assume that we have got the song title
-                        this.songTitle = trackName;
-                    }
-                    mTracks.add(new MidiTrack(trackName, track));
-                }
+                mTracks.add(new MidiTrack(trackName, track));
                 if(track==0){
                     // Lets get the tempo from the first track.
                     this.BPM = getTempo(in);
@@ -346,7 +341,8 @@ public class MidiFile {
                 ++track;
             }
             in.close();
-        } catch (IOException e) {
+        }catch (IOException e) {
+            Log.d(TAG, "IOException: "+e.getMessage());
             throw new FretboardException(e.getMessage());
         }
     }
@@ -359,11 +355,14 @@ public class MidiFile {
      * @throws IOException in the event of a file io error
      */
     private String getTrackName(BufferedInputStream in) throws IOException {
+        Log.d(TAG, "getTrackName");
         // Get the first event
         String ret="";
         in.mark(BUF_LEN);
         MidiEvent ev = getEvent(in);
-        while (!ev.isEndOfTrack() && ret.isEmpty()) {
+        int count = 1;
+        // Look for the track name event but give up after 10 events
+        while (!ev.isEndOfTrack() && ret.isEmpty() && count <= 10) {
             if (ev.mEventType == MidiEvent.TYPE_META_EVENT &&
                     (ev.mMetaEventType == MidiEvent.META_EVENT_TYPE_TRACK_NAME ||
                             ev.mMetaEventType == MidiEvent.META_EVENT_TYPE_INSTRUMENT_NAME)) {
@@ -371,23 +370,27 @@ public class MidiFile {
             }
             // Get the next event
             ev = getEvent(in);
+            ++count;
         }
         in.reset();
         return (ret.isEmpty()?UNKNOWN_TRACKNAME: ret);
     }
 
     private int getTempo(BufferedInputStream in) throws IOException {
+        Log.d(TAG, "getTempo");
         // Get the first event
         int ret=0;
         in.mark(BUF_LEN);
         MidiEvent ev = getEvent(in);
-        while (!ev.isEndOfTrack() && ret==0) {
+        int count = 1;
+        while (!ev.isEndOfTrack() && ret==0 && count <=10) {
             if (ev.mEventType == MidiEvent.TYPE_META_EVENT &&
                     (ev.mMetaEventType == MidiEvent.META_EVENT_TYPE_SET_TEMPO)) {
                 ret = ev.getTempo();
             }
             // Get the next event
             ev = getEvent(in);
+            ++count;
         }
         in.reset();
         return (ret==0?DEFAULT_TEMPO:ret);

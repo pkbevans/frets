@@ -12,6 +12,15 @@ import com.bondevans.frets.fretview.FretView;
 public class FretEditView extends FretView implements View.OnTouchListener {
     private static final String TAG = FretEditView.class.getSimpleName();
     private GestureDetector gestureDetector;
+    private FretEditListener fretEditListener;
+
+    interface FretEditListener {
+        void OnFretSelected(int fret);
+    }
+
+    public void setFretEditListener(FretEditListener fretEditListener) {
+        this.fretEditListener = fretEditListener;
+    }
 
     public FretEditView(Context context) {
         super(context);
@@ -64,6 +73,8 @@ public class FretEditView extends FretView implements View.OnTouchListener {
         @Override
         public void onLongPress(MotionEvent e) {
             Log.d(TAG, "LONG PRESS");
+            // Work out which fret we are on with a long press
+            fretEditListener.OnFretSelected(getFret(e.getX()));
             super.onLongPress(e);
         }
 
