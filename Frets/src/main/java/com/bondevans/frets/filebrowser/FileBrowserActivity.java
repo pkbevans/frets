@@ -1,14 +1,10 @@
 package com.bondevans.frets.filebrowser;
 
-import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -24,15 +20,12 @@ import com.bondevans.frets.midi.MidiImporter;
 import com.bondevans.frets.utils.Log;
 
 import java.io.File;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class FileBrowserActivity extends AppCompatActivity implements
         FileBrowserFragment.OnFileSelectedListener {
     private static final String TAG = "FileBrowserActivity";
     private static final int REFRESH_ID = Menu.FIRST + 16;
     private static final int UP_ID = Menu.FIRST + 17;
-    private static final int REQUEST_CODE_READ_STORAGE_PERMISSION = 4523;
     private FileBrowserFragment fileBrowserFragment = null;
     private boolean mUpEnabled = false;
     private Menu mMenu = null;
@@ -42,7 +35,6 @@ public class FileBrowserActivity extends AppCompatActivity implements
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "HELLO onCreate");
-        checkFileAccessPermission();
         setContentView(R.layout.filebrowser_activity);// This is the xml with all the different frags
         getActionBar();
         FragmentManager fm = getSupportFragmentManager();
@@ -162,25 +154,6 @@ public class FileBrowserActivity extends AppCompatActivity implements
             }
         }
         mUpEnabled = enable;
-    }
-
-    private void checkFileAccessPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            Log.d(TAG, "checkFileAccessPermission 1");
-            if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                Log.d(TAG, "checkFileAccessPermission 2");
-                // Need to request permission from the user
-                String[] perms = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE};
-                requestPermissions(perms, REQUEST_CODE_READ_STORAGE_PERMISSION);
-            }
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        // TODO need to handle user not allowing access.
-        Log.d(TAG, "onRequestPermissionsResult");
     }
 
     @Override

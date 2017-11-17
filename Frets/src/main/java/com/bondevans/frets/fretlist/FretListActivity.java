@@ -1,11 +1,15 @@
 package com.bondevans.frets.fretlist;
 
+import android.Manifest;
 import android.app.DialogFragment;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -26,6 +30,8 @@ import com.firebase.client.AuthData;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 
+import static android.support.v4.content.PermissionChecker.PERMISSION_DENIED;
+
 public class FretListActivity extends AppCompatActivity {
     private static final String TAG = FretListActivity.class.getSimpleName();
     private static final String SETTINGS_KEY_PASSWORD = "pwd";
@@ -35,12 +41,14 @@ public class FretListActivity extends AppCompatActivity {
     private static final String TAG_SIGNUP = "SignUp";
     private static final String SETTINGS_KEY_UID = "Uid";
     private static final String SETTINGS_KEY_USERNAME = "Username";
+    private static final int REQUEST_CODE_READ_STORAGE_PERMISSION = 4523;
     private Firebase mFirebaseAuthRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.fretlist_activity);
+        checkFileAccessPermission();
         authenticateUser();
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.tool_bar); // Attaching the layout to the toolbar object
@@ -217,6 +225,28 @@ public class FretListActivity extends AppCompatActivity {
             // Not authenticated - show the Login/registration screen next time
         }
         editor.apply(); // Use apply rather than commit to do it in background
+    }
+
+    private void checkFileAccessPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Log.d(TAG, "checkFileAccessPermission 1");
+            if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                Log.d(TAG, "checkFileAccessPermission 2");
+                // Need to request permission from the user
+                String[] perms = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE};
+                requestPermissions(perms, REQUEST_CODE_READ_STORAGE_PERMISSION);
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if( requestCode == REQUEST_CODE_READ_STORAGE_PERMISSION && grantResults[0] == PERMISSION_DENIED){
+            // Handle user not allowing access.
+            Toast.makeText(this, getString(R.string.permission_required), Toast.LENGTH_SHORT).show();
+        }
+        Log.d(TAG, "onRequestPermissionsResult");
     }
 
     /**

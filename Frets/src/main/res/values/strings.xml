@@ -88,6 +88,7 @@
     <string name="group_frets">Do you want to group the notes around fret: %1$s</string>
     <string name="solo_track_is_drums">Oi numbnuts.  The Solo track can\'t be a drum track!</string>
     <string name="midi_file_error">There was a problem importing the midi file:</string>
+    <string name="permission_required">You won\'t be able to import Midi files if you don\'t allow access to the disk</string>
 
     <string-array name="midi_instrument_names">
         <item>Acoustic Grand Piano</item>

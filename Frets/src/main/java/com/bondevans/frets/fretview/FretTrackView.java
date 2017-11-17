@@ -100,6 +100,12 @@ public class FretTrackView extends FretView {
             Log.d(TAG, "LONG PRESS");
             super.onLongPress(e);
         }
+
+        @Override
+        public boolean onSingleTapConfirmed(MotionEvent e) {
+            Log.d(TAG, "onSingleTapConfirmed");
+            return super.onSingleTapConfirmed(e);
+        }
     }
 
     private static final int DISTANCE_FACTOR = 5;
