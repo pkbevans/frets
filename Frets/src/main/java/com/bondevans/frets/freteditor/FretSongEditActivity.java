@@ -40,12 +40,9 @@ public class FretSongEditActivity extends AppCompatActivity implements
     public static final String  KEY_EDITED_TRACK = "et";
     private static final int REQUEST_EDIT_TRACK = 8768;
     private static final int MAX_TRACKS = 2;
-    private static final String TOOMANYTRACKS = "7yytyi8";
     private FretSongEditFragment fretSongEditFragment = null;
     private Firebase mFirebaseRef;
     private ProgressBar progressBar;
-    private int mTrackBeingEdited;
-    private File mTrackTmpFile;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -75,7 +72,6 @@ public class FretSongEditActivity extends AppCompatActivity implements
         }
         else{
             Log.d(TAG, "CONFIG CHANGE");
-            mTrackBeingEdited=savedInstanceState.getInt(KEY_EDITED_TRACK);
         }
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.tool_bar); // Attaching the layout to the toolbar object
@@ -145,7 +141,6 @@ public class FretSongEditActivity extends AppCompatActivity implements
     @Override
     public void onSaveInstanceState(Bundle outState) {
         Log.d(TAG, "HELLO on SaveInstanceState");
-        outState.putInt(KEY_EDITED_TRACK, mTrackBeingEdited);
         super.onSaveInstanceState(outState);
     }
 
@@ -243,10 +238,11 @@ public class FretSongEditActivity extends AppCompatActivity implements
     @Override
     public void onTrackSelected(int track) {
         // Instantiate a new fragment.
-        mTrackBeingEdited = track;
+        fretSongEditFragment.setTrackBeingEdited(track);
         // Write out the track to a temporary file
-        mTrackTmpFile = new File(this.getExternalFilesDir(null), fretSongEditFragment.getFretSong().getName()+"-Track-"+track+ "tmp.xml");
-        saveTrackToTempFile(mTrackTmpFile, track);
+        File tmpFile = new File(this.getExternalFilesDir(null), fretSongEditFragment.getFretSong().getName()+"-Track-"+track+ "tmp.xml");
+        fretSongEditFragment.setTrackTmpFile(tmpFile);
+        saveTrackToTempFile(tmpFile, track);
         fretSongEditFragment.setEdited(true);
     }
 
@@ -299,12 +295,12 @@ public class FretSongEditActivity extends AppCompatActivity implements
         if (requestCode == REQUEST_EDIT_TRACK && resultCode == FretSongEditActivity.RESULT_EDITED) {
             Log.d(TAG, "HELLO EDIT_FRET Finished");
             // Reload the fretTrack because it has been edited
-            TrackLoaderTask trackLoaderTask = new TrackLoaderTask(mTrackTmpFile);
+            TrackLoaderTask trackLoaderTask = new TrackLoaderTask(fretSongEditFragment.getTrackTmpFile());
             trackLoaderTask.setFileLoadedListener(new TrackLoaderTask.FileLoadedListener() {
                 @Override
                 public void OnFileLoaded(FretTrack fretTrack) {
                     Log.d(TAG, "setFretTrack file loaded");
-                    fretSongEditFragment.getFretSong().updateTrack(mTrackBeingEdited, fretTrack);
+                    fretSongEditFragment.getFretSong().updateTrack(fretSongEditFragment.getTrackBeingEdited(), fretTrack);
                 }
                 @Override
                 public void OnError(String msg) {

@@ -112,5 +112,17 @@ public class FretEvent extends FretBase {
     public String dbg(){
         return "TRACK:"+track+" TICKS:"+ deltaTicks;
     }
+    /*
+     * Returns a List of notes that are turned ON on this event
+     */
+    public List<Integer> getOnNotes(){
+        List<Integer> notes = new ArrayList<>();
+        for (FretNote fretNote : fretNotes) {
+            if (fretNote.on) {
+                notes.add(fretNote.note);
+            }
+        }
+        return notes;
+    }
 }
 

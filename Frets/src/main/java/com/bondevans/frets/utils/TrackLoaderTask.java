@@ -18,6 +18,7 @@ public class TrackLoaderTask extends AsyncTask<Void, Void, String> {
     private FretTrack mFretTrack;
 
     public TrackLoaderTask(File file) {
+        Log.d(TAG, file.getAbsolutePath());
         this.file = file;
     }
 

@@ -125,6 +125,10 @@ public class FretTrackEditActivity extends AppCompatActivity {
             });
             fileWriterTask.execute();
         }
+        else if(finish){
+            // Track hasn't been edited
+            FretTrackEditActivity.this.finish();
+        }
     }
 
     private void showSaveFileDialog() {
@@ -157,7 +161,7 @@ public class FretTrackEditActivity extends AppCompatActivity {
      * @param file temporary Track file
      * @param track Track number (not curently used)
      */
-    public void loadFretTrack(File file, final int track) {
+    private void loadFretTrack(File file, final int track) {
         Log.d(TAG, "setFretTrack");
         progressBar.setVisibility(View.VISIBLE);
         TrackLoaderTask trackLoaderTask = new TrackLoaderTask(file);

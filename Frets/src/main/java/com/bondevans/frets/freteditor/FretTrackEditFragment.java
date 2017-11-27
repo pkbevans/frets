@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.HorizontalScrollView;
+import android.widget.TextView;
 
 import com.bondevans.frets.R;
 import com.bondevans.frets.fretview.FretEvent;
@@ -18,6 +19,7 @@ import com.bondevans.frets.fretview.FretTrack;
 import com.bondevans.frets.fretview.FretView;
 import com.bondevans.frets.instruments.FretGuitarStandard;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class FretTrackEditFragment extends Fragment {
@@ -31,6 +33,7 @@ public class FretTrackEditFragment extends Fragment {
     private int mCurrentEvent = 0;
     private FretPosition mFretPosition;
     private boolean mEdited = false;
+    private TextView mEventText;
 
     public FretTrackEditFragment() {
     }
@@ -97,11 +100,13 @@ public class FretTrackEditFragment extends Fragment {
             }
         });
 
+        mEventText = (TextView)myView.findViewById(R.id.event);
         if (savedInstanceState != null) {
             Log.d(TAG, "savedInstanceState != null");
             // Must be orientation change
             mTrackName.setText(mFretTrack.getName());
             mFretEditView.setNotes(mFretTrack.fretEvents.get(mCurrentEvent));
+            mEventText.setText((mCurrentEvent+1)+"/"+mFretTrack.fretEvents.size());
         }
         Log.d(TAG, "onCreateView-end");
         return myView;
@@ -132,8 +137,13 @@ public class FretTrackEditFragment extends Fragment {
 
         mFretEditView.setNotes(mFretTrack.fretEvents.get(mCurrentEvent));
         mFretEditView.invalidate();
+        setEventText();
+        // TODO Play the note(s) as well
     }
 
+    private void setEventText(){
+        mEventText.setText((mCurrentEvent+1)+"/"+mFretTrack.fretEvents.size());
+    }
     /**
      * Set the <code>FretTrack</code>
      *
@@ -145,6 +155,8 @@ public class FretTrackEditFragment extends Fragment {
         mTrackName.setText(mFretTrack.getName());
         mCurrentEvent = 0;
         mFretEditView.setNotes(mFretTrack.fretEvents.get(mCurrentEvent));
+        mFretEditView.invalidate();
+        setEventText();
     }
 
     /**
@@ -153,20 +165,30 @@ public class FretTrackEditFragment extends Fragment {
      * @param up note is moved to a higher string if true, lower if false
      */
     private void moveNotes(boolean up) {
-        // Get current event
-        FretEvent fretEvent = mFretTrack.fretEvents.get(mCurrentEvent);
-        // Get the list of notes at current event
-        List<FretNote> notes = fretEvent.fretNotes;
-        // For each note, get the new position
-        for (FretNote fretNote : notes) {
-            // Ignore OFF NOTES
-            if (fretNote.on) {
-                // Get the new position
-                Log.d(TAG, "moveNotes OLD:" + fretNote.toString());
-                mFretPosition.moveNoteOneString(fretNote, up);
-                Log.d(TAG, "moveNotes NEW:" + fretNote.toString());
-                mEdited = true;
+        // Save current Note(s)
+        List<Integer> saveNotes = new ArrayList(mFretTrack.fretEvents.get(mCurrentEvent).getOnNotes());
+        int event = mCurrentEvent;
+        // Move the current note(s) and also move the notes in the next event if they are the same
+        while(event<mFretTrack.fretEvents.size() &&
+                (saveNotes.equals(mFretTrack.fretEvents.get(event).getOnNotes()) ||
+                        // Ignore events that only have off notes
+                        !mFretTrack.fretEvents.get(event).hasOnNotes()) ) {
+            // Get event
+            FretEvent fretEvent = mFretTrack.fretEvents.get(event);
+            // Get the list of notes at event
+            List<FretNote> notes = fretEvent.fretNotes;
+            // For each note, get the new position
+            for (FretNote fretNote : notes) {
+                // Ignore OFF NOTES
+                if (fretNote.on) {
+                    // Get the new position
+                    Log.d(TAG, "moveNotes OLD:" + fretNote.toString());
+                    mFretPosition.moveNoteOneString(fretNote, up);
+                    Log.d(TAG, "moveNotes NEW:" + fretNote.toString());
+                    mEdited = true;
+                }
             }
+            ++event;
         }
     }
 
@@ -205,6 +227,7 @@ public class FretTrackEditFragment extends Fragment {
         for (FretEvent fretEvent: mFretTrack.fretEvents) {
             mFretPosition.getFretPositions(fretEvent.fretNotes, targetFret);
         }
+        mFretEditView.invalidate();
         mEdited=true;
     }
 }

@@ -21,6 +21,7 @@ import com.bondevans.frets.fretview.FretSong;
 import com.bondevans.frets.fretview.FretTrack;
 import com.bondevans.frets.utils.Log;
 
+import java.io.File;
 import java.util.ArrayList;
 
 import static android.R.layout.simple_spinner_item;
@@ -32,6 +33,8 @@ public class FretSongEditFragment extends ListFragment {
     private boolean mIsEdited = false;
     private EditText mSongName;
     private EditText mKeywords;
+    private File mTrackTmpFile;
+    private int mTrackBeingEdited;
 
     public interface OnTrackSelectedListener {
         void onTrackSelected(int track);
@@ -312,5 +315,21 @@ public class FretSongEditFragment extends ListFragment {
 
     public FretSong getFretSong() {
         return mFretSong;
+    }
+
+    public int getTrackBeingEdited() {
+        return mTrackBeingEdited;
+    }
+
+    public void setTrackBeingEdited(int trackBeingEdited) {
+        this.mTrackBeingEdited = trackBeingEdited;
+    }
+
+    public File getTrackTmpFile() {
+        return mTrackTmpFile;
+    }
+
+    public void setTrackTmpFile(File trackTmpFile) {
+        this.mTrackTmpFile = trackTmpFile;
     }
 }
