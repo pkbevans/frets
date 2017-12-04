@@ -20,15 +20,12 @@ import com.bondevans.frets.fretview.FretNote;
 import com.bondevans.frets.fretview.FretSong;
 import com.bondevans.frets.fretview.FretTrack;
 import com.bondevans.frets.fretview.FretTrackView;
+import com.bondevans.frets.midi.Midi;
 
 import org.billthefarmer.mididriver.MidiDriver;
 
 public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStartListener {
     private static final String TAG = FretViewFragment.class.getSimpleName();
-    private static final int NOTE_ON=0x90;
-    private static final int NOTE_OFF=0x80;
-    private static final int PITCH_WHEEL=0xE0;
-    private static final int SET_INSTRUMENT=0xC0;
     private FretTrackView mFretTrackView;
     private TextView mTrackName;
     private ImageButton playPauseButton;
@@ -193,7 +190,7 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
     }
     private void setMidiInstrument(int channel, int instrument) {
         byte[] event = new byte[2];
-        event[0] = (byte) (SET_INSTRUMENT | channel);
+        event[0] = (byte) (Midi.SET_INSTRUMENT | channel);
         event[1] = (byte) instrument;
         mMidiDriver.write(event);
     }
@@ -276,7 +273,7 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
         }
         if(fretEvent.bend>0){
             // Send pitch Bend message (will alter current note playing)
-            midiBuffer[0] = (byte) (PITCH_WHEEL | fretEvent.track);
+            midiBuffer[0] = (byte) (Midi.PITCH_WHEEL | fretEvent.track);
             midiBuffer[1] = (byte) (fretEvent.bend & 0x7F);
             midiBuffer[2] = (byte) ((byte) (fretEvent.bend >> 7) & 0x7F);
             sendMidi(midiBuffer);
@@ -285,7 +282,7 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
 
     private void sendMidiNote(FretNote fretNote, int channel) {
 //        Log.d(TAG, (fretNote.on?"NOTE ON": "NOTE OFF")+ " note: "+ fretNote.note+ " to channel "+channel+"");
-        midiBuffer[0] = (byte) (fretNote.on ? (NOTE_ON | channel) : (NOTE_OFF | channel));
+        midiBuffer[0] = (byte) (fretNote.on ? (Midi.NOTE_ON | channel) : (Midi.NOTE_OFF | channel));
         // Note value
         midiBuffer[1] = (byte) fretNote.note;
         // Velocity - Hardcoded volume for NOTE_ON and zero for NOTE_OFF - TODO Dont hardcode - use the volume from the midi file
@@ -300,7 +297,7 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
         Log.d(TAG, "Sending NEW ALL NOTES OFF");
         for(int channel=0;channel<mFretSong.tracks();channel++) {
             for (int noteValue = 0; noteValue < 128; noteValue++) {
-                midiBuffer[0] = (byte) (NOTE_OFF | (mFretSong.getTrack(channel).isDrumTrack()?MIDI_CHANNEL_DRUMS:channel));
+                midiBuffer[0] = (byte) (Midi.NOTE_OFF | (mFretSong.getTrack(channel).isDrumTrack()?MIDI_CHANNEL_DRUMS:channel));
                 // Note value
                 midiBuffer[1] = (byte) noteValue;
                 // Velocity - ZERO volume

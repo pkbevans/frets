@@ -1,5 +1,6 @@
 package com.bondevans.frets.freteditor;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -18,6 +19,7 @@ import com.bondevans.frets.fretview.FretPosition;
 import com.bondevans.frets.fretview.FretTrack;
 import com.bondevans.frets.fretview.FretView;
 import com.bondevans.frets.instruments.FretGuitarStandard;
+import com.bondevans.frets.midiService.MidiService.OnSendMidiListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +29,8 @@ public class FretTrackEditFragment extends Fragment {
     private static final int NOTE_NEXT = 1;
     private static final int NOTE_PREV = 2;
     private static final java.lang.String GROUP_NOTES = "grp";
+    static final int DEFAULT_CHANNEL = 0;
+    private static final int NOTE_LENGTH = 400;
     private FretEditView mFretEditView;
     private EditText mTrackName;
     FretTrack mFretTrack;
@@ -34,6 +38,20 @@ public class FretTrackEditFragment extends Fragment {
     private FretPosition mFretPosition;
     private boolean mEdited = false;
     private TextView mEventText;
+    private OnSendMidiListener mOnSendMidiListener;
+    private boolean mInstrumentSet=false;
+
+    @Override
+    public void onAttach(Context context) {
+        Log.d(TAG, "HELLO onAttach");
+        super.onAttach(context);
+        try {
+            mOnSendMidiListener = (OnSendMidiListener) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString()
+                    + " must implement " + OnSendMidiListener.class.getSimpleName());
+        }
+    }
 
     public FretTrackEditFragment() {
     }
@@ -106,7 +124,8 @@ public class FretTrackEditFragment extends Fragment {
             // Must be orientation change
             mTrackName.setText(mFretTrack.getName());
             mFretEditView.setNotes(mFretTrack.fretEvents.get(mCurrentEvent));
-            mEventText.setText((mCurrentEvent+1)+"/"+mFretTrack.fretEvents.size());
+            setEventText();
+            mInstrumentSet=false;
         }
         Log.d(TAG, "onCreateView-end");
         return myView;
@@ -138,11 +157,17 @@ public class FretTrackEditFragment extends Fragment {
         mFretEditView.setNotes(mFretTrack.fretEvents.get(mCurrentEvent));
         mFretEditView.invalidate();
         setEventText();
-        // TODO Play the note(s) as well
+        // Play the note(s) as well
+        // Set Midi Instrument if first time
+        if(!mInstrumentSet) {
+            mOnSendMidiListener.setMidiInstrument(DEFAULT_CHANNEL, mFretTrack.getMidiInstrument());
+            mInstrumentSet= true;
+        }
+        mOnSendMidiListener.sendMidiNotes(mFretTrack.fretEvents.get(mCurrentEvent),DEFAULT_CHANNEL, NOTE_LENGTH);
     }
 
     private void setEventText(){
-        mEventText.setText((mCurrentEvent+1)+"/"+mFretTrack.fretEvents.size());
+        mEventText.setText(getString(R.string.event_count,(mCurrentEvent+1),mFretTrack.fretEvents.size()));
     }
     /**
      * Set the <code>FretTrack</code>
