@@ -95,7 +95,7 @@ public class FretSongEditFragment extends ListFragment {
      */
     @Override
     public void onPause() {
-        Log.d(TAG, "HELLO Pausing");
+        Log.d(TAG, "onPause");
         super.onPause();
     }
 
@@ -104,7 +104,7 @@ public class FretSongEditFragment extends ListFragment {
      */
     @Override
     public void onResume() {
-        Log.d(TAG, "HELLO Resuming");
+        Log.d(TAG, "onResume");
         super.onResume();
         if (mFretSong != null) {
             setUpListView();
@@ -113,13 +113,13 @@ public class FretSongEditFragment extends ListFragment {
 
     @Override
     public void onStart() {
-        Log.d(TAG, "HELLO onStart");
+        Log.d(TAG, "onStart");
         super.onStart();
     }
 
     @Override
     public void onStop() {
-        Log.d(TAG, "HELLO stopping");
+        Log.d(TAG, "onStop");
         super.onStop();
     }
 
@@ -128,7 +128,7 @@ public class FretSongEditFragment extends ListFragment {
      */
     @Override
     public void onDestroy() {
-        Log.d(TAG, "HELLO Being Destroyed");
+        Log.d(TAG, "onDestroy");
         super.onDestroy();
     }
 
