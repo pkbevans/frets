@@ -85,7 +85,7 @@ public class FretSongEditActivity extends AppCompatActivity implements
      */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.fretedit_menu, menu);
+        getMenuInflater().inflate(R.menu.fret_songedit_menu, menu);
         return true;
     }
 
@@ -165,6 +165,7 @@ public class FretSongEditActivity extends AppCompatActivity implements
         }
         else if (fretSongEditFragment != null && fretSongEditFragment.isEdited()) {
             Log.d(TAG, "saving Song");
+            getSong().setTrackInEvents();
             final File file = new File(getIntent().getData().getPath());
             Log.d(TAG, "HELLO Writing to file[" + file.toString() + "]");
             FileWriterTask fileWriterTask = new FileWriterTask(file, fretSongEditFragment.getFretSong().toString());
@@ -317,13 +318,14 @@ public class FretSongEditActivity extends AppCompatActivity implements
     private void mergeTracks() {
         // Start off with the solo track
         getSong().getTrack(getSong().getSoloTrack()).dump("BEFORE");
-        TrackMerger trackMerger = new TrackMerger(getSong().getTrack(getSong().getSoloTrack()).fretEvents, getSong().getSoloTrack());
+        getSong().setTrackInEvents();
+        TrackMerger trackMerger = new TrackMerger(getSong().getTrack(getSong().getSoloTrack()).fretEvents);
         // then merge in all the other tracks
         int track=0;
         while(track<getSong().tracks()){
             if(track!=getSong().getSoloTrack()) {//dont want the solo track twice
                 getSong().getTrack(track).dump("MERGING IN track:"+track);
-                trackMerger.mergeTrack(getSong().getTrack(track).fretEvents, track);
+                trackMerger.mergeTrack(getSong().getTrack(track).fretEvents);
                 getSong().getTrack(getSong().getSoloTrack()).dump("AFTER merging track:"+track);
                 // Remove the events from the merged-in tracks.  No longer required.
                 getSong().getTrack(track).removeEvents();

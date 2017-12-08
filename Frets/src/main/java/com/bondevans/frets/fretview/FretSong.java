@@ -28,7 +28,7 @@ public class FretSong extends FretBase {
      * @param keywords keywords for this fret
      * @param tpqn Ticks per quarter note
      * @param bpm Beats Per Minute
-     * @param fretTracks List of fret events
+     * @param fretTracks List of FretTracks
      */
     public FretSong(String name, String keywords, int tpqn, int bpm, List<FretTrack> fretTracks){
         this.name = name;
@@ -168,5 +168,14 @@ public class FretSong extends FretBase {
         fretTracks.set(track,fretTrack);
     }
 
+    /**
+     * sets the FretEvent.track attribute for all events in all tracks
+     */
+    public void setTrackInEvents(){
+        int track=0;
+        for(FretTrack fretTrack: fretTracks){
+            fretTrack.setTrackInEvents(track++);
+        }
+    }
 }
 

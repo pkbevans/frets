@@ -8,28 +8,28 @@ import android.os.IBinder;
 import android.os.Message;
 
 import com.bondevans.frets.fretview.FretEvent;
-import com.bondevans.frets.fretview.FretNote;
-import com.bondevans.frets.midi.Midi;
 import com.bondevans.frets.utils.Log;
 
 import org.billthefarmer.mididriver.MidiDriver;
 
-import static com.bondevans.frets.midi.Midi.NOTE_OFF;
+import static com.bondevans.frets.midi.Midi.*;
 
 public class MidiService extends Service implements MidiDriver.OnMidiStartListener {
     private static final String TAG = MidiService.class.getSimpleName();
     private static final int SET_INSTRUMENT=0xC0;
+    private static final int NO_BEND = 0;
+    private static final int NO_NOTE = 0;
     // Binder given to clients
     private final IBinder mBinder = new LocalBinder();
     private MidiDriver mMidiDriver;
     private byte[] midiBuffer = new byte[3];
     private byte[] midiNoteOffBuffer = new byte[3];
-    private NoteOffHandler mNoteOffHandler;
+    private MidiHandler mMidiHandler;
 
     public interface OnSendMidiListener {
         void setMidiInstrument(int channel, int instrument);
         void sendMidiNotes(FretEvent fretEvent, int channel, int milliSecs);
-        void allNotesOff(int channel);
+//        void allNotesOff(int channel);
     }
 
     @Override
@@ -72,8 +72,7 @@ public class MidiService extends Service implements MidiDriver.OnMidiStartListen
         Log.d(TAG, "numChannels: " + config[1]);
         Log.d(TAG, "sampleRate: " + config[2]);
         Log.d(TAG, "mixBufferSize: " + config[3]);
-//        mNotesOffRunnable = new NoteOffRunnable();
-        mNoteOffHandler = new NoteOffHandler();
+        mMidiHandler = new MidiHandler();
     }
 
     @Override
@@ -102,8 +101,7 @@ public class MidiService extends Service implements MidiDriver.OnMidiStartListen
     }
 
     /** methods for clients */
-    public void sendMidi(byte[] buffer) {
-//        Log.d(TAG, "sendMidi");
+    private void sendMidi(byte[] buffer) {
         mMidiDriver.write(buffer);
     }
 
@@ -122,34 +120,31 @@ public class MidiService extends Service implements MidiDriver.OnMidiStartListen
      * Sends Midi notes to the synth
      * @param fretEvent FretEvent  containing the notes
      * @param channel the Midi channel
-     * @param offMilliSecs if > zero this is the number of millisecs before a note off message is sent
+     * @param offMilli if > zero this is the number of millisecs before a note off message is sent
      */
-    public void sendMidiNotes(FretEvent fretEvent, int channel, int offMilliSecs) {
+    public void sendMidiNotes(FretEvent fretEvent, int channel, int offMilli) {
         if (fretEvent.fretNotes != null) {
             for (int i = 0; i < fretEvent.fretNotes.size(); i++) {
                 // Send the MIDI notes
-                sendMidiNote(fretEvent.fretNotes.get(i), channel);
-                if(offMilliSecs>0) {
-                    Log.d(TAG, "sleep: Note:"+ fretEvent.fretNotes.get(i).note);
-                    mNoteOffHandler.sleep(offMilliSecs, fretEvent.fretNotes.get(i).note, channel);
+                mMidiHandler.send(0, fretEvent.fretNotes.get(i).on?NOTE_ON:NOTE_OFF, fretEvent.fretNotes.get(i).note, channel, NO_BEND);
+                if(offMilli>0) {
+                    // Queue up a NOTE_OFF
+                    mMidiHandler.send(offMilli, NOTE_OFF, fretEvent.fretNotes.get(i).note, channel, NO_BEND);
                 }
             }
         }
         if(fretEvent.bend>0){
             // Send pitch Bend message (will alter current note playing)
-            midiBuffer[0] = (byte) (Midi.PITCH_WHEEL | fretEvent.track);
-            midiBuffer[1] = (byte) (fretEvent.bend & 0x7F);
-            midiBuffer[2] = (byte) ((byte) (fretEvent.bend >> 7) & 0x7F);
-            sendMidi(midiBuffer);
+            mMidiHandler.send(offMilli, PITCH_WHEEL, NO_NOTE, channel, fretEvent.bend);
         }
     }
-    private void sendMidiNote(FretNote fretNote, int channel) {
-        Log.d(TAG, (fretNote.on?"NOTE ON": "NOTE OFF")+ " note: "+ fretNote.note+ " to channel "+channel+"");
-        midiBuffer[0] = (byte) (fretNote.on ? (Midi.NOTE_ON | channel) : (NOTE_OFF | channel));
+    private void sendMidiNote(int what, int note, int channel) {
+//        Log.d(TAG, (what == NOTE_ON?"NOTE ON": "NOTE OFF")+ " note: "+ note+ " to channel "+channel+"");
+        midiBuffer[0] = (byte) (what| channel);
         // Note value
-        midiBuffer[1] = (byte) fretNote.note;
-        // Velocity - Hardcoded volume for NOTE_ON and zero for NOTE_OFF - TODO Dont hardcode - use the volume from the midi file
-        midiBuffer[2] = (byte) (fretNote.on ? 0x60 : 0x00);
+        midiBuffer[1] = (byte) note;
+        // Velocity - Hardcoded volume for NOTE_ON and zero for NOTE_OFF
+        midiBuffer[2] = (byte) (what == NOTE_ON? 0x60 : 0x00);
         sendMidi(midiBuffer);
     }
     private void sendMidiNoteOff(int note, int channel){
@@ -161,10 +156,17 @@ public class MidiService extends Service implements MidiDriver.OnMidiStartListen
         sendMidi(midiNoteOffBuffer);
     }
 
+    private void sendMidiBend(int bend, int channel){
+        midiBuffer[0] = (byte) (PITCH_WHEEL | channel);
+        midiBuffer[1] = (byte) (bend & 0x7F);
+        midiBuffer[2] = (byte) ((byte) (bend >> 7) & 0x7F);
+        sendMidi(midiBuffer);
+    }
+
     public void allNotesOff(int channel){
         Log.d(TAG, "Sending NEW ALL NOTES OFF");
             for (int noteValue = 0; noteValue < 128; noteValue++) {
-                midiBuffer[0] = (byte) (Midi.NOTE_OFF | channel);
+                midiBuffer[0] = (byte) (NOTE_OFF | channel);
                 // Note value
                 midiBuffer[1] = (byte) noteValue;
                 // Velocity - ZERO volume
@@ -173,17 +175,28 @@ public class MidiService extends Service implements MidiDriver.OnMidiStartListen
             }
     }
 
-    class NoteOffHandler extends Handler{
+    class MidiHandler extends Handler{
         @Override
         public void handleMessage(Message msg) {
-            Log.d(TAG, "handleMessage: Note:"+msg.arg1+" channel: "+msg.arg2);
-            sendMidiNoteOff(msg.arg1, msg.arg2);
+//            Log.d(TAG, "handleMessage: Note:"+msg.arg1+" channel: "+msg.arg2);
+            if(msg.what==PITCH_WHEEL){
+                sendMidiBend(msg.arg1, msg.arg2);
+            }
+            else {
+                sendMidiNote(msg.what, msg.arg1, msg.arg2);
+            }
         }
 
-        void sleep(long delayMillis, int note, int channel) {
+        void send(long delayMillis, int what, int note, int channel, int bend) {
             Message msg = obtainMessage();
-            msg.arg1=note;
-            msg.arg2=channel;
+            msg.what=what;
+            if(what==PITCH_WHEEL){
+                msg.arg1 = bend;
+            }
+            else {
+                msg.arg1 = note;
+            }
+            msg.arg2 = channel;
             sendMessageDelayed(msg, delayMillis);
         }
     }

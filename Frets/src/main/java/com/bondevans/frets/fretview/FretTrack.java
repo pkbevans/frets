@@ -111,6 +111,12 @@ public class FretTrack extends FretBase {
     public void removeEvents(){
         fretEvents.clear();
     }
+
+    public void setTrackInEvents(int track){
+        for(FretEvent fretEvent: fretEvents){
+            fretEvent.track = track;
+        }
+    }
     public void dump(String text) {
         Log.d(TAG, "DUMP "+text);
         Log.d(TAG, "TRACK,EV,TICKS,BEND");

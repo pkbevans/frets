@@ -11,17 +11,12 @@ public class TrackMerger {
     private Tracker t1;
     private Tracker t2;
 
-    public TrackMerger(List<FretEvent> events, int track){
+    public TrackMerger(List<FretEvent> events){
         this.mergedEvents = events;
         t1 = new Tracker(events);
-        // Set all events to specified track
-        for(FretEvent ev: events)ev.track=track;
     }
-    public void mergeTrack(List<FretEvent> events, int track){
+    public void mergeTrack(List<FretEvent> events){
         t2 = new Tracker(events);
-        // Set track number to specified track
-        Log.d(TAG, "mergeTrack:"+track);
-        for(FretEvent ev: events)ev.track=track;
         // merge t2 into t1
         doMerge();
     }

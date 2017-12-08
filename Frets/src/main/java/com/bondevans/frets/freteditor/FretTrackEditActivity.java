@@ -65,7 +65,7 @@ public class FretTrackEditActivity extends AppCompatActivity implements
      */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.fretedit_menu, menu);
+        getMenuInflater().inflate(R.menu.fret_trackedit_menu, menu);
         return true;
     }
 
@@ -237,13 +237,13 @@ public class FretTrackEditActivity extends AppCompatActivity implements
         }
     }
 
-    @Override
-    public void allNotesOff(int channel) {
-        if(mBound){
-            mService.allNotesOff(channel);
-        }
-        else{
-            Log.d(TAG, "TWIRLY 2");
-        }
-    }
+//    @Override
+//    public void allNotesOff(int channel) {
+//        if(mBound){
+//            mService.allNotesOff(channel);
+//        }
+//        else{
+//            Log.d(TAG, "TWIRLY 2");
+//        }
+//    }
 }

@@ -89,7 +89,7 @@
     <string name="solo_track_is_drums">Oi numbnuts.  The Solo track can\'t be a drum track!</string>
     <string name="midi_file_error">There was a problem importing the midi file:</string>
     <string name="permission_required">You won\'t be able to import Midi files if you don\'t allow access to the disk</string>
-    <string name="event_count">%2$d/%2$d</string>
+    <string name="event_count">%1$d/%2$d</string>
 
     <string-array name="midi_instrument_names">
         <item>Acoustic Grand Piano</item>
