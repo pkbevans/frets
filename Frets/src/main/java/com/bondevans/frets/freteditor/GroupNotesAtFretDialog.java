@@ -3,8 +3,8 @@ package com.bondevans.frets.freteditor;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.app.DialogFragment;
+import androidx.annotation.NonNull;
+import androidx.fragment.app.DialogFragment;
 import android.app.AlertDialog;
 
 import com.bondevans.frets.R;
