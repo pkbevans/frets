@@ -113,6 +113,7 @@ public class FretListActivity extends AppCompatActivity {
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
         Users user = new Users(settings.getString(SETTINGS_KEY_USERNAME, ""), settings.getString(SETTINGS_KEY_EMAIL, ""));
         String pwd = settings.getString(SETTINGS_KEY_PASSWORD, "");
+        Log.d(TAG, "PWD:"+pwd);
         if (pwd.isEmpty()) {
             Log.d(TAG, "HELLO No stored pwd - launching login dialog");
             // First time, so show login/registration dialog
