@@ -91,6 +91,10 @@ public class FretViewActivity extends AppCompatActivity {
         if (id == android.R.id.home) {
             onBackPressed();
         }
+        else if(id == R.id.action_edit) {
+            showFretEdit();
+            return true;
+        }
         else if(id == R.id.action_settings) {
             return true;
         }
