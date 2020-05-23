@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "995878487981",
+    "firebase_url": "https://fretboardplayer.firebaseio.com",
+    "project_id": "fretboardplayer",
+    "storage_bucket": "fretboardplayer.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:995878487981:android:80af50be5c80f8631f4324",
+        "android_client_info": {
+          "package_name": "com.bondevans.frets"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "995878487981-7nn75bn8desjtce0ajts8nodjo9k62nq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC6ICFxwl5BcrnxsXCq51m8b2MhtN0BfhY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "995878487981-7nn75bn8desjtce0ajts8nodjo9k62nq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

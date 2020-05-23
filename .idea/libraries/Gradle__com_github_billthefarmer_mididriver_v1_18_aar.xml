@@ -1,8 +1,8 @@
 <component name="libraryTable">
   <library name="Gradle: com.github.billthefarmer:mididriver:v1.18@aar">
     <CLASSES>
-      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/4e781314e232c22e6f3d9baa6d863994/mididriver-v1.18/jars/classes.jar!/" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/4e781314e232c22e6f3d9baa6d863994/mididriver-v1.18/res" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/116427478f7d5ec7f440f55a6444f58a/jetified-mididriver-v1.18/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/116427478f7d5ec7f440f55a6444f58a/jetified-mididriver-v1.18/res" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

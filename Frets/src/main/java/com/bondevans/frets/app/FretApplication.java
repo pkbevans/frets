@@ -1,7 +1,5 @@
 package com.bondevans.frets.app;
 
-import com.firebase.client.Firebase;
-
 /**
  * @author Paul Evans
  * @since 16/11/15
@@ -15,7 +13,7 @@ public class FretApplication extends android.app.Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        Firebase.setAndroidContext(this);
+//        Firebase.setAndroidContext(this);
     }
 
     public String getUID() {

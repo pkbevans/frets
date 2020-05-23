@@ -7,7 +7,7 @@ import android.widget.TextView;
 import com.bondevans.frets.firebase.FirebaseListAdapter;
 import com.bondevans.frets.firebase.dao.Songs;
 import com.bondevans.frets.R;
-import com.firebase.client.Query;
+import com.google.firebase.database.Query;
 
 /**
  * @author Paul evans

@@ -25,7 +25,8 @@ import com.bondevans.frets.utils.FileWriterTask;
 import com.bondevans.frets.utils.Log;
 import com.bondevans.frets.utils.SongLoaderTask;
 import com.bondevans.frets.utils.TrackLoaderTask;
-import com.firebase.client.Firebase;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,7 +42,7 @@ public class FretSongEditActivity extends AppCompatActivity implements
     private static final int REQUEST_EDIT_TRACK = 8768;
     private static final int MAX_TRACKS = 2;
     private FretSongEditFragment fretSongEditFragment = null;
-    private Firebase mFirebaseRef;
+    private DatabaseReference mFirebaseRef;
     private ProgressBar progressBar;
 
     @Override
@@ -62,7 +63,7 @@ public class FretSongEditActivity extends AppCompatActivity implements
 
         progressBar = (ProgressBar) findViewById(R.id.progress_bar);
 
-        mFirebaseRef = new Firebase(getString(R.string.firebase_url));
+        mFirebaseRef = FirebaseDatabase.getInstance().getReference();
 
         if (savedInstanceState == null) {
             //  We should have the song file in the intent

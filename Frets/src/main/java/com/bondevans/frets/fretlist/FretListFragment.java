@@ -21,16 +21,19 @@ import com.bondevans.frets.firebase.dao.Songs;
 import com.bondevans.frets.fretviewer.FretViewActivity;
 import com.bondevans.frets.utils.FileWriterTask;
 import com.bondevans.frets.utils.Log;
-import com.firebase.client.DataSnapshot;
-import com.firebase.client.Firebase;
-import com.firebase.client.FirebaseError;
-import com.firebase.client.ValueEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.io.File;
 
+import androidx.annotation.NonNull;
+
 public class FretListFragment extends ListFragment {
     private static final String TAG = FretListFragment.class.getSimpleName();
-    private Firebase mFirebaseRef;
+    private DatabaseReference mFirebaseRef;
     private FretListAdapter mFretListAdapter;
     private ProgressDialog progressDialog;
 
@@ -38,7 +41,7 @@ public class FretListFragment extends ListFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         // Setup our Firebase
-        mFirebaseRef = new Firebase(getString(R.string.firebase_url)).child("songs");
+        mFirebaseRef = FirebaseDatabase.getInstance().getReference().child("songs");
         // Setup the progress dialog that is displayed later
         progressDialog = new ProgressDialog(getActivity());
         progressDialog.setMessage(getString(R.string.buffering_msg));
@@ -46,8 +49,8 @@ public class FretListFragment extends ListFragment {
     }
 
     /* (non-Javadoc)
- * @see android.support.v4.app.ListFragment#onCreateView(android.view.LayoutInflater, android.view.ViewGroup, android.os.Bundle)
- */
+     * @see android.support.v4.app.ListFragment#onCreateView(android.view.LayoutInflater, android.view.ViewGroup, android.os.Bundle)
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -94,7 +97,7 @@ public class FretListFragment extends ListFragment {
         } else {
             Log.d(TAG, "NOT in cache: " + cacheFile.getName());
             // Get the SongContent from the server
-            Firebase songRef = new Firebase(getString(R.string.firebase_url)).child(SongContents.childName).child(song.getId());
+            DatabaseReference songRef = FirebaseDatabase.getInstance().getReference().child(SongContents.childName).child(song.getId());
             songRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
@@ -105,10 +108,10 @@ public class FretListFragment extends ListFragment {
                 }
 
                 @Override
-                public void onCancelled(FirebaseError firebaseError) {
+                public void onCancelled(@NonNull DatabaseError databaseError) {
                     progressDialog.hide();
-                    Log.d(TAG, "OOPS " + firebaseError.getMessage());
-                    Toast.makeText(FretListFragment.this.getActivity(), firebaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "OOPS " + databaseError.getMessage());
+                    Toast.makeText(FretListFragment.this.getActivity(), databaseError.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
         }
