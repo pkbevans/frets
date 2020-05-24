@@ -9,17 +9,6 @@
     android:orientation="vertical"
     tools:context=".fretviewer.FretViewActivity">
 
-    <TextView
-        android:id="@+id/track_name"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingEnd="@dimen/frets_padding"
-        android:paddingStart="@dimen/frets_padding"
-        android:layout_weight="0.05"
-        android:paddingBottom="@dimen/frets_padding"
-        android:paddingTop="@dimen/frets_padding"
-        android:textSize="@dimen/frets_textsize"/>
-
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

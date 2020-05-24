@@ -41,7 +41,7 @@ public class FretViewActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);                   // Setting toolbar as the ActionBar with setSupportActionBar() call
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowTitleEnabled(true);
-        progressBar = (ProgressBar) findViewById(R.id.progress_bar); // Attaching the layout to the toolbar object
+        progressBar = findViewById(R.id.progress_bar); // Attaching the layout to the toolbar object
 
         if (savedInstanceState == null) {
             //  We should have the song contents in the intent
