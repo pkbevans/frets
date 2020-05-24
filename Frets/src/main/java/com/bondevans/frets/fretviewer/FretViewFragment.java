@@ -27,7 +27,7 @@ import org.billthefarmer.mididriver.MidiDriver;
 public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStartListener {
     private static final String TAG = FretViewFragment.class.getSimpleName();
     private FretTrackView mFretTrackView;
-    private TextView mTrackName;
+//    private TextView mTrackName;
     private ImageButton playPauseButton;
     private SeekBar mSeekBar;
     private TextView mTempoText;
@@ -69,7 +69,7 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
                              Bundle savedInstanceState) {
         Log.d(TAG, "onCreateView");
         View myView = inflater.inflate(R.layout.fretview_layout, container, false);
-        mTrackName = (TextView) myView.findViewById(R.id.track_name);
+//        mTrackName = (TextView) myView.findViewById(R.id.track_name);
         mFretTrackView = (FretTrackView) myView.findViewById(R.id.fretview);
         mFretTrackView.setFretListener(new FretTrackView.FretListener() {
             @Override
@@ -110,7 +110,7 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
             Log.d(TAG, "savedInstanceState != null");
             // Must be orientation change
             setTrack(mFretSong.getTrack(mSoloTrack), mFretSong.getTpqn(), mTempo, mCurrentEvent);
-            mTrackName.setText(mFretSong.getTrackName(mSoloTrack));
+//            mTrackName.setText(mFretSong.getTrackName(mSoloTrack));
         }
         return myView;
     }
@@ -124,7 +124,7 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
         Log.d(TAG, "setFretSong");
         mFretSong = fretSong;
         mSoloTrack = mFretSong.getSoloTrack();
-        mTrackName.setText(mFretSong.getTrackName(mSoloTrack));
+//        mTrackName.setText(mFretSong.getTrackName(mSoloTrack));
         setTrack(mFretSong.getTrack(mSoloTrack), mFretSong.getTpqn(), mFretSong.getBpm(),0);
     }
 
