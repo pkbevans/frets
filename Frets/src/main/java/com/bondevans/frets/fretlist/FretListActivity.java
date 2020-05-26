@@ -10,15 +10,19 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.viewpager.widget.ViewPager;
+
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.bondevans.frets.R;
+import com.bondevans.frets.app.FretApplication;
 import com.bondevans.frets.filebrowser.FileBrowserActivity;
 import com.bondevans.frets.utils.Log;
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.IdpResponse;
+import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -38,9 +42,15 @@ public class FretListActivity extends AppCompatActivity {
         setContentView(R.layout.fretlist_activity);
         checkFileAccessPermission();
         authenticateUser();
+        FretListPagerAdapter fretListPagerAdapter = new FretListPagerAdapter(this, getSupportFragmentManager());
+        ViewPager viewPager = findViewById(R.id.view_pager);
+        viewPager.setAdapter(fretListPagerAdapter);
+        TabLayout tabs = findViewById(R.id.tabs);
+        tabs.setupWithViewPager(viewPager);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.tool_bar); // Attaching the layout to the toolbar object
         setSupportActionBar(toolbar);                   // Setting toolbar as the ActionBar with setSupportActionBar() call
+        getSupportActionBar().setTitle("");             // Empty string - since we are using the logo image
     }
 
     @Override
@@ -97,7 +107,8 @@ public class FretListActivity extends AppCompatActivity {
             // already signed in
             String msg = "HELLO email:"+ auth.getCurrentUser().getEmail();
             Log.d(TAG, msg);
-            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+            FretApplication app = (FretApplication) getApplicationContext();
+            app.setUID(auth.getCurrentUser().getUid());
         } else {
             Log.d(TAG, "HELLO 3");
             // not signed in
@@ -145,16 +156,18 @@ public class FretListActivity extends AppCompatActivity {
 
         if (requestCode == RC_SIGN_IN) {
             IdpResponse response = IdpResponse.fromResultIntent(data);
-
             if (resultCode == RESULT_OK) {
                 // Successfully signed in
                 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                 Log.d(TAG, "onActivityResult: SUCCESS");
-                // ...
+                //
+                FretApplication app = (FretApplication) getApplicationContext();
+                app.setUID(user.getUid());
             } else {
                 // Sign in failed. If response is null the user canceled the
                 // sign-in flow using the back button. Otherwise check
                 // response.getError().getErrorCode() and handle the error.
+                // TODO - what to do if user fails to login?
                 Log.d(TAG, "onActivityResult: FAILED - TODO");
             }
         }

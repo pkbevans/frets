@@ -1,4 +1,4 @@
-<LinearLayout
+<LinearLayout xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/container"
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
@@ -7,8 +7,9 @@
 
     <include
         android:id="@+id/tool_bar"
-        layout="@layout/toolbar">
-    </include>
+        layout="@layout/toolbar"
+        android:background="#FFFFFF"
+        app:titleTextColor="#ff83db"></include>
 
     <ProgressBar
         android:id="@+id/progress_bar"

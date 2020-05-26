@@ -4,4 +4,5 @@
     <color name="primary_dark_material_light">#ff83db</color>
     <color name="foreground_material_light">#379187</color>
     <color name="black">#2f0606</color>
+    <color name="frets_background">#ffffff </color>
 </resources>

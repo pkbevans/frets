@@ -22,8 +22,8 @@
     <fragment
         android:id="@+id/fragment"
         android:name="com.bondevans.frets.freteditor.FretTrackEditFragment"
-        xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:layout="@layout/frettrackedit_layout"/>
+        android:background="@color/frets_background"
+        tools:layout="@layout/frettrackedit_layout" />
 </LinearLayout>

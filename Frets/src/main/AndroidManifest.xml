@@ -1,47 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest package="com.bondevans.frets"
-          xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.bondevans.frets">
 
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    <uses-permission android:name="android.permission.READ_LOGS"/>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <uses-feature
         android:name="android.software.midi"
         android:required="true"/>
 
     <application
-        android:name="com.bondevans.frets.app.FretApplication"
+        android:name=".app.FretApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+
         <activity
-            android:name="com.bondevans.frets.fretviewer.FretViewActivity"
-            android:label="@string/app_name">
-        </activity>
-        <activity
-            android:name="com.bondevans.frets.filebrowser.FileBrowserActivity">
-        </activity>
-        <activity
-            android:name="com.bondevans.frets.fretlist.MidiTest">
-        </activity>
+            android:name=".fretviewer.FretViewActivity"
+            android:label="@string/app_name"></activity>
+        <activity android:name=".filebrowser.FileBrowserActivity"></activity>
+        <activity android:name=".fretlist.MidiTest"></activity>
         <activity
             android:name=".freteditor.FretSongEditActivity"
-            android:windowSoftInputMode="stateHidden">
-        </activity>
-        <activity
-            android:name=".freteditor.FretTrackEditActivity">
-        </activity>
-        <activity
-            android:name="com.bondevans.frets.fretlist.FretListActivity">
+            android:windowSoftInputMode="stateHidden"></activity>
+        <activity android:name=".freteditor.FretTrackEditActivity"></activity>
+        <activity android:name=".fretlist.FretListActivity">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
+                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <service android:name=".midiService.MidiService" />
     </application>
 

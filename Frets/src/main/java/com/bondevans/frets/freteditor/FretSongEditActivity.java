@@ -15,6 +15,7 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.bondevans.frets.R;
+import com.bondevans.frets.app.FretApplication;
 import com.bondevans.frets.firebase.FBWrite;
 import com.bondevans.frets.fretview.FretSong;
 import com.bondevans.frets.fretview.FretTrack;
@@ -149,7 +150,8 @@ public class FretSongEditActivity extends AppCompatActivity implements
         // Merge tracks into solo track and remove FretEvents from other tracks
         mergeTracks();
         // Write song to FireBase
-        FBWrite.addSong(mFirebaseRef, fretSongEditFragment.getFretSong());
+        FretApplication app = (FretApplication)getApplicationContext();
+        FBWrite.addSong(mFirebaseRef, fretSongEditFragment.getFretSong(), app.getUID());
         Toast.makeText(FretSongEditActivity.this, fretSongEditFragment.getFretSong().getName() + getString(R.string.published), Toast.LENGTH_SHORT).show();
         finish();   //Lets get outta here
     }

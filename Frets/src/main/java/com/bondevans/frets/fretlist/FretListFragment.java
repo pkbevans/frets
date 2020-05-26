@@ -1,6 +1,5 @@
 package com.bondevans.frets.fretlist;
 
-import android.app.ListFragment;
 import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
@@ -30,18 +29,50 @@ import com.google.firebase.database.ValueEventListener;
 import java.io.File;
 
 import androidx.annotation.NonNull;
+import androidx.fragment.app.ListFragment;
+import androidx.lifecycle.ViewModelProviders;
+
+import static com.firebase.ui.auth.AuthUI.getApplicationContext;
 
 public class FretListFragment extends ListFragment {
     private static final String TAG = FretListFragment.class.getSimpleName();
+    public static final int FRETLIST_TYPE_NONE = 0;
+    public static final int FRETLIST_TYPE_PUBLIC = 1;
+    public static final int FRETLIST_TYPE_PRIVATE = 2;
     private DatabaseReference mFirebaseRef;
     private FretListAdapter mFretListAdapter;
     private ProgressDialog progressDialog;
+    private PageViewModel pageViewModel;
+    private static final String ARG_SECTION_NUMBER = "section_number";
+    private static final String ARG_SECTION_TYPE = "section_number";
+    private int listType=FRETLIST_TYPE_NONE;
+
+    public static FretListFragment newInstance(int index, int type) {
+        FretListFragment fragment = new FretListFragment();
+        Bundle bundle = new Bundle();
+        bundle.putInt(ARG_SECTION_NUMBER, index);
+        bundle.putInt(ARG_SECTION_TYPE, type);
+        fragment.setArguments(bundle);
+        return fragment;
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        pageViewModel = ViewModelProviders.of(this).get(PageViewModel.class);
+        int index = 1;
+        if (getArguments() != null) {
+            index = getArguments().getInt(ARG_SECTION_NUMBER);
+            listType = getArguments().getInt(ARG_SECTION_TYPE);
+        }
+        pageViewModel.setIndex(index);
         // Setup our Firebase
-        mFirebaseRef = FirebaseDatabase.getInstance().getReference().child("songs");
+        if(listType == FRETLIST_TYPE_PUBLIC) {
+            mFirebaseRef = FirebaseDatabase.getInstance().getReference().child("songs");
+        }else{
+            FretApplication app = (FretApplication)getActivity().getApplicationContext();
+            mFirebaseRef = FirebaseDatabase.getInstance().getReference().child("users").child(app.getUID()).child("songs");
+        }
         // Setup the progress dialog that is displayed later
         progressDialog = new ProgressDialog(getActivity());
         progressDialog.setMessage(getString(R.string.buffering_msg));

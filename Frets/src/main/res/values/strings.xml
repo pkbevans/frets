@@ -221,5 +221,8 @@
         <item>Applause</item>
         <item>Gunshot</item>
     </string-array>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="my_frets_tab_text">My Frets</string>
+    <string name="public_frets_tab_text">Public Frets</string>
 
 </resources>

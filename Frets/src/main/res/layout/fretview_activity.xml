@@ -10,12 +10,14 @@
         android:id="@+id/tool_bar"
         layout="@layout/toolbar">
     </include>
+
     <ProgressBar
         android:id="@+id/progress_bar"
+        style="@android:style/Widget.ProgressBar.Horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        style="@android:style/Widget.ProgressBar.Horizontal"
         android:layout_gravity="center"
+        android:background="@color/frets_background"
         android:indeterminate="true"
         android:visibility="gone" />
 
