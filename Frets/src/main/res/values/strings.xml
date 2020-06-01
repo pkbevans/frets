@@ -83,7 +83,7 @@
     <string name="miditest">Midi Test</string>
     <string name="drums">drums</string>
     <string name="load_failed">Oops! File problem:</string>
-    <string name="too_many_tracks">You have too many tracks - maximum two</string>
+    <string name="too_many_tracks">You have too many tracks - maximum three</string>
     <string name="action_preview_song">Preview…</string>
     <string name="group_frets">Do you want to group the notes around fret: %1$s</string>
     <string name="solo_track_is_drums">Oi numbnuts.  The Solo track can\'t be a drum track!</string>

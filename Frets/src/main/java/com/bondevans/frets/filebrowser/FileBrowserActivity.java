@@ -44,8 +44,9 @@ public class FileBrowserActivity extends AppCompatActivity implements
         progressDialog.setMessage(getString(R.string.buffering_msg));
         progressDialog.setCancelable(false);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.tool_bar); // Attaching the layout to the toolbar object
+        Toolbar toolbar = findViewById(R.id.tool_bar); // Attaching the layout to the toolbar object
         setSupportActionBar(toolbar);                   // Setting toolbar as the ActionBar with setSupportActionBar() call
+        getSupportActionBar().setTitle("");             // Empty string - since we are using the logo image
     }
 
     /* (non-Javadoc)

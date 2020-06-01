@@ -46,6 +46,7 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
     private FretEvent mFretEvent;
     private int mTicksPerQtrNote;
     private int mSoloTrack;
+    private int mClickTrackSize;
 
     public FretViewFragment() {
     }
@@ -124,6 +125,10 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
         Log.d(TAG, "setFretSong");
         mFretSong = fretSong;
         mSoloTrack = mFretSong.getSoloTrack();
+        mClickTrackSize = mFretSong.getTrack(mFretSong.getClickTrack()).getClickTrackSize();
+        // Generate a list of CLick events
+        mFretSong.getTrack(mSoloTrack).generateClickEventList();
+        Log.d(TAG, "HELLO: ClickTrackSize"+mClickTrackSize);
 //        mTrackName.setText(mFretSong.getTrackName(mSoloTrack));
         setTrack(mFretSong.getTrack(mSoloTrack), mFretSong.getTpqn(), mFretSong.getBpm(),0);
     }
@@ -224,6 +229,11 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
             if (mFretEvent.tempo > 0) {
                 mTempo = mFretEvent.tempo;
             }
+            if(mFretEvent.isClickEvent()) {
+                // Update progress listener (so it can update the seekbar (or whatever)
+                Log.d(TAG, "HELLO - updateProgress: "+ mFretEvent.getClickEvent());
+                updateProgress(mClickTrackSize, mFretEvent.getClickEvent());
+            }
             sendMidiNotes(mFretEvent);
             if(mFretEvent.track == mSoloTrack) {
                 mFretTrackView.setNotes(mFretEvent);
@@ -231,6 +241,7 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
                 redraw = true;
             }
 
+            // Loop round to start
             if (++mCurrentFretEvent >= mFretTrack.fretEvents.size()) {
                 mCurrentFretEvent = 0;
             }
@@ -239,8 +250,6 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
         if(redraw){
             mFretTrackView.invalidate();
         }
-        // Update progress listener (so it can update the seekbar (or whatever)
-        updateProgress(mFretTrack.fretEvents.size(), mCurrentFretEvent);
 //        Log.d(TAG, "sleeping: "+mFretTrack.fretEvents.get(mCurrentFretEvent).deltaTicks+" milisecs:"+delayFromClicks(mFretTrack.fretEvents.get(mCurrentFretEvent).deltaTicks));
         mFretEventHandler.sleep(delayFromClicks(mFretTrack.fretEvents.get(mCurrentFretEvent).deltaTicks));
     }
@@ -313,7 +322,7 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
 
     public void updateProgress(int length, int current) {
         mCurrentEvent = current;
-        mSeekBar.setProgress(current * 100 / length);
+        mSeekBar.setProgress((current * 100 / length)+1 );
     }
 
     /**
@@ -323,7 +332,7 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
      *
      */
     private void moveTo(int progress) {
-        mCurrentFretEvent = (mFretTrack.fretEvents.size() * progress / 100) - 1;
+        mCurrentFretEvent = mFretTrack.getClickEventByClickNumber(mClickTrackSize * progress/100);
         if (mCurrentFretEvent < 0) {
             mCurrentFretEvent = 0;
         }

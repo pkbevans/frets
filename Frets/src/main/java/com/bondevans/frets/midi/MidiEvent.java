@@ -83,6 +83,24 @@ class MidiEvent {
         }
         return 0;
     }
+
+    /**
+     * Get TimeSignatire
+     * @return Beats per bar (numerator)
+     */
+    public int getTimeSig() {
+        if( mEventType == TYPE_META_EVENT && mMetaEventType == META_EVENT_TYPE_SET_TIMESIG){
+            Log.d(TAG, "TIMESIG=["+mData[0]+"]["+mData[1]+"]["+mData[2]+"]["+mData[3]+"]");
+            int numerator=mData[0];
+            int denominator=mData[1];
+            int midiClocks=mData[2];
+            int notesPer24MidiClocks=mData[2];
+            Log.d(TAG, "TIMESIG:["+numerator+"/"+denominator+"] midiClocks:["+midiClocks+"]");
+            return numerator;
+        }
+        return 0;
+    }
+
     /**
      * Constructs a new NOTE Event
      *
@@ -150,5 +168,4 @@ class MidiEvent {
                 return "UNKNOWN";
         }
     }
-
 }

@@ -16,6 +16,7 @@ class FretBase {
     static final String ATTR_BEND = "be";
     static final String ATTR_EV_TRACK = "et";
     static final String ATTR_EV_TOTALTICKS = "tt";
+    static final String ATTR_EV_CLICKEVENT = "ce";
     static final String ATTR_NAME = "na";
     static final String ATTR_TPQN = "tpqn";
     static final String ATTR_BPM = "bpm";
@@ -26,6 +27,8 @@ class FretBase {
     static final String ATTR_FRET = "fr";
     static final String ATTR_KEYW = "ke";
     static final String ATTR_DRUM_TRACK = "dr";
+    static final String ATTR_CLICK_TRACK = "ct";
+    static final String ATTR_CLICK_TRACKSIZE = "cts";
 
 
     /**

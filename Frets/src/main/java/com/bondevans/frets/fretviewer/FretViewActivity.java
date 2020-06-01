@@ -51,7 +51,7 @@ public class FretViewActivity extends AppCompatActivity {
         }
         else{
             Log.d(TAG, "CONFIG CHANGE");
-            getSupportActionBar().setTitle(fragment.getFretSong().getName());
+            getSupportActionBar().setTitle(""); //fragment.getFretSong().getName());
         }
     }
 
@@ -139,7 +139,7 @@ public class FretViewActivity extends AppCompatActivity {
             @Override
             public void OnFileLoaded(FretSong fretSong) {
                 fragment.setFretSong(fretSong);
-                getSupportActionBar().setTitle(fretSong.getName());
+                getSupportActionBar().setTitle("");
                 progressBar.setVisibility(View.INVISIBLE);
             }
 

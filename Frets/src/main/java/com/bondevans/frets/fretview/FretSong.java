@@ -177,5 +177,16 @@ public class FretSong extends FretBase {
             fretTrack.setTrackInEvents(track++);
         }
     }
+
+    public int getClickTrack() {
+        int x=0;
+        for(FretTrack fretTrack: fretTracks){
+            if( fretTrack.isClickTrack()){
+                return x;
+            }
+            x++;
+        }
+        return 0;   // Default to 1st track if no click track
+    }
 }
 

@@ -132,6 +132,10 @@ public class FretSongEditFragment extends ListFragment {
         super.onDestroy();
     }
 
+    /*
+     *  TODO - dont allow drum track to be selected as SOlo Track.
+     *  TODO - allow FretInstrument to be selected for solo track
+     */
     private class FretTrackAdapter extends ArrayAdapter<FretTrack> {
         private final Context context;
         private final ArrayList<FretTrack> fretTracks;

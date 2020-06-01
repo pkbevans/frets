@@ -3,7 +3,6 @@ package com.bondevans.frets.midi;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.bondevans.frets.R;
 import com.bondevans.frets.exception.EmptyTrackException;
 import com.bondevans.frets.exception.FretboardException;
 import com.bondevans.frets.fretview.FretEvent;
@@ -14,7 +13,6 @@ import com.bondevans.frets.fretview.FretTrack;
 import com.bondevans.frets.instruments.FretGuitarStandard;
 import com.bondevans.frets.utils.FileWriter;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -66,6 +64,19 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
                     Log.d(TAG, "Ignoring Empty track: " + mTracks.get(i).name);
                 }
             }
+            // Add an additional "click" track.  This is a track that simply has an dummy event on every beat
+            // Get length in ticks of longest track
+            int longest=0;
+            for(FretTrack fretTrack: fretSong.getFretTracks()){
+                longest=fretTrack.getTotalTicks()>longest?fretTrack.getTotalTicks():longest;
+                Log.d(TAG, "HELLO Longest: "+longest);
+            }
+            Log.d(TAG, "HELLO1");
+            FretTrack clickTrack = new FretTrack("Click Track", null,
+                    0, DEFAULT_FRET_INSTRUMENT, true, longest);
+            clickTrack.createClickTrack(longest,fretSong.getTpqn());
+            fretSong.addTrack(clickTrack);
+            Log.d(TAG, "HELLO2");
             // Now write out to new file in app cache directory
             FileWriter.writeFile(mOutFile, fretSong.toString());
 
@@ -156,14 +167,14 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
         Log.d(TAG, "Got [" + fretEvents.size() + "] FretEvents");
         // See if we can work out what sort of instrument to assign to this track
         boolean isDrums = false;
-        int instrument = 0;
-        if(name.toLowerCase().matches(".*"+"drums"+".*")){
+        int midiSound = 0;
+        if(name.toLowerCase().matches(".*"+"drum"+".*")){
             isDrums=true;
-        }else if(name.toLowerCase().matches(".*"+"guitar"+".*")){
-            instrument=29;
         }else if(name.toLowerCase().matches(".*"+"bass"+".*")){
-            instrument=33;
+            midiSound=33;
+        }else if(name.toLowerCase().matches(".*"+"guitar"+".*")){
+            midiSound=29;
         }
-        return new FretTrack(name, fretEvents, instrument, DEFAULT_FRET_INSTRUMENT, isDrums);
+        return new FretTrack(name, fretEvents, midiSound, DEFAULT_FRET_INSTRUMENT, isDrums, totalTicks);
     }
 }

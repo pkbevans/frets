@@ -21,6 +21,7 @@ public class FretEvent extends FretBase {
     public List<FretNote> fretNotes;
     public int track;
     private int totalTicks;
+    private int clickEvent;
     // INTERNAL PROPERTIES - NOT WRITTEN OUT IN/READ IN FROM TOSTRING()
 
     /**
@@ -29,7 +30,7 @@ public class FretEvent extends FretBase {
      * @param fretNotes array of notes to play at the same time
      * @param tempo New tempo if > 0
      * @param bend Apply bend if > 0
-     * @param totalTicks total ticks for this event
+     * @param totalTicks total ticks for this track as of this event
      */
     public FretEvent(int deltaTicks, List<FretNote> fretNotes, int tempo, int bend, int totalTicks) {
         this.deltaTicks = deltaTicks;
@@ -37,6 +38,21 @@ public class FretEvent extends FretBase {
         this.bend = bend;
         this.fretNotes = fretNotes;
         this.totalTicks = totalTicks;
+    }
+
+    /**
+     * Constructor - creates a click event - no notes
+     * @param clickEvent - Click event number
+     * @param deltaTicks - number of ticks delay
+     * @param totalTicks - total ticks
+     */
+    public FretEvent(int clickEvent, int deltaTicks, int totalTicks){
+        this.clickEvent = clickEvent;
+        this.deltaTicks = deltaTicks;
+        this.totalTicks = totalTicks;
+        this.fretNotes =  new ArrayList<>();    // empty list of notes
+        this.bend = 0;
+        this.tempo = 0;
     }
 
     public FretEvent(String ev) {
@@ -47,6 +63,8 @@ public class FretEvent extends FretBase {
         this.bend = getTagInt(ev, ATTR_BEND);
         this.track = getTagInt(ev, ATTR_EV_TRACK);
         this.totalTicks = getTagInt(ev, ATTR_EV_TOTALTICKS);
+        this.clickEvent = getTagInt(ev, ATTR_EV_CLICKEVENT);
+
         fretNotes = getNotes(ev);
     }
 
@@ -78,7 +96,9 @@ public class FretEvent extends FretBase {
                 attr(ATTR_EV_TRACK, track) +
                 attr(ATTR_TEMPO, tempo) +
                 attr(ATTR_BEND, bend) +
-                attr(ATTR_EV_TOTALTICKS, totalTicks));
+                attr(ATTR_EV_TOTALTICKS, totalTicks) +
+                attr(ATTR_EV_CLICKEVENT, clickEvent)
+        );
         for(FretNote note: fretNotes){
             sb.append(note.toString());
         }
@@ -123,6 +143,14 @@ public class FretEvent extends FretBase {
             }
         }
         return notes;
+    }
+
+    public boolean isClickEvent() {
+        return clickEvent>0;
+    }
+
+    public int getClickEvent() {
+        return clickEvent;
     }
 }
 

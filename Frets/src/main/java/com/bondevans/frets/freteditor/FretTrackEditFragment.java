@@ -34,6 +34,7 @@ public class FretTrackEditFragment extends Fragment {
     private FretEditView mFretEditView;
     private EditText mTrackName;
     FretTrack mFretTrack;
+    private int mSoloTrack;
     private int mCurrentEvent = 0;
     private FretPosition mFretPosition;
     private boolean mEdited = false;
@@ -151,8 +152,8 @@ public class FretTrackEditFragment extends Fragment {
                 }
             }
         }
-        while (//mFretTrack.fretEvents.get(mCurrentEvent).track!=mTrack||
-                !mFretTrack.fretEvents.get(mCurrentEvent).hasOnNotes());
+        while ( !mFretTrack.fretEvents.get(mCurrentEvent).hasOnNotes() ||
+                mFretTrack.fretEvents.get(mCurrentEvent).track!=mSoloTrack);
 
         mFretEditView.setNotes(mFretTrack.fretEvents.get(mCurrentEvent));
         mFretEditView.invalidate();
@@ -174,9 +175,10 @@ public class FretTrackEditFragment extends Fragment {
      *
      * @param fretTrack Fret Track
      */
-    public void setFretTrack(FretTrack fretTrack) {
+    public void setFretTrack(FretTrack fretTrack, int track) {
         Log.d(TAG, "setFretTrack");
         mFretTrack = fretTrack;
+        mSoloTrack = track;
         mTrackName.setText(mFretTrack.getName());
         mCurrentEvent = 0;
         mFretEditView.setNotes(mFretTrack.fretEvents.get(mCurrentEvent));

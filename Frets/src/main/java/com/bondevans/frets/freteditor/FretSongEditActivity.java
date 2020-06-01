@@ -41,7 +41,7 @@ public class FretSongEditActivity extends AppCompatActivity implements
     private static final String TAG_TRACKLIST = "tracList";
     public static final String  KEY_EDITED_TRACK = "et";
     private static final int REQUEST_EDIT_TRACK = 8768;
-    private static final int MAX_TRACKS = 2;
+    private static final int MAX_TRACKS = 3;
     private FretSongEditFragment fretSongEditFragment = null;
     private DatabaseReference mFirebaseRef;
     private ProgressBar progressBar;
@@ -78,6 +78,7 @@ public class FretSongEditActivity extends AppCompatActivity implements
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.tool_bar); // Attaching the layout to the toolbar object
         setSupportActionBar(toolbar);                   // Setting toolbar as the ActionBar with setSupportActionBar() call
+        getSupportActionBar().setTitle("");             // Empty string - since we are using the logo image
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowTitleEnabled(true);
     }
@@ -263,7 +264,7 @@ public class FretSongEditActivity extends AppCompatActivity implements
             public void OnFileLoaded(FretSong fretSong) {
                 Log.d(TAG, "setFretSong file loaded");
                 fretSongEditFragment.setFretSong(fretSong);
-                getSupportActionBar().setTitle(getString(R.string.edit_song));
+//                getSupportActionBar().setTitle(getString(R.string.edit_song));
                 progressBar.setVisibility(View.INVISIBLE);
             }
 

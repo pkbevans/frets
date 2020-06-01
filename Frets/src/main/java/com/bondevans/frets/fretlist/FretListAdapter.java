@@ -13,6 +13,9 @@ import com.google.firebase.database.Query;
  * @author Paul evans
  * @since 23/11/15
  *
+ * TODO - Add User details, photo, date, etc
+ * TODO - Add ability to like/up-vote
+ *
  */
 public class FretListAdapter extends FirebaseListAdapter<Songs> {
 

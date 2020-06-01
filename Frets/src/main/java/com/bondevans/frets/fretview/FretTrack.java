@@ -17,23 +17,38 @@ public class FretTrack extends FretBase {
     private static final String ELEMENT_TRACK = "track";
     private static final String TRACK_ELEMENT_OPEN = "<"+ELEMENT_TRACK+">";
     private static final String TRACK_ELEMENT_CLOSE = "</"+ELEMENT_TRACK+">";
+    // External properties - exported/imported to/from xml
     private String name;
     public List<FretEvent> fretEvents;
     private int midiInstrument; // Midi Instrument (from GM) that will play this track
     private int fretInstrument; //  Which fret Instrument is this track designed for
-    private boolean drumTrack;  // Is this a Drum track? (If it is then MidiInstrument is n/a
+    private boolean drumTrack;  // Is this a Drum track? (If it is then MidiInstrument is n/a)
+    private boolean clickTrack;  // Is this a Click track? (If it is then MidiInstrument is n/a)
+    private int clickTrackSize;
+    // INTERNAL PROPERTIES - NOT WRITTEN OUT IN/READ IN FROM TOSTRING()
+    private int totalTicks;     // Essentially the Total time of the track
+    List<Integer>clickEvents;    // Only used by FretViewer
 
     /**
      * Constructor
      * @param name Songs name
      * @param fretEvents List of fret events
      */
-    public FretTrack(String name, List<FretEvent> fretEvents, int midiInstrument, int fretInstrument, boolean isDrumTrack){
+    public FretTrack(String name, List<FretEvent> fretEvents, int midiInstrument,
+                     int fretInstrument, boolean isDrumTrack, int totalTicks){
         this.name = name;
         this.fretEvents = fretEvents;
-        this.midiInstrument=midiInstrument;
-        this.fretInstrument=fretInstrument;
         this.drumTrack = isDrumTrack;
+        if(drumTrack){
+            this.midiInstrument=0;
+            this.fretInstrument=0;
+        } else {
+            this.midiInstrument = midiInstrument;
+            this.fretInstrument = fretInstrument;
+        }
+        this.totalTicks = totalTicks;
+        this.clickTrack = false;
+        this.clickTrackSize = 0;
     }
 
     /**
@@ -46,6 +61,8 @@ public class FretTrack extends FretBase {
         this.midiInstrument = getTagInt(track, ATTR_MIDI_INSTRUMENT);
         this.fretInstrument = getTagInt(track, ATTR_FRET_INSTRUMENT);
         this.drumTrack = getTagInt(track, ATTR_DRUM_TRACK)==1;
+        this.clickTrack = getTagInt(track, ATTR_CLICK_TRACK)==1;
+        this.clickTrackSize = getTagInt(track, ATTR_CLICK_TRACKSIZE);
         loadFretEvents(track);
     }
 
@@ -79,6 +96,8 @@ public class FretTrack extends FretBase {
                 + attr(ATTR_MIDI_INSTRUMENT, midiInstrument)
                 + attr(ATTR_FRET_INSTRUMENT, fretInstrument)
                 + attr(ATTR_DRUM_TRACK, drumTrack)
+                + attr(ATTR_CLICK_TRACK, clickTrack)
+                + attr(ATTR_CLICK_TRACKSIZE, clickTrackSize)
         );
         for (FretEvent event : fretEvents) {
             sb.append(event.toString());
@@ -108,11 +127,19 @@ public class FretTrack extends FretBase {
         drumTrack = isChecked;
     }
 
+    public boolean isClickTrack() {
+        return clickTrack;
+    }
+
+    public int getClickTrackSize(){
+        return clickTrackSize;
+    }
+
     public void removeEvents(){
         fretEvents.clear();
     }
 
-    public void setTrackInEvents(int track){
+    void setTrackInEvents(int track){
         for(FretEvent fretEvent: fretEvents){
             fretEvent.track = track;
         }
@@ -131,6 +158,48 @@ public class FretTrack extends FretBase {
 //                Log.d(TAG, i + "," + fe.track + "," + "-"+","+"-"+","+fe.getTicks()+","+fe.bend);
 //            }
         }
+    }
+    public int getTotalTicks() {
+        return totalTicks;
+    }
+
+    /**
+     * creates a click track - subsequently used by the FretViewerFragment to display the progress
+     * through the song.
+     *
+     * @param longest - total ticks for longest track in this song
+     * @param ticksPerQtrNote - ticks per quarter note (i.e. a beat)
+     */
+    public void createClickTrack(int longest, int ticksPerQtrNote){
+        fretEvents = new ArrayList<>();
+        android.util.Log.d(TAG, "createClickTrackFretEvents:"+longest);
+        int totalTicks=0;
+        // Add click at start
+        int clickEvent=1;
+        fretEvents.add(new FretEvent(clickEvent++, 0, totalTicks));
+        while(totalTicks < longest){
+            fretEvents.add(new FretEvent(clickEvent++, ticksPerQtrNote, totalTicks));
+            totalTicks+=ticksPerQtrNote;
+        }
+        this.clickTrack=true;
+        this.clickTrackSize=fretEvents.size();
+    }
+    public void generateClickEventList(){
+        clickEvents = new ArrayList<>();
+        int i=0;
+        int remember=0;
+        for(FretEvent fretEvent: fretEvents){
+            if(fretEvent.isClickEvent()){
+                Log.d(TAG, "HELLO generateClickEventList adding: ["+remember+"]["+fretEvent.getClickEvent()+"]");
+                clickEvents.add(remember);
+            }else{
+                remember = i;
+            }
+            ++i;
+        }
+    }
+    public int getClickEventByClickNumber(int clickNumber){
+        return clickEvents.get(clickNumber);
     }
 }
 

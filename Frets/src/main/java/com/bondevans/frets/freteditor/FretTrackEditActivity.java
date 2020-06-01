@@ -188,7 +188,7 @@ public class FretTrackEditActivity extends AppCompatActivity implements
             public void OnFileLoaded(FretTrack fretTrack) {
                 progressBar.setVisibility(View.INVISIBLE);
                 Log.d(TAG, "setFretTrack file loaded");
-                fretTrackEditFragment.setFretTrack(fretTrack);
+                fretTrackEditFragment.setFretTrack(fretTrack, track);
             }
             @Override
             public void OnError(String msg) {

@@ -25,6 +25,7 @@ public class MidiFile {
     private static final String UNKNOWN_TRACKNAME = "<UNKNOWN>";
     private static final int DEFAULT_TEMPO = 120;
     private static final int BEND_MIN_TICKS = 40;
+    private static final int DEFAULT_TIMESIG = 4;
 
     private File mMidiFile;
     private String songTitle;
@@ -32,11 +33,10 @@ public class MidiFile {
     private int mTicksPerQtrNote;
     private int BPM=120;
     private int[] mTrackChunkLength;
-    private boolean mHeaderLoaded = false;
+    private boolean mHeaderLoaded;
     private int mRunningStatus = 0;
     private int mRunningChannel = 0;
     private int mTotalTicks;
-
 
     MidiFile(File midiFile) throws FretboardException {
         // Open up file and load header and track details
@@ -170,6 +170,9 @@ public class MidiFile {
             }
             else if (metaType == MidiEvent.META_EVENT_TYPE_SET_TEMPO) {
                 Log.d(TAG, "SET TEMPO"+ " mLen["+len+"]");
+            }
+            else if (metaType == MidiEvent.META_EVENT_TYPE_SET_TIMESIG) {
+                Log.d(TAG, "SET TIMESIG :"+ " mLen["+len+"]");
             }
             else
             {
@@ -327,7 +330,7 @@ public class MidiFile {
                 mTracks.add(new MidiTrack(trackName, track));
                 if(track==0){
                     // Lets get the tempo from the first track.
-                    this.BPM = getTempo(in);
+                    this.BPM = getTempoNew(in);
                 }
                 mTrackChunkLength[track] = trackLen;
                 // SKIP track mData
@@ -394,6 +397,34 @@ public class MidiFile {
         }
         in.reset();
         return (ret==0?DEFAULT_TEMPO:ret);
+    }
+
+    private int getTempoNew(BufferedInputStream in) throws IOException {
+        MidiEvent ev = getMetaEventByType(in, MidiEvent.META_EVENT_TYPE_SET_TEMPO);
+        return ev.getTempo()==0?DEFAULT_TEMPO:ev.getTempo();
+    }
+    private int getTimeSig(BufferedInputStream in) throws IOException {
+        MidiEvent ev = getMetaEventByType(in, MidiEvent.META_EVENT_TYPE_SET_TIMESIG);
+        return ev.getTimeSig()==0?DEFAULT_TIMESIG:ev.getTimeSig();
+    }
+    private MidiEvent getMetaEventByType(BufferedInputStream in, int eventType) throws IOException {
+        Log.d(TAG, "getMetaEventByType");
+        // Get the first event
+        in.mark(BUF_LEN);
+        MidiEvent ev = getEvent(in);
+        int count = 1;
+        while (!ev.isEndOfTrack() && count <=10) {
+            if (ev.mEventType == MidiEvent.TYPE_META_EVENT &&
+                    (ev.mMetaEventType == eventType)) {
+                in.reset();
+                return ev;
+            }
+            // Get the next event
+            ev = getEvent(in);
+            ++count;
+        }
+        in.reset();
+        return ev;
     }
 
     /**
