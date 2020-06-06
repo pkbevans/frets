@@ -73,7 +73,7 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
             }
             Log.d(TAG, "HELLO1");
             FretTrack clickTrack = new FretTrack("Click Track", null,
-                    0, DEFAULT_FRET_INSTRUMENT, true, longest);
+                    0, DEFAULT_FRET_INSTRUMENT, false, longest);
             clickTrack.createClickTrack(longest,fretSong.getTpqn());
             fretSong.addTrack(clickTrack);
             Log.d(TAG, "HELLO2");

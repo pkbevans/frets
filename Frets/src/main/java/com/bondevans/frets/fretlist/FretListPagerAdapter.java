@@ -9,6 +9,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 
 import com.bondevans.frets.R;
+import com.bondevans.frets.utils.Log;
 
 /**
  * A [FragmentPagerAdapter] that returns a fragment corresponding to
@@ -18,6 +19,7 @@ public class FretListPagerAdapter extends FragmentPagerAdapter {
 
     @StringRes
     private static final int[] TAB_TITLES = new int[]{R.string.public_frets_tab_text, R.string.my_frets_tab_text };
+    private static final String TAG = FretListPagerAdapter.class.getSimpleName();
     private final Context mContext;
 
     FretListPagerAdapter(Context context, FragmentManager fm) {
@@ -30,12 +32,14 @@ public class FretListPagerAdapter extends FragmentPagerAdapter {
         // getItem is called to instantiate the fragment for the given page.
         // Return a FretListFragment (defined as a static inner class below).
         int type;
-        if(position==0){
-            type = FretListFragment.FRETLIST_TYPE_PUBLIC;
-        } else{
-            type = FretListFragment.FRETLIST_TYPE_PRIVATE;
+        switch(position){
+            case 0:
+                type = FretListFragment.FRETLIST_TYPE_PUBLIC;
+                return FretListFragment.newInstance(position + 1, type);
+            case 1:
+                return FretFragment.newInstance(1);
         }
-        return FretListFragment.newInstance(position + 1, type);
+        return null;
     }
 
     @Nullable

@@ -38,7 +38,7 @@
     <string name="user_does_not_exist">Please enter a valid email address.  We don\'t have this one on our system</string>
     <string name="action_export">Export…</string>
     <string name="no_track">No track selected. Please select track to export</string>
-    <string name="no_songs">No songs (yet)…</string>
+    <string name="no_frets">No frets (yet)…</string>
     <string name="import_midi">Import Midi File…</string>
     <string name="buffering_msg">Loading…</string>
     <string name="invalid_file_type">This is not a Midi file.</string>
@@ -224,5 +224,10 @@
     <string name="title_activity_main">MainActivity</string>
     <string name="my_frets_tab_text">My Frets</string>
     <string name="public_frets_tab_text">Public Frets</string>
+    <string name="delete_fret">Delete Fret</string>
+    <string name="fretlist_options">Fret Options</string>
+    <string name="publish_fret">Publish...</string>
+    <string name="new_frets">New Frets</string>
+    <string name="textview">HELLO MUM</string>
 
 </resources>

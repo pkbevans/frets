@@ -15,7 +15,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1.0"
-        android:text="@string/no_songs"
+        android:text="@string/no_frets"
         android:textSize="18dp"/>
 
 </LinearLayout>

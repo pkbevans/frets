@@ -3,8 +3,7 @@ package com.bondevans.frets.firebase;
 import android.content.Context;
 import android.util.Log;
 
-import com.bondevans.frets.app.FretApplication;
-import com.bondevans.frets.firebase.dao.Songs;
+import com.bondevans.frets.firebase.dao.Fret;
 import com.bondevans.frets.firebase.dao.SongClick;
 import com.bondevans.frets.firebase.dao.Users;
 import com.bondevans.frets.fretview.FretSong;
@@ -49,8 +48,25 @@ public class FBWrite {
         post1.put("contents", fretSong.toString());
         contentsRef.setValue(post1);
         // Now store the Song Details entry using id as link to contents
-        DatabaseReference detailsRef = firebaseRef.child("users").child(uid).child("songs");
+        DatabaseReference detailsRef = firebaseRef.child("users").child(uid).child("frets");
         // TODO Add uploadedBy, dateUploaded, etc details
-        detailsRef.push().setValue(new Songs(songId, fretSong.getName(), fretSong.getKeywords()));
+        detailsRef.push().setValue(new Fret(songId, fretSong.getName(), fretSong.getKeywords()));
     }
+
+    /**
+     * Delete a Song from the firebase db
+     * @param firebaseRef firebase reference
+     * @param uid User Id
+     * @param fretId song Id
+     */
+    public static void deletePrivateSong(DatabaseReference firebaseRef, String uid, String fretId) {
+        Log.d(TAG, "HELLO deletePrivateSong SongRef=[" + fretId + "] user Id=["+uid+"]");
+        // First remove the fret
+        DatabaseReference songRef = firebaseRef.child("user").child(uid).child("frets").child(fretId);
+        songRef.removeValue();
+        // Now the song contents
+        DatabaseReference contentsRef = firebaseRef.child("songcontents").child(fretId);
+        contentsRef.removeValue();
+    }
+
 }

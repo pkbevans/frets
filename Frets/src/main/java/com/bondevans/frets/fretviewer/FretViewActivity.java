@@ -39,8 +39,9 @@ public class FretViewActivity extends AppCompatActivity {
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.tool_bar); // Attaching the layout to the toolbar object
         setSupportActionBar(toolbar);                   // Setting toolbar as the ActionBar with setSupportActionBar() call
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
         getSupportActionBar().setDisplayShowTitleEnabled(true);
+        getSupportActionBar().setDisplayUseLogoEnabled(false);
         progressBar = findViewById(R.id.progress_bar); // Attaching the layout to the toolbar object
 
         if (savedInstanceState == null) {
@@ -51,7 +52,7 @@ public class FretViewActivity extends AppCompatActivity {
         }
         else{
             Log.d(TAG, "CONFIG CHANGE");
-            getSupportActionBar().setTitle(""); //fragment.getFretSong().getName());
+            getSupportActionBar().setTitle(fragment.getFretSong().getName());
         }
     }
 
@@ -139,7 +140,7 @@ public class FretViewActivity extends AppCompatActivity {
             @Override
             public void OnFileLoaded(FretSong fretSong) {
                 fragment.setFretSong(fretSong);
-                getSupportActionBar().setTitle("");
+                getSupportActionBar().setTitle(fretSong.getName());
                 progressBar.setVisibility(View.INVISIBLE);
             }
 

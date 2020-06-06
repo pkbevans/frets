@@ -15,8 +15,8 @@ import android.widget.Toast;
 import com.bondevans.frets.R;
 import com.bondevans.frets.app.FretApplication;
 import com.bondevans.frets.firebase.FBWrite;
+import com.bondevans.frets.firebase.dao.Fret;
 import com.bondevans.frets.firebase.dao.SongContents;
-import com.bondevans.frets.firebase.dao.Songs;
 import com.bondevans.frets.fretviewer.FretViewActivity;
 import com.bondevans.frets.utils.FileWriterTask;
 import com.bondevans.frets.utils.Log;
@@ -30,9 +30,7 @@ import java.io.File;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.ListFragment;
-import androidx.lifecycle.ViewModelProviders;
-
-import static com.firebase.ui.auth.AuthUI.getApplicationContext;
+import androidx.lifecycle.ViewModelProvider;
 
 public class FretListFragment extends ListFragment {
     private static final String TAG = FretListFragment.class.getSimpleName();
@@ -43,15 +41,15 @@ public class FretListFragment extends ListFragment {
     private FretListAdapter mFretListAdapter;
     private ProgressDialog progressDialog;
     private PageViewModel pageViewModel;
-    private static final String ARG_SECTION_NUMBER = "section_number";
-    private static final String ARG_SECTION_TYPE = "section_number";
-    private int listType=FRETLIST_TYPE_NONE;
+    private static final String ARG_FRETLIST_NUMBER = "fretlist_number";
+    private static final String ARG_FRETLIST_TYPE = "fretlist_number";
+    private int mListType =FRETLIST_TYPE_NONE;
 
     public static FretListFragment newInstance(int index, int type) {
         FretListFragment fragment = new FretListFragment();
         Bundle bundle = new Bundle();
-        bundle.putInt(ARG_SECTION_NUMBER, index);
-        bundle.putInt(ARG_SECTION_TYPE, type);
+        bundle.putInt(ARG_FRETLIST_NUMBER, index);
+        bundle.putInt(ARG_FRETLIST_TYPE, type);
         fragment.setArguments(bundle);
         return fragment;
     }
@@ -59,19 +57,19 @@ public class FretListFragment extends ListFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        pageViewModel = ViewModelProviders.of(this).get(PageViewModel.class);
+        pageViewModel = new ViewModelProvider(this).get(PageViewModel.class);
         int index = 1;
         if (getArguments() != null) {
-            index = getArguments().getInt(ARG_SECTION_NUMBER);
-            listType = getArguments().getInt(ARG_SECTION_TYPE);
+            index = getArguments().getInt(ARG_FRETLIST_NUMBER);
+            mListType = getArguments().getInt(ARG_FRETLIST_TYPE);
         }
         pageViewModel.setIndex(index);
         // Setup our Firebase
-        if(listType == FRETLIST_TYPE_PUBLIC) {
+        if(mListType == FRETLIST_TYPE_PUBLIC) {
             mFirebaseRef = FirebaseDatabase.getInstance().getReference().child("songs");
         }else{
             FretApplication app = (FretApplication)getActivity().getApplicationContext();
-            mFirebaseRef = FirebaseDatabase.getInstance().getReference().child("users").child(app.getUID()).child("songs");
+            mFirebaseRef = FirebaseDatabase.getInstance().getReference().child("users").child(app.getUID()).child("frets");
         }
         // Setup the progress dialog that is displayed later
         progressDialog = new ProgressDialog(getActivity());
@@ -95,7 +93,6 @@ public class FretListFragment extends ListFragment {
         super.onStart();
         // Setup our view and list adapter. Ensure it scrolls to the bottom as description changes
         final ListView listView = getListView();
-        // Tell our list adapter that we only want 50 messages at a time
         mFretListAdapter = new FretListAdapter(mFirebaseRef, getActivity(), R.layout.fretlist_item);
         listView.setAdapter(mFretListAdapter);
         mFretListAdapter.registerDataSetObserver(new DataSetObserver() {
@@ -118,17 +115,17 @@ public class FretListFragment extends ListFragment {
     public void onListItemClick(ListView l, View v, int position, long id) {
         // Show progress bar
         progressDialog.show();
-        Songs song = (Songs) getListView().getItemAtPosition(position);
-        Log.d(TAG, "onListItemClick: " + song.getId());
+        Fret fret = (Fret) l.getItemAtPosition(position);
+        Log.d(TAG, "onListItemClick: " + fret.getId());
         // See if we've got this song in the cache
-        final File cacheFile = new File(getActivity().getExternalFilesDir(null), song.getId() + ".xml");
+        final File cacheFile = new File(getActivity().getExternalFilesDir(null), fret.getId() + ".xml");
         if (cacheFile.exists()) {
             // Always open FretViewer by passing file reference
             showFretView(cacheFile);
         } else {
             Log.d(TAG, "NOT in cache: " + cacheFile.getName());
             // Get the SongContent from the server
-            DatabaseReference songRef = FirebaseDatabase.getInstance().getReference().child(SongContents.childName).child(song.getId());
+            DatabaseReference songRef = FirebaseDatabase.getInstance().getReference().child(SongContents.childName).child(fret.getId());
             songRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
@@ -148,7 +145,7 @@ public class FretListFragment extends ListFragment {
         }
         // Write out a click on this song
         FretApplication app = (FretApplication) getActivity().getApplicationContext();
-        FBWrite.usage(mFirebaseRef.getRoot(), app.getUID(), song.getId());
+        FBWrite.usage(mFirebaseRef.getRoot(), app.getUID(), fret.getId());
     }
 
     private void showFretView(File cacheFile) {
@@ -180,5 +177,11 @@ public class FretListFragment extends ListFragment {
             }
         });
         fileWriterTask.execute();
+    }
+
+    private void deletePrivateFret(String songId) {
+        FretApplication app = (FretApplication)getActivity().getApplicationContext();
+
+        FBWrite.deletePrivateSong(FirebaseDatabase.getInstance().getReference(),app.getUID(),songId );
     }
 }

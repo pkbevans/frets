@@ -1,7 +1,7 @@
 package com.bondevans.frets.firebase.dao;
 
 /**
- * Simple Songs Class for use with Firebase for retrieving and storing song details
+ * Simple Class for use with Firebase for retrieving and storing song contents
  */
 public class SongContents {
     public static String childName = SongContents.class.getSimpleName().toLowerCase();

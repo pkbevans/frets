@@ -15,7 +15,7 @@
             android:id="@+id/tool_bar"
             layout="@layout/toolbar"
             android:background="@color/frets_background"
-            app:title='""'></include>
+            app:title='""' />
 
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/tabs"

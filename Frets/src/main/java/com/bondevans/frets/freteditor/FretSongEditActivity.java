@@ -41,7 +41,7 @@ public class FretSongEditActivity extends AppCompatActivity implements
     private static final String TAG_TRACKLIST = "tracList";
     public static final String  KEY_EDITED_TRACK = "et";
     private static final int REQUEST_EDIT_TRACK = 8768;
-    private static final int MAX_TRACKS = 3;
+    private static final int MAX_TRACKS = 4;
     private FretSongEditFragment fretSongEditFragment = null;
     private DatabaseReference mFirebaseRef;
     private ProgressBar progressBar;
@@ -97,7 +97,7 @@ public class FretSongEditActivity extends AppCompatActivity implements
         Log.d(TAG, "onOptionsItemSelected");
         switch (item.getItemId()) {
             case android.R.id.home:
-                // Back to Songs
+                // Back
                 onBackPressed();
                 break;
             case R.id.action_publish:
@@ -160,7 +160,7 @@ public class FretSongEditActivity extends AppCompatActivity implements
     private void saveSong(final boolean finish) {
         Log.d(TAG, "saveSong");
 
-        if(getSong().tracks()>MAX_TRACKS){
+        if(getSong().tracksIgnoreClick()>MAX_TRACKS){
             // Only allow two tracks
             Toast.makeText(FretSongEditActivity.this, R.string.too_many_tracks, Toast.LENGTH_LONG).show();
         }else if(fretSongEditFragment.getFretSong().getTrack(fretSongEditFragment.getFretSong().getSoloTrack()).isDrumTrack()){

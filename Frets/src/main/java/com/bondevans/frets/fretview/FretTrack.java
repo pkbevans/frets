@@ -31,7 +31,7 @@ public class FretTrack extends FretBase {
 
     /**
      * Constructor
-     * @param name Songs name
+     * @param name track name
      * @param fretEvents List of fret events
      */
     public FretTrack(String name, List<FretEvent> fretEvents, int midiInstrument,

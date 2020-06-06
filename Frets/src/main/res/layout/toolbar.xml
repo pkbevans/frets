@@ -5,4 +5,5 @@
     android:layout_height="wrap_content"
     android:background="#FFFCFC"
     android:elevation="4dp"
-    app:navigationIcon="@drawable/frets_logo_v1"></androidx.appcompat.widget.Toolbar>
+    app:navigationIcon="@drawable/frets_logo_v1"
+    app:titleTextColor="#FF83DB"></androidx.appcompat.widget.Toolbar>

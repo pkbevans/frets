@@ -2,11 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/paulslib/Fretboard-frets-paulslib.iml" filepath="$PROJECT_DIR$/paulslib/Fretboard-frets-paulslib.iml" group="frets/paulslib" />
       <module fileurl="file://$PROJECT_DIR$/Frets/Frets.iml" filepath="$PROJECT_DIR$/Frets/Frets.iml" group="frets/Frets" />
       <module fileurl="file://$PROJECT_DIR$/frets.iml" filepath="$PROJECT_DIR$/frets.iml" group="frets" />
-      <module fileurl="file://$PROJECT_DIR$/paulslib/frets-paulslib.iml" filepath="$PROJECT_DIR$/paulslib/frets-paulslib.iml" group="frets/paulslib" />
-      <module fileurl="file://$PROJECT_DIR$/paulslib/paulslib.iml" filepath="$PROJECT_DIR$/paulslib/paulslib.iml" group="frets/paulslib" />
     </modules>
   </component>
 </project>

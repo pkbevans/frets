@@ -132,6 +132,21 @@ public class FretSong extends FretBase {
         return fretTracks.size();
     }
 
+    /**
+     * <code>FretSong.tracksIgnoreClick()</code>returns the number of tracks in the song - not
+     * including the click track if present
+     * @return
+     */
+    public int tracksIgnoreClick() {
+        int x=0;
+        for(FretTrack fretTrack: fretTracks){
+            if( !fretTrack.isClickTrack()){
+                x++;
+            }
+        }
+        return x;
+    }
+
     public void deleteTrack(int track) {
         fretTracks.remove(track);
         // Adjust solo track if necessary

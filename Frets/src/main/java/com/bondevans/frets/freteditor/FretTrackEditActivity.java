@@ -74,7 +74,7 @@ public class FretTrackEditActivity extends AppCompatActivity implements
         Log.d(TAG, "onOptionsItemSelected");
         switch (item.getItemId()) {
             case android.R.id.home:
-                // Back to Songs
+                // Back
                 onBackPressed();
                 break;
             case R.id.action_save_song:
