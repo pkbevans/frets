@@ -3,22 +3,22 @@
       xmlns:tools="http://schemas.android.com/tools"
       tools:context=".fretviewer.FretEditActivity">
     <item
-        android:id="@+id/action_save_song"
-        android:orderInCategory="101"
-        android:title="@string/action_save_song"
+        android:id="@+id/action_save_fret"
         android:icon="@drawable/ic_save"
-        app:showAsAction="always"/>
+        android:orderInCategory="101"
+        android:title="@string/action_preview_fret"
+        app:showAsAction="always" />
     <item
-        android:id="@+id/action_preview_song"
+        android:id="@+id/action_preview_fret"
         android:orderInCategory="102"
-        android:title="@string/action_preview_song"
+        android:title="@string/action_preview_fret"
         android:icon="@drawable/ic_preview"
         app:showAsAction="always"/>
     <item
         android:id="@+id/action_publish"
         android:orderInCategory="103"
         android:title="@string/action_publish"
-        android:icon="@drawable/ic_publish_song"
+        android:icon="@drawable/ic_publish_fret"
         app:showAsAction="ifRoom"/>
     <item
         android:id="@+id/action_settings"

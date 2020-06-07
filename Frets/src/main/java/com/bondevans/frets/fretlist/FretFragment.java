@@ -108,10 +108,10 @@ public class FretFragment extends Fragment {
                     songRef.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
-                            String songContents = dataSnapshot.child("contents").toString();
-                            Log.d(TAG, "HELLO CHILD:" + songContents);
+                            String fretContents = dataSnapshot.child("contents").toString();
+                            Log.d(TAG, "HELLO CHILD:" + fretContents);
                             // Write out to cache and then show FretView
-                            writeFileToCache(cacheFile, songContents, true);
+                            writeFileToCache(cacheFile, fretContents, true);
                         }
 
                         @Override
@@ -168,8 +168,8 @@ public class FretFragment extends Fragment {
             Log.e(TAG, "NO ACTIVITY FOUND: FretViewActivity");
         }
     }
-    private void writeFileToCache(final File cacheFile, String songContents, final boolean showFretView) {
-        FileWriterTask fileWriterTask = new FileWriterTask(cacheFile, songContents);
+    private void writeFileToCache(final File cacheFile, String fretContents, final boolean showFretView) {
+        FileWriterTask fileWriterTask = new FileWriterTask(cacheFile, fretContents);
         fileWriterTask.setFileWrittenListener(new FileWriterTask.FileWrittenListener() {
             @Override
             public void OnFileWritten() {
@@ -196,6 +196,6 @@ public class FretFragment extends Fragment {
     private void deletePrivateFret(String fretId) {
         FretApplication app = (FretApplication)getActivity().getApplicationContext();
 
-        FBWrite.deletePrivateSong(FirebaseDatabase.getInstance().getReference(),app.getUID(),fretId );
+        FBWrite.deletePrivateFret(FirebaseDatabase.getInstance().getReference(),app.getUID(),fretId );
     }
 }

@@ -5,19 +5,19 @@ import java.util.Calendar;
 /**
  * Records song click by user
  */
-public class SongClick {
-    public static String childName = SongClick.class.getSimpleName().toLowerCase();
+public class FretClick {
+    public static String childName = FretClick.class.getSimpleName().toLowerCase();
     private String dateTime;
-    private String songId;
+    private String fretId;
     private String uId;
 
-    public SongClick() {
+    public FretClick() {
     }
 
-    public SongClick(String songId, String uId) {
+    public FretClick(String fretId, String uId) {
         Calendar c = Calendar.getInstance();
         this.dateTime = (c.get(Calendar.YEAR)*10000)+(c.get(Calendar.MONTH)*100)+c.get(Calendar.DAY_OF_MONTH)+"-"+c.get(Calendar.HOUR_OF_DAY)+":"+c.get(Calendar.MINUTE);
-        this.songId = songId;
+        this.fretId = fretId;
         this.uId = uId;
     }
 
@@ -25,8 +25,8 @@ public class SongClick {
         return dateTime;
     }
 
-    public String getSongId() {
-        return songId;
+    public String getFretId() {
+        return fretId;
     }
 
     public String getUId() {

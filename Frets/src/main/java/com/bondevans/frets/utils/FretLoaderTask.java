@@ -2,33 +2,30 @@ package com.bondevans.frets.utils;
 
 import android.os.AsyncTask;
 
-import com.bondevans.frets.fretview.FretEvent;
 import com.bondevans.frets.fretview.FretSong;
-import com.bondevans.frets.fretviewer.TrackMerger;
 
 import java.io.File;
-import java.io.IOException;
 
 /**
  * Async Wrapper for FileLoader
  */
-public class SongLoaderTask extends AsyncTask<Void, Void, String> {
-    private static final String TAG = SongLoaderTask.class.getSimpleName();
+public class FretLoaderTask extends AsyncTask<Void, Void, String> {
+    private static final String TAG = FretLoaderTask.class.getSimpleName();
     private final File songFile;
-    private SongLoadedListener songLoadedListener;
+    private FretLoadedListener fretLoadedListener;
     private FretSong mFretSong;
 
-    public SongLoaderTask(File file) {
+    public FretLoaderTask(File file) {
         this.songFile = file;
     }
 
-    public interface SongLoadedListener {
+    public interface FretLoadedListener {
         void OnFileLoaded(FretSong fretSong);
         void OnError(String msg);
     }
 
-    public void setSongLoadedListener(SongLoadedListener songLoadedListener) {
-        this.songLoadedListener = songLoadedListener;
+    public void setFretLoadedListener(FretLoadedListener fretLoadedListener) {
+        this.fretLoadedListener = fretLoadedListener;
     }
 
     @Override
@@ -46,9 +43,9 @@ public class SongLoaderTask extends AsyncTask<Void, Void, String> {
     protected void onPostExecute(String s) {
         if (s.isEmpty()) {
             Log.d(TAG, "File loaded OK");
-            songLoadedListener.OnFileLoaded(mFretSong);
+            fretLoadedListener.OnFileLoaded(mFretSong);
         } else {
-            songLoadedListener.OnError(s);
+            fretLoadedListener.OnError(s);
         }
     }
 }

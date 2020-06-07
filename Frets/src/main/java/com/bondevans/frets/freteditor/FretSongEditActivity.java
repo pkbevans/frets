@@ -24,7 +24,7 @@ import com.bondevans.frets.fretviewer.TrackMerger;
 import com.bondevans.frets.utils.FileWriter;
 import com.bondevans.frets.utils.FileWriterTask;
 import com.bondevans.frets.utils.Log;
-import com.bondevans.frets.utils.SongLoaderTask;
+import com.bondevans.frets.utils.FretLoaderTask;
 import com.bondevans.frets.utils.TrackLoaderTask;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -51,7 +51,7 @@ public class FretSongEditActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         Log.d(TAG, "HELLO onCreate");
         setContentView(R.layout.fretsongedit_activity);
-        // Add the song edit fragment first, which will then get overwritten with the track edit fragment
+        // Add the FretSongEdit fragment first, which will then get overwritten with the track edit fragment
         // when a track is selected.
         // Check whether we already have a frag (i.e.) on Configuration change
         FragmentManager fm = getSupportFragmentManager();
@@ -67,7 +67,7 @@ public class FretSongEditActivity extends AppCompatActivity implements
         mFirebaseRef = FirebaseDatabase.getInstance().getReference();
 
         if (savedInstanceState == null) {
-            //  We should have the song file in the intent
+            //  We should have the FretSong file in the intent
             Intent intent = getIntent();
             Log.d(TAG, "Got File");
             setFretSong(new File(intent.getData().getPath()));
@@ -101,13 +101,13 @@ public class FretSongEditActivity extends AppCompatActivity implements
                 onBackPressed();
                 break;
             case R.id.action_publish:
-                publishSong();
+                publishFret();
                 break;
-            case R.id.action_preview_song:
-                previewSong();
+            case R.id.action_preview_fret:
+                previewFret();
                 break;
-            case R.id.action_save_song:
-                saveSong(false);
+            case R.id.action_save_fret:
+                saveFret(false);
                 break;
             case R.id.action_settings:
                 // Either allow settings to be accessed from here or remove this option
@@ -118,7 +118,7 @@ public class FretSongEditActivity extends AppCompatActivity implements
         return true;
     }
 
-    private void previewSong() {
+    private void previewFret() {
         Intent intent = new Intent(this, FretViewActivity.class);
         intent.setData(Uri.fromFile(new File(getIntent().getData().getPath())));
         try {
@@ -132,7 +132,7 @@ public class FretSongEditActivity extends AppCompatActivity implements
     public void onBackPressed() {
         Log.d(TAG, "onBackPressed");
         if(fretSongEditFragment.isEdited()) {
-            Log.d(TAG, "onBackPressed and SONG CHANGED");
+            Log.d(TAG, "onBackPressed and FRET CHANGED");
             showSaveFileDialog();
         }
         else {
@@ -147,18 +147,18 @@ public class FretSongEditActivity extends AppCompatActivity implements
         super.onSaveInstanceState(outState);
     }
 
-    private void publishSong() {
+    private void publishFret() {
         // Merge tracks into solo track and remove FretEvents from other tracks
         mergeTracks();
-        // Write song to FireBase
+        // Write Fret to FireBase
         FretApplication app = (FretApplication)getApplicationContext();
-        FBWrite.addSong(mFirebaseRef, fretSongEditFragment.getFretSong(), app.getUID());
+        FBWrite.addFret(mFirebaseRef, fretSongEditFragment.getFretSong(), app.getUID());
         Toast.makeText(FretSongEditActivity.this, fretSongEditFragment.getFretSong().getName() + getString(R.string.published), Toast.LENGTH_SHORT).show();
         finish();   //Lets get outta here
     }
 
-    private void saveSong(final boolean finish) {
-        Log.d(TAG, "saveSong");
+    private void saveFret(final boolean finish) {
+        Log.d(TAG, "saveFret");
 
         if(getSong().tracksIgnoreClick()>MAX_TRACKS){
             // Only allow two tracks
@@ -228,7 +228,7 @@ public class FretSongEditActivity extends AppCompatActivity implements
         saveFileDialog.SetSaveFileListener(new SaveFileDialog.SaveFileListener() {
             @Override
             public void onSave() {
-                saveSong(true);
+                saveFret(true);
             }
 
             @Override
@@ -253,13 +253,13 @@ public class FretSongEditActivity extends AppCompatActivity implements
 
     /**
      * Load up <code>FretSong</code> from give file.
-     * @param file Song file from cache
+     * @param file Fret file from cache
      */
     private void setFretSong(File file) {
         Log.d(TAG, "setFretSong file");
         progressBar.setVisibility(View.VISIBLE);
-        SongLoaderTask songLoaderTask = new SongLoaderTask(file);
-        songLoaderTask.setSongLoadedListener(new SongLoaderTask.SongLoadedListener() {
+        FretLoaderTask fretLoaderTask = new FretLoaderTask(file);
+        fretLoaderTask.setFretLoadedListener(new FretLoaderTask.FretLoadedListener() {
             @Override
             public void OnFileLoaded(FretSong fretSong) {
                 Log.d(TAG, "setFretSong file loaded");
@@ -273,7 +273,7 @@ public class FretSongEditActivity extends AppCompatActivity implements
                 Toast.makeText(FretSongEditActivity.this, msg, Toast.LENGTH_SHORT).show();
             }
         });
-        songLoaderTask.execute();
+        fretLoaderTask.execute();
     }
 
     @Override

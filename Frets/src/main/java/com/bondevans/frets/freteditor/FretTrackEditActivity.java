@@ -77,7 +77,7 @@ public class FretTrackEditActivity extends AppCompatActivity implements
                 // Back
                 onBackPressed();
                 break;
-            case R.id.action_save_song:
+            case R.id.action_save_fret:
                 saveTrack(false);
                 break;
             case R.id.action_settings:

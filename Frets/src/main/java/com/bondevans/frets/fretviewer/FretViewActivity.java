@@ -18,7 +18,7 @@ import android.widget.Toast;
 import com.bondevans.frets.R;
 import com.bondevans.frets.freteditor.FretSongEditActivity;
 import com.bondevans.frets.fretview.FretSong;
-import com.bondevans.frets.utils.SongLoaderTask;
+import com.bondevans.frets.utils.FretLoaderTask;
 
 import java.io.File;
 
@@ -135,8 +135,8 @@ public class FretViewActivity extends AppCompatActivity {
 
     private void setFretSong(File file) {
         progressBar.setVisibility(View.VISIBLE);
-        SongLoaderTask songLoaderTask = new SongLoaderTask(file);
-        songLoaderTask.setSongLoadedListener(new SongLoaderTask.SongLoadedListener() {
+        FretLoaderTask songLoaderTask = new FretLoaderTask(file);
+        songLoaderTask.setFretLoadedListener(new FretLoaderTask.FretLoadedListener() {
             @Override
             public void OnFileLoaded(FretSong fretSong) {
                 fragment.setFretSong(fretSong);
