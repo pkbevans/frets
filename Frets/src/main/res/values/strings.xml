@@ -229,5 +229,6 @@
     <string name="publish_fret">Publish...</string>
     <string name="new_frets">New Frets</string>
     <string name="textview">HELLO MUM</string>
+    <string name="song_name_label">Song:</string>
 
 </resources>

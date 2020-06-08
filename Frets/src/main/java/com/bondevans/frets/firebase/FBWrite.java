@@ -9,6 +9,7 @@ import com.bondevans.frets.firebase.dao.Users;
 import com.bondevans.frets.fretview.FretSong;
 import com.google.firebase.database.DatabaseReference;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,8 +51,9 @@ public class FBWrite {
         contentsRef.setValue(post1);
         // Now store the Song Details entry using id as link to contents
         DatabaseReference detailsRef = firebaseRef.child("users").child(uid).child("frets");
-        // TODO Add uploadedBy, dateUploaded, etc details
-        detailsRef.push().setValue(new Fret(fretId, fretSong.getName(), fretSong.getKeywords()));
+        // Add uploadedBy, dateUploaded, etc details
+        // TODO - get insstrument from FretSong
+        detailsRef.push().setValue(new Fret(fretId, fretSong.getName(), fretSong.getKeywords(),uid,Fret.LEAD_GUITAR, new Date().getTime() ));
     }
 
     /**

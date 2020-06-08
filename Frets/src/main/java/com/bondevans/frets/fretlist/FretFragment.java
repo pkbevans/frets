@@ -31,6 +31,7 @@ import java.io.File;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -78,7 +79,7 @@ public class FretFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fret_layout, container, false);
+        View view = inflater.inflate(R.layout.fretfragment_layout, container, false);
 
         mDbRef = FirebaseDatabase.getInstance().getReference();
         Query query = mDbRef.child("users").child(mApp.getUID()).child("frets");
@@ -94,7 +95,7 @@ public class FretFragment extends Fragment {
             public void onClick(View v, int position) {
                 // Show progress bar
                 progressDialog.show();
-                Fret fret = (Fret) mAdapter.getItem(position);
+                Fret fret = mAdapter.getItem(position);
                 Log.d(TAG, "onListItemClick: " + fret.getId());
                 // See if we've got this song in the cache
                 final File cacheFile = new File(getActivity().getExternalFilesDir(null), fret.getId() + ".xml");
@@ -135,6 +136,8 @@ public class FretFragment extends Fragment {
             RecyclerView recyclerView = (RecyclerView) view;
             recyclerView.setLayoutManager(new LinearLayoutManager(context));
             recyclerView.setAdapter(mAdapter);
+            recyclerView.addItemDecoration(new DividerItemDecoration(view.getContext(),
+                    DividerItemDecoration.VERTICAL));
         }
         return view;
     }
