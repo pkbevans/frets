@@ -19,12 +19,14 @@ import android.widget.Toast;
 import com.bondevans.frets.R;
 import com.bondevans.frets.app.FretApplication;
 import com.bondevans.frets.filebrowser.FileBrowserActivity;
+import com.bondevans.frets.firebase.FBWrite;
 import com.bondevans.frets.utils.Log;
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.IdpResponse;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.Arrays;
 import java.util.List;
@@ -105,12 +107,12 @@ public class FretListActivity extends AppCompatActivity {
         FirebaseAuth auth = FirebaseAuth.getInstance();
         if (auth.getCurrentUser() != null) {
             // already signed in
-            String msg = "HELLO email:"+ auth.getCurrentUser().getEmail();
+            String msg = "HELLO User Signed in email:"+ auth.getCurrentUser().getEmail() + " id:"+auth.getCurrentUser().getUid();
             Log.d(TAG, msg);
             FretApplication app = (FretApplication) getApplicationContext();
             app.setUID(auth.getCurrentUser().getUid());
         } else {
-            Log.d(TAG, "HELLO 3");
+            Log.d(TAG, "HELLO user not signed in");
             // not signed in
             // Choose authentication providers
             List<AuthUI.IdpConfig> providers = Arrays.asList(
@@ -159,16 +161,18 @@ public class FretListActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
                 // Successfully signed in
                 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                Log.d(TAG, "onActivityResult: SUCCESS");
-                //
+                Log.d(TAG, "HELLO New User: SUCCESS: "+user.getEmail()+ ":"+user.getUid());
+                // Set the User ID
                 FretApplication app = (FretApplication) getApplicationContext();
                 app.setUID(user.getUid());
+                // Add a new User Profile to Firebase (TODO - check whether it already exists)
+                FBWrite.addUser(FirebaseDatabase.getInstance().getReference(), user);
             } else {
                 // Sign in failed. If response is null the user canceled the
                 // sign-in flow using the back button. Otherwise check
                 // response.getError().getErrorCode() and handle the error.
                 // TODO - what to do if user fails to login?
-                Log.d(TAG, "onActivityResult: FAILED - TODO");
+                Log.d(TAG, "HELLO onActivityResult: FAILED - TODO");
             }
         }
     }
