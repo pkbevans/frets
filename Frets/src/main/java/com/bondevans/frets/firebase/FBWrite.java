@@ -1,12 +1,12 @@
 package com.bondevans.frets.firebase;
 
-import android.content.Context;
 import android.util.Log;
 
 import com.bondevans.frets.firebase.dao.Fret;
 import com.bondevans.frets.firebase.dao.FretClick;
-import com.bondevans.frets.firebase.dao.Users;
+import com.bondevans.frets.firebase.dao.UserProfile;
 import com.bondevans.frets.fretview.FretSong;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 
 import java.util.Date;
@@ -22,11 +22,9 @@ import java.util.Map;
 public class FBWrite {
     private static final String TAG = FBWrite.class.getSimpleName();
 
-    public static void newUser(Context context, DatabaseReference firebaseRef, String uid, Users user) {
-        firebaseRef.child(Users.childName).child(uid).setValue(user);
-        // TODO Also add some device details
-//        DeviceDetails device = new DeviceDetails(context);
-//        firebaseRef.child("users").child(uid).push().setValue(device);
+    public static void addUser(DatabaseReference firebaseRef, FirebaseUser user) {
+        UserProfile userProfile = new UserProfile("", user.getEmail(),"", "", new Date().getTime());
+        firebaseRef.child("users").child(user.getUid()).child("userProfile").push().setValue(userProfile);
     }
 
     public static void usage(DatabaseReference firebaseRef, String uId, String fretId) {
