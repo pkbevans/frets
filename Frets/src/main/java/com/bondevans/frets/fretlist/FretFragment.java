@@ -136,8 +136,10 @@ public class FretFragment extends Fragment {
             RecyclerView recyclerView = (RecyclerView) view;
             recyclerView.setLayoutManager(new LinearLayoutManager(context));
             recyclerView.setAdapter(mAdapter);
-            recyclerView.addItemDecoration(new DividerItemDecoration(view.getContext(),
-                    DividerItemDecoration.VERTICAL));
+            DividerItemDecoration did = new DividerItemDecoration(view.getContext(),
+                    DividerItemDecoration.VERTICAL);
+            did.setDrawable(getContext().getResources().getDrawable(R.drawable.fret));
+            recyclerView.addItemDecoration(did);
         }
         return view;
     }
