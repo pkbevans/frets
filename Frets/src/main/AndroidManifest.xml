@@ -8,7 +8,7 @@
 
     <uses-feature
         android:name="android.software.midi"
-        android:required="true"/>
+        android:required="true" />
 
     <application
         android:name=".app.FretApplication"
@@ -16,16 +16,18 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
-
+        <activity
+            android:name=".user.UserProfileActivity"
+            android:label="@string/title_activity_user_profile"></activity>
         <activity
             android:name=".fretviewer.FretViewActivity"
-            android:label="@string/app_name"></activity>
-        <activity android:name=".filebrowser.FileBrowserActivity"></activity>
-        <activity android:name=".fretlist.MidiTest"></activity>
+            android:label="@string/app_name"/>
+        <activity android:name=".filebrowser.FileBrowserActivity"/>
+        <activity android:name=".fretlist.MidiTest"/>
         <activity
             android:name=".freteditor.FretSongEditActivity"
-            android:windowSoftInputMode="stateHidden"></activity>
-        <activity android:name=".freteditor.FretTrackEditActivity"></activity>
+            android:windowSoftInputMode="stateHidden"/>
+        <activity android:name=".freteditor.FretTrackEditActivity"/>
         <activity android:name=".fretlist.FretListActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

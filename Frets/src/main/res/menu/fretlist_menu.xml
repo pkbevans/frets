@@ -8,5 +8,10 @@
         android:icon="@drawable/ic_action_import"
         android:orderInCategory="100"
         app:showAsAction="always"/>
-
+    <item
+        android:id="@+id/action_view_profile"
+        android:icon="@drawable/default_user_icon"
+        android:orderInCategory="100"
+        android:title="@string/view_profile"
+        app:showAsAction="always" />
 </menu>

@@ -22,6 +22,7 @@ public class FretListPagerAdapter extends FragmentPagerAdapter {
     private static final String TAG = FretListPagerAdapter.class.getSimpleName();
     private final Context mContext;
 
+    // TODO - update FragmentStateAdapter and viewPager2 to avoid deprecated classes
     FretListPagerAdapter(Context context, FragmentManager fm) {
         super(fm);
         mContext = context;

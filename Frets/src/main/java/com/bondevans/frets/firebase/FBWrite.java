@@ -24,9 +24,12 @@ public class FBWrite {
 
     public static void addUser(DatabaseReference firebaseRef, FirebaseUser user) {
         UserProfile userProfile = new UserProfile("", user.getEmail(),"", "", new Date().getTime());
-        firebaseRef.child("users").child(user.getUid()).child("userProfile").push().setValue(userProfile);
+        firebaseRef.child("users").child(user.getUid()).child("userProfile").setValue(userProfile);
     }
 
+    public static void updateUser(DatabaseReference firebaseRef, UserProfile userProfile, String uid) {
+        firebaseRef.child("users").child(uid).child("userProfile").setValue(userProfile);
+    }
     public static void usage(DatabaseReference firebaseRef, String uId, String fretId) {
         FretClick fretClick = new FretClick(fretId, uId);
         firebaseRef.child(FretClick.childName).child(uId).push().setValue(fretClick);
