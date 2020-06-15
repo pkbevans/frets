@@ -14,7 +14,7 @@
     <string name="no_notes">This track has no Notes, please select another</string>
     <string name="track_loaded">Track loaded.</string>
     <string name="login">Login</string>
-    <string name="email">Email</string>
+    <string name="email">Email:</string>
     <string name="password">Password</string>
     <string name="forgot_password">Reset Password</string>
     <string name="register">Register</string>
@@ -232,11 +232,11 @@
     <string name="song_name_label">Song:</string>
     <string name="title_activity_user_profile">User Profile</string>
     <string name="view_profile">Profile</string>
-    <string name="member_since">Member since:</string>
+    <string name="member_since">Joined:</string>
     <string name="members_profile_picture">Members profile picture</string>
-    <string name="website_url">Website url</string>
+    <string name="website_url">Website url:</string>
     <string name="save">Save</string>
-    <string name="bio">Biography</string>
-    <string name="User">User</string>
+    <string name="bio">Biography:</string>
+    <string name="User">User:</string>
 
 </resources>

@@ -8,12 +8,19 @@ public class UserProfile {
     String  bio;
     String  website;
     long    dateJoined;
+    private boolean updated;
 
     /**
      * Empty constructor
      */
     @SuppressWarnings("unused")
     public UserProfile() {
+        this.username = "";
+        this.email = "";
+        this.bio = "";
+        this.website = "";
+        this.dateJoined = 0;
+        this.updated = false;
     }
 
     public UserProfile(String username, String email, String  bio, String  website, long dateJoined) {
@@ -22,6 +29,7 @@ public class UserProfile {
         this.bio = bio;
         this.website = website;
         this.dateJoined = dateJoined;
+        this.updated = false;
     }
 
     public String getUsername() {
@@ -45,15 +53,21 @@ public class UserProfile {
     }
 
     public void setUsername(String username) {
+        this.updated = !username.contentEquals(this.username);
         this.username = username;
     }
     public void setBio(String bio) {
+        this.updated = !bio.contentEquals(this.bio);
         this.bio = bio;
     }
     public void setWebsite(String website) {
+        this.updated = !website.contentEquals(this.website);
         this.website = website;
     }
     public void setDateJoined(long dateJoined) {
         this.dateJoined = dateJoined;
+    }
+    public boolean isUpdated(){
+        return updated;
     }
 }
