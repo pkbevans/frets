@@ -33,7 +33,7 @@ public class FretListAdapter extends FirebaseListAdapter<Fret> {
      */
     @Override
     protected void populateView(View view, Fret fret) {
-        // Map a Songs object to an entry in our listview
+        // Map a Fret object to an entry in our listview
         TextView nameText = (TextView) view.findViewById(R.id.name);
         nameText.setText(fret.getName());
         TextView descText = (TextView) view.findViewById(R.id.description);

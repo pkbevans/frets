@@ -41,6 +41,11 @@ import static androidx.core.content.PermissionChecker.PERMISSION_DENIED;
 
 public class FretListActivity extends AppCompatActivity {
     private static final String TAG = FretListActivity.class.getSimpleName();
+    static final String ARG_FRETLIST_NUMBER = "fretlist_number";
+    static final String ARG_FRETLIST_TYPE = "fretlist_type";
+    static final int FRETLIST_TYPE_NONE = 0;
+    static final int FRETLIST_TYPE_PUBLIC = 1;
+    static final int FRETLIST_TYPE_PRIVATE = 2;
     private static final int REQUEST_CODE_READ_STORAGE_PERMISSION = 4523;
     private static final int RC_SIGN_IN = 1;
     private FretApplication mApp;

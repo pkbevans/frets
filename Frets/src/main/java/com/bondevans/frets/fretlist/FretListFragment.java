@@ -34,22 +34,17 @@ import androidx.lifecycle.ViewModelProvider;
 
 public class FretListFragment extends ListFragment {
     private static final String TAG = FretListFragment.class.getSimpleName();
-    public static final int FRETLIST_TYPE_NONE = 0;
-    public static final int FRETLIST_TYPE_PUBLIC = 1;
-    public static final int FRETLIST_TYPE_PRIVATE = 2;
     private DatabaseReference mFirebaseRef;
     private FretListAdapter mFretListAdapter;
     private ProgressDialog progressDialog;
     private PageViewModel pageViewModel;
-    private static final String ARG_FRETLIST_NUMBER = "fretlist_number";
-    private static final String ARG_FRETLIST_TYPE = "fretlist_number";
-    private int mListType =FRETLIST_TYPE_NONE;
+    private int mListType = FretListActivity.FRETLIST_TYPE_NONE;
 
     public static FretListFragment newInstance(int index, int type) {
         FretListFragment fragment = new FretListFragment();
         Bundle bundle = new Bundle();
-        bundle.putInt(ARG_FRETLIST_NUMBER, index);
-        bundle.putInt(ARG_FRETLIST_TYPE, type);
+        bundle.putInt(FretListActivity.ARG_FRETLIST_NUMBER, index);
+        bundle.putInt(FretListActivity.ARG_FRETLIST_TYPE, type);
         fragment.setArguments(bundle);
         return fragment;
     }
@@ -57,15 +52,16 @@ public class FretListFragment extends ListFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "HELLO onCreate");
         pageViewModel = new ViewModelProvider(this).get(PageViewModel.class);
         int index = 1;
         if (getArguments() != null) {
-            index = getArguments().getInt(ARG_FRETLIST_NUMBER);
-            mListType = getArguments().getInt(ARG_FRETLIST_TYPE);
+            index = getArguments().getInt(FretListActivity.ARG_FRETLIST_NUMBER);
+            mListType = getArguments().getInt(FretListActivity.ARG_FRETLIST_TYPE);
         }
         pageViewModel.setIndex(index);
         // Setup our Firebase
-        if(mListType == FRETLIST_TYPE_PUBLIC) {
+        if(mListType == FretListActivity.FRETLIST_TYPE_PUBLIC) {
             mFirebaseRef = FirebaseDatabase.getInstance().getReference().child("songs");
         }else{
             FretApplication app = (FretApplication)getActivity().getApplicationContext();

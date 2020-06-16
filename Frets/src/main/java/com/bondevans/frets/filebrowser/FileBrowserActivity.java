@@ -74,7 +74,7 @@ public class FileBrowserActivity extends AppCompatActivity implements
         Log.d(TAG, "onOptionsItemSelected");
         switch (item.getItemId()) {
             case android.R.id.home:
-                // Back to Songs
+                // Back to Frets
                 finish();
                 break;
             case REFRESH_ID:

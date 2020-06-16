@@ -31,6 +31,7 @@ import java.io.File;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -45,6 +46,9 @@ public class FretFragment extends Fragment {
     FretApplication mApp;
     DatabaseReference mDbRef;
     private ProgressDialog progressDialog;
+    private PageViewModel pageViewModel;
+    private int mListType;
+    private Query mQuery;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -54,11 +58,12 @@ public class FretFragment extends Fragment {
     }
 
     @SuppressWarnings("unused")
-    public static FretFragment newInstance(int columnCount) {
+    public static FretFragment newInstance(int index, int type) {
         FretFragment fragment = new FretFragment();
-        Bundle args = new Bundle();
-        args.putInt(ARG_COLUMN_COUNT, columnCount);
-        fragment.setArguments(args);
+        Bundle bundle = new Bundle();
+        bundle.putInt(FretListActivity.ARG_FRETLIST_NUMBER, index);
+        bundle.putInt(FretListActivity.ARG_FRETLIST_TYPE, type);
+        fragment.setArguments(bundle);
         return fragment;
     }
 
@@ -66,7 +71,23 @@ public class FretFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "HELLO onCreate");
+        pageViewModel = new ViewModelProvider(this).get(PageViewModel.class);
+        int index = 1;
+        if (getArguments() != null) {
+            index = getArguments().getInt(FretListActivity.ARG_FRETLIST_NUMBER);
+            mListType = getArguments().getInt(FretListActivity.ARG_FRETLIST_TYPE);
+        }
+        pageViewModel.setIndex(index);
         mApp = (FretApplication)getActivity().getApplicationContext();
+        mDbRef = FirebaseDatabase.getInstance().getReference();
+        if(mListType == FretListActivity.FRETLIST_TYPE_PUBLIC) {
+            Log.d(TAG, "HELLO onCreate PUBLIC");
+            mQuery = mDbRef.child("frets").orderByChild("name");
+        }else{
+            Log.d(TAG, "HELLO onCreate PRIVATE");
+            mQuery = mDbRef.child("users").child(mApp.getUID()).child("frets").orderByChild("name");
+        }
+
         if (getArguments() != null) {
             int columnCount = getArguments().getInt(ARG_COLUMN_COUNT);
         }
@@ -79,15 +100,12 @@ public class FretFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fretfragment_layout, container, false);
-
-        mDbRef = FirebaseDatabase.getInstance().getReference();
-        Query query = mDbRef.child("users").child(mApp.getUID()).child("frets");
         Log.d(TAG, "HELLO onCreateView");
+        View view = inflater.inflate(R.layout.fretfragment_layout, container, false);
 
         FirebaseRecyclerOptions<Fret> options =
                 new FirebaseRecyclerOptions.Builder<Fret>()
-                        .setQuery(query, Fret.class)
+                        .setQuery(mQuery, Fret.class)
                         .build();
 
         FretRecyclerViewClickListener listener = new FretRecyclerViewClickListener() {
@@ -101,6 +119,7 @@ public class FretFragment extends Fragment {
                 final File cacheFile = new File(getActivity().getExternalFilesDir(null), fret.getId() + ".xml");
                 if (cacheFile.exists()) {
                     // Always open FretViewer by passing file reference
+                    Log.d(TAG, "Found in cache: " + cacheFile.getName());
                     showFretView(cacheFile);
                 } else {
                     Log.d(TAG, "NOT in cache: " + cacheFile.getName());
@@ -126,7 +145,6 @@ public class FretFragment extends Fragment {
                 // Write out a click on this song
                 FretApplication app = (FretApplication) getActivity().getApplicationContext();
                 FBWrite.usage(mDbRef.getRoot(), app.getUID(), fret.getId());
-
             }
         };
 

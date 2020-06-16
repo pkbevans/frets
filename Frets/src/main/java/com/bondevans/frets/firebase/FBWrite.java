@@ -53,7 +53,7 @@ public class FBWrite {
         // Now store the Song Details entry using id as link to contents
         DatabaseReference detailsRef = firebaseRef.child("users").child(uid).child("frets");
         // Add uploadedBy, dateUploaded, etc details
-        // TODO - get insstrument from FretSong
+        // TODO - get instrument from FretSong
         detailsRef.push().setValue(new Fret(fretId, fretSong.getName(), fretSong.getKeywords(),uid,Fret.LEAD_GUITAR, new Date().getTime() ));
     }
 

@@ -35,10 +35,11 @@ public class FretListPagerAdapter extends FragmentPagerAdapter {
         int type;
         switch(position){
             case 0:
-                type = FretListFragment.FRETLIST_TYPE_PUBLIC;
-                return FretListFragment.newInstance(position + 1, type);
+                type = FretListActivity.FRETLIST_TYPE_PUBLIC;
+                return FretFragment.newInstance(position + 1, type);
             case 1:
-                return FretFragment.newInstance(1);
+                type = FretListActivity.FRETLIST_TYPE_PRIVATE;
+                return FretFragment.newInstance(position + 1, type);
         }
         return null;
     }
