@@ -238,5 +238,6 @@
     <string name="save">Save</string>
     <string name="bio">Biography:</string>
     <string name="User">User:</string>
+    <string name="name_required">Please give your Fret a name</string>
 
 </resources>

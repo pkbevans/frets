@@ -100,14 +100,11 @@ public class FretSongEditActivity extends AppCompatActivity implements
                 // Back
                 onBackPressed();
                 break;
-            case R.id.action_publish:
-                publishFret();
-                break;
             case R.id.action_preview_fret:
                 previewFret();
                 break;
             case R.id.action_save_fret:
-                saveFret(false);
+                publishFret();
                 break;
             case R.id.action_settings:
                 // Either allow settings to be accessed from here or remove this option
@@ -148,20 +145,34 @@ public class FretSongEditActivity extends AppCompatActivity implements
     }
 
     private void publishFret() {
-        // Merge tracks into solo track and remove FretEvents from other tracks
-        mergeTracks();
-        // Write Fret to FireBase
-        FretApplication app = (FretApplication)getApplicationContext();
-        FBWrite.addFret(mFirebaseRef, fretSongEditFragment.getFretSong(), app.getUID());
-        Toast.makeText(FretSongEditActivity.this, fretSongEditFragment.getFretSong().getName() + getString(R.string.published), Toast.LENGTH_SHORT).show();
-        finish();   //Lets get outta here
+        fretSongEditFragment.updateFretSong();
+        if(getSong().tracksIgnoreClick()>MAX_TRACKS){
+            // Only allow MAX_TRACKS tracks
+            Toast.makeText(FretSongEditActivity.this, R.string.too_many_tracks, Toast.LENGTH_LONG).show();
+        } else if(fretSongEditFragment.getFretSong().getTrack(fretSongEditFragment.getFretSong().getSoloTrack()).isDrumTrack()){
+            // Solo track cant be a drum track
+            Toast.makeText(FretSongEditActivity.this, R.string.solo_track_is_drums, Toast.LENGTH_LONG).show();
+        } else if(getSong().getName().isEmpty()) {
+            Toast.makeText(FretSongEditActivity.this, R.string.name_required, Toast.LENGTH_LONG).show();
+        } else if (fretSongEditFragment != null && fretSongEditFragment.isEdited()) {
+            // Merge tracks into solo track and remove FretEvents from other tracks
+            mergeTracks();
+            // Write Fret to FireBase
+            FretApplication app = (FretApplication)getApplicationContext();
+            FBWrite.addFret(mFirebaseRef, fretSongEditFragment.getFretSong(), app.getUID());
+            finish();   //Lets get outta here
+        } else {
+            // Hopefully wont ever get here
+            Toast.makeText(FretSongEditActivity.this, "OOPS - Somethingwent wrong", Toast.LENGTH_LONG).show();
+        }
     }
 
+    @Deprecated
     private void saveFret(final boolean finish) {
         Log.d(TAG, "saveFret");
 
         if(getSong().tracksIgnoreClick()>MAX_TRACKS){
-            // Only allow two tracks
+            // Only allow MAX_TRACKS tracks
             Toast.makeText(FretSongEditActivity.this, R.string.too_many_tracks, Toast.LENGTH_LONG).show();
         }else if(fretSongEditFragment.getFretSong().getTrack(fretSongEditFragment.getFretSong().getSoloTrack()).isDrumTrack()){
             // Solo track cant be a drum track
@@ -228,7 +239,7 @@ public class FretSongEditActivity extends AppCompatActivity implements
         saveFileDialog.SetSaveFileListener(new SaveFileDialog.SaveFileListener() {
             @Override
             public void onSave() {
-                saveFret(true);
+                publishFret();
             }
 
             @Override
