@@ -1,4 +1,4 @@
-package com.bondevans.frets.fretlist;
+package com.bondevans.frets;
 
 import android.Manifest;
 import android.content.ActivityNotFoundException;
@@ -6,27 +6,15 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.viewpager.widget.ViewPager;
-
-import android.view.Menu;
-import android.view.MenuItem;
 import android.widget.Toast;
 
-import com.bondevans.frets.R;
 import com.bondevans.frets.app.FretApplication;
-import com.bondevans.frets.filebrowser.FileBrowserActivity;
 import com.bondevans.frets.firebase.FBWrite;
 import com.bondevans.frets.firebase.dao.UserProfile;
-import com.bondevans.frets.user.UserProfileActivity;
-import com.bondevans.frets.user.UserProfileFragment;
+import com.bondevans.frets.fretlist.FretListActivity;
 import com.bondevans.frets.utils.Log;
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.IdpResponse;
-import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -36,106 +24,64 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 
 import static androidx.core.content.PermissionChecker.PERMISSION_DENIED;
 
-public class FretListActivity extends AppCompatActivity {
-    private static final String TAG = FretListActivity.class.getSimpleName();
-    static final String ARG_FRETLIST_NUMBER = "fretlist_number";
-    static final String ARG_FRETLIST_TYPE = "fretlist_type";
-    static final int FRETLIST_TYPE_NONE = 0;
-    static final int FRETLIST_TYPE_PUBLIC = 1;
-    static final int FRETLIST_TYPE_PRIVATE = 2;
+public class MainActivity extends AppCompatActivity {
+    private static final String TAG = MainActivity.class.getSimpleName();
     private static final int REQUEST_CODE_READ_STORAGE_PERMISSION = 4523;
     private static final int RC_SIGN_IN = 1;
+    private static final int REQUEST_FRETLIST = 4621;
+    private static final int REQUEST_WELCOME = 4622;
     private FretApplication mApp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate");
-        setContentView(R.layout.fretlist_activity);
-        FretListPagerAdapter fretListPagerAdapter = new FretListPagerAdapter(this, getSupportFragmentManager());
-        ViewPager viewPager = findViewById(R.id.view_pager);
-        viewPager.setAdapter(fretListPagerAdapter);
-        TabLayout tabs = findViewById(R.id.tabs);
-        tabs.setupWithViewPager(viewPager);
-
-        Toolbar toolbar = findViewById(R.id.tool_bar); // Attaching the layout to the toolbar object
-        setSupportActionBar(toolbar);                   // Setting toolbar as the ActionBar with setSupportActionBar() call
-        getSupportActionBar().setTitle("");             // Empty string - since we are using the logo image
+        setContentView(R.layout.mainactivity_layout);
+        checkFileAccessPermission();
+        mApp = (FretApplication) getApplicationContext();
+        authenticateUser();
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.fretlist_menu, menu);
-        return true;
-    }
+    private void setUser(final FirebaseUser fbUser, UserProfile userProfile){
+        // Get the Profile from the server if userProfile == null
+        if(userProfile == null) {
+            DatabaseReference profileRef = FirebaseDatabase.getInstance().getReference().child("users").child(fbUser.getUid()).child("userProfile");
+            profileRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    Log.d(TAG, "HELLO CHILD:" + dataSnapshot.toString());
+                    // load into a class, then set UI values
+                    mApp.setUser(fbUser.getUid(), dataSnapshot.getValue(UserProfile.class));
+                    launchFretListActivity();
+                }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        Log.d(TAG, "onOptionsItemSelected");
-        int id = item.getItemId();
-        switch (id) {
-            case R.id.action_import:
-                launchBrowser();
-                return true;
-            case R.id.action_view_profile:
-                launchProfileActivity();
-                return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    private void launchProfileActivity() {
-        Intent intent = new Intent(this, UserProfileActivity.class);
-        intent.putExtra(UserProfileFragment.INTENT_UID, mApp.getUID());
-        intent.putExtra(UserProfileFragment.INTENT_EDITABLE, true);
-        try {
-            startActivity(intent);
-        } catch (ActivityNotFoundException e) {
-            Log.e(TAG, "NO ACTIVITY FOUND: "+UserProfileActivity.class.getSimpleName());
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    Log.d(TAG, "OOPS " + databaseError.getMessage());
+                }
+            });
+        } else {
+            mApp.setUser(fbUser.getUid(),userProfile);
+            launchFretListActivity();
         }
     }
-
-    private void launchMidiTest() {
-        Intent intent = new Intent(this, MidiTest.class);
-        try {
-            startActivity(intent);
-        } catch (ActivityNotFoundException e) {
-            Log.e(TAG, "NO ACTIVITY FOUND: "+MidiTest.class.getSimpleName());
-        }
-    }
-
-    private void launchBrowser() {
-        Intent intent = new Intent(this, FileBrowserActivity.class);
-        try {
-            startActivity(intent);
-        } catch (ActivityNotFoundException e) {
-            Log.e(TAG, "NO ACTIVITY FOUND: "+FileBrowserActivity.class.getSimpleName());
-        }
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-    }
-
     private void authenticateUser(){
-        Log.d(TAG, "HELLO 1");
+        Log.d(TAG, "HELLO authenticateUser");
         FirebaseAuth auth = FirebaseAuth.getInstance();
         if (auth.getCurrentUser() != null) {
             // already signed in
             String msg = "HELLO User Signed in email:"+ auth.getCurrentUser().getEmail() + " id:"+auth.getCurrentUser().getUid();
             Log.d(TAG, msg);
-            mApp.setUser(auth.getCurrentUser().getUid(), new UserProfile());
+            setUser(auth.getCurrentUser(), null);
         } else {
             Log.d(TAG, "HELLO user not signed in");
             // not signed in
@@ -151,6 +97,14 @@ public class FretListActivity extends AppCompatActivity {
                             .setAvailableProviders(providers)
                             .build(),
                     RC_SIGN_IN);
+        }
+    }
+    private void launchFretListActivity() {
+        Log.d(TAG, "HELLO Launching FretList for "+mApp.getUserName());
+        try {
+            startActivityForResult(new Intent(this, FretListActivity.class), REQUEST_FRETLIST);
+        } catch (ActivityNotFoundException e) {
+            Log.e(TAG, "FretListActivity NOT FOUND");
         }
     }
 
@@ -175,7 +129,6 @@ public class FretListActivity extends AppCompatActivity {
         }
         Log.d(TAG, "onRequestPermissionsResult");
     }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -183,25 +136,33 @@ public class FretListActivity extends AppCompatActivity {
 
         if (requestCode == RC_SIGN_IN) {
             IdpResponse response = IdpResponse.fromResultIntent(data);
+            Log.d(TAG, "HELLO response from intent:"+response.toString());
             if (resultCode == RESULT_OK) {
                 // Successfully signed in
                 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                Log.d(TAG, "HELLO New User: SUCCESS: "+user.getEmail()+ ":"+user.getUid());
-                // Set the User ID
-                mApp.setUser(user.getUid(), new UserProfile());
+                Log.d(TAG, "HELLO New User: SUCCESS: "+user.getEmail()+ ":"+user.getUid() +
+                            ":"+user.getDisplayName()+":"+ user.getDisplayName());
                 // // Add a new User Profile to Firebase
-                addUser(user);
+                checkExistingAndAddUserIfNew(user);
             } else {
                 // Sign in failed. If response is null the user canceled the
                 // sign-in flow using the back button. Otherwise check
                 // response.getError().getErrorCode() and handle the error.
                 // TODO - what to do if user fails to login?
                 Log.d(TAG, "HELLO onActivityResult: FAILED - TODO");
+                mApp.setUser("Anonymous", new UserProfile("Anonymous", "null@null.com","","",0));
+                launchFretListActivity();
             }
+        } else if(requestCode == REQUEST_FRETLIST){
+            Log.d(TAG, "Lets get outa here");
+            finish();
+        } else if (requestCode == REQUEST_WELCOME){
+            Log.d(TAG, "Launching Fretlist");
+            launchFretListActivity();
         }
     }
 
-    private void addUser(final FirebaseUser user) {
+    private void checkExistingAndAddUserIfNew(final FirebaseUser user) {
         // Check whether this user already exists
         // Get the Profile from the server
         DatabaseReference profileRef = FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid()).child("userProfile");
@@ -210,18 +171,28 @@ public class FretListActivity extends AppCompatActivity {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Log.d(TAG, "HELLO CHILD:" + dataSnapshot.toString());
                 if(!dataSnapshot.exists()){
-                    Log.d(TAG, "HELLO New User:");
-                    FBWrite.addUserProfile(FirebaseDatabase.getInstance().getReference(), new UserProfile(), user.getUid());
+                    Log.d(TAG, "HELLO New User");
+                    UserProfile userProfile = new UserProfile(user.getDisplayName(), user.getEmail(),"", "", new Date().getTime());
+                    FBWrite.addUserProfile(FirebaseDatabase.getInstance().getReference(), userProfile, user.getUid());
+                    mApp.setUser(user.getUid(), userProfile);
+                    launchWelcomeScreen();
                 }else{
-                    Log.d(TAG, "HELLO Existing User:");
+                    Log.d(TAG, "HELLO Existing User");
+                    UserProfile userProfile = dataSnapshot.getValue(UserProfile.class);
+                    setUser(user, userProfile);
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 Log.d(TAG, "OOPS " + databaseError.getMessage());
-                Toast.makeText(FretListActivity.this, databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, databaseError.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void launchWelcomeScreen() {
+        //TODO
+        launchFretListActivity();
     }
 }

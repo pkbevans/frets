@@ -159,7 +159,7 @@ public class FretSongEditActivity extends AppCompatActivity implements
             mergeTracks();
             // Write Fret to FireBase
             FretApplication app = (FretApplication)getApplicationContext();
-            FBWrite.addFret(mFirebaseRef, fretSongEditFragment.getFretSong(), app.getUID());
+            FBWrite.addPrivateFret(mFirebaseRef, fretSongEditFragment.getFretSong(), app.getUID());
             finish();   //Lets get outta here
         } else {
             // Hopefully wont ever get here

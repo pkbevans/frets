@@ -56,7 +56,8 @@ public class FretRecyclerViewAdapter extends FirebaseRecyclerAdapter<Fret, FretH
     }
     @Override
     protected void onBindViewHolder(FretHolder holder, int position, Fret fret) {
-        Log.d(TAG, "HELLO onBindViewHolder. position:"+position+ " fret: "+fret.getName());
+        String keyId = this.getRef(position).getKey();
+        Log.d(TAG, "HELLO onBindViewHolder. position:"+position+ " fret: "+keyId);
         // Bind the Fret object to the FretHolder
         holder.bind(fret);
     }

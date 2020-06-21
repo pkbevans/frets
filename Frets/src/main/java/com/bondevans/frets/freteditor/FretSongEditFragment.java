@@ -316,8 +316,7 @@ public class FretSongEditFragment extends ListFragment {
     }
 
     public void updateFretSong(){
-        mFretSong.setName(mSongName.getText().toString());
-        mFretSong.setKeywords(mKeywords.getText().toString());
+        isEdited();
     }
     public void setEdited(boolean b) {
         mIsEdited = b;

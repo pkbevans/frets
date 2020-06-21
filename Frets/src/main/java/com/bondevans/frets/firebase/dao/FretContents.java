@@ -3,17 +3,17 @@ package com.bondevans.frets.firebase.dao;
 /**
  * Simple Class for use with Firebase for retrieving and storing song contents
  */
-public class SongContents {
-    public static String childName = SongContents.class.getSimpleName().toLowerCase();
+public class FretContents {
+    public static String childName = FretContents.class.getSimpleName().toLowerCase();
     String contents;
 
     /**
      * Empty constructor
      */
     @SuppressWarnings("unused")
-    public SongContents(){}
+    public FretContents(){}
 
-    public SongContents(String contents){
+    public FretContents(String contents){
         this.contents = contents;
     }
 

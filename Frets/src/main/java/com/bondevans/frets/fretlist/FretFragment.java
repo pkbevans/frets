@@ -4,9 +4,12 @@ import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
@@ -15,7 +18,7 @@ import com.bondevans.frets.R;
 import com.bondevans.frets.app.FretApplication;
 import com.bondevans.frets.firebase.FBWrite;
 import com.bondevans.frets.firebase.dao.Fret;
-import com.bondevans.frets.firebase.dao.SongContents;
+import com.bondevans.frets.firebase.dao.FretContents;
 import com.bondevans.frets.fretviewer.FretViewActivity;
 import com.bondevans.frets.utils.FileWriterTask;
 import com.bondevans.frets.utils.Log;
@@ -28,13 +31,18 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.io.File;
+import java.util.ArrayList;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.view.ActionMode;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import static android.app.usage.UsageEvents.Event.NONE;
 
 /**
  * A fragment representing a list of Items.
@@ -49,6 +57,63 @@ public class FretFragment extends Fragment {
     private PageViewModel pageViewModel;
     private int mListType;
     private Query mQuery;
+    private ArrayList<Item> mSelectedItems = new ArrayList<>();
+    private ActionMode.Callback mActionModeCallbacks = new ActionMode.Callback() {
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            menu.add(NONE, 1, 1, "Publish");
+            menu.add(NONE, 2, 2, "Delete");
+            return true;
+        }
+
+        @Override
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            return false;
+        }
+
+        @Override
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            Log.d(TAG, "HELLO item:"+item.toString());
+            switch(item.getItemId()){
+                case 1:
+                    //Publish
+                    for(Item i : mSelectedItems) {
+                        publishPrivateFret(i.ref, i.position);
+                    }
+                    break;
+                case 2:
+                    // Delete
+                    for(Item i : mSelectedItems) {
+                        deletePrivateFret(i.ref);
+                    }
+                    break;
+            }
+            mode.finish();
+            return true;
+        }
+
+        @Override
+        public void onDestroyActionMode(ActionMode mode) {
+            // Make sure all items are UN-highlighted
+            for(Item i : mSelectedItems) {
+                View view = mRecyclerView.getLayoutManager().findViewByPosition(i.position);
+                view.setBackgroundColor(Color.WHITE);
+            }
+            mSelectedItems.clear();
+            mAdapter.notifyDataSetChanged();
+        }
+    };
+    RecyclerView mRecyclerView;
+
+    private class Item {
+        String ref;
+        int position;
+
+        public Item(String ref, int position) {
+            this.ref = ref;
+            this.position = position;
+        }
+    }
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -111,12 +176,21 @@ public class FretFragment extends Fragment {
         FretRecyclerViewClickListener listener = new FretRecyclerViewClickListener() {
             @Override
             public void onClick(View v, int position) {
+                // If the Action bar is currently being shown, and this item is highlighted then
+                // then a click just UN-highlights the item
+                String fretref = mAdapter.getRef(position).getKey();
+                Item i = new Item(fretref, position);
+                if(mSelectedItems.contains(i)){
+                    v.setBackgroundColor(Color.WHITE);
+                    mSelectedItems.remove(i);
+                    return;
+                }
                 // Show progress bar
                 progressDialog.show();
                 Fret fret = mAdapter.getItem(position);
-                Log.d(TAG, "onListItemClick: " + fret.getId());
+                Log.d(TAG, "onListItemClick: " + fret.getName());
                 // See if we've got this song in the cache
-                final File cacheFile = new File(getActivity().getExternalFilesDir(null), fret.getId() + ".xml");
+                final File cacheFile = new File(getActivity().getExternalFilesDir(null), fret.getContentId() + ".xml");
                 if (cacheFile.exists()) {
                     // Always open FretViewer by passing file reference
                     Log.d(TAG, "Found in cache: " + cacheFile.getName());
@@ -124,7 +198,7 @@ public class FretFragment extends Fragment {
                 } else {
                     Log.d(TAG, "NOT in cache: " + cacheFile.getName());
                     // Get the SongContent from the server
-                    DatabaseReference songRef = FirebaseDatabase.getInstance().getReference().child(SongContents.childName).child(fret.getId());
+                    DatabaseReference songRef = FirebaseDatabase.getInstance().getReference().child(FretContents.childName).child(fret.getContentId());
                     songRef.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
@@ -144,7 +218,19 @@ public class FretFragment extends Fragment {
                 }
                 // Write out a click on this song
                 FretApplication app = (FretApplication) getActivity().getApplicationContext();
-                FBWrite.usage(mDbRef.getRoot(), app.getUID(), fret.getId());
+                FBWrite.usage(mDbRef.getRoot(), app.getUID(), fret.getContentId());
+            }
+
+            @Override
+            public void onLongClick(View view, int position) {
+                if(mListType == FretListActivity.FRETLIST_TYPE_PRIVATE) {
+                    // Long press only applicable on Private frets
+                    String fretRef = mAdapter.getRef(position).getKey();
+                    Log.d(TAG, "onLongClick: " + fretRef);
+                    view.setBackgroundColor(Color.GREEN);
+                    ((AppCompatActivity) view.getContext()).startSupportActionMode(mActionModeCallbacks);
+                    mSelectedItems.add(new Item(fretRef, position));
+                }
             }
         };
 
@@ -159,6 +245,7 @@ public class FretFragment extends Fragment {
             did.setDrawable(getContext().getResources().getDrawable(R.drawable.fret));
             recyclerView.addItemDecoration(did);
         }
+        mRecyclerView = (RecyclerView) view;
         return view;
     }
 
@@ -213,12 +300,21 @@ public class FretFragment extends Fragment {
 
     /**
      * Delete a local fret
-     * @param fretId Fret ID
+     * @param fretRef Fret reference
      */
-    @SuppressWarnings("unused")
-    private void deletePrivateFret(String fretId) {
-        FretApplication app = (FretApplication)getActivity().getApplicationContext();
+    private void deletePrivateFret(String fretRef) {
+        Log.d(TAG, "deletePrivateFret: " + fretRef);
+        FBWrite.deletePrivateFret(FirebaseDatabase.getInstance().getReference(), FretApplication.getUID(),fretRef );
+    }
 
-        FBWrite.deletePrivateFret(FirebaseDatabase.getInstance().getReference(),app.getUID(),fretId );
+    /**
+     * Publish a local fret
+     * @param fretRef Fret reference
+     * @param position position in list
+     */
+    private void publishPrivateFret(String fretRef, int position ) {
+        Log.d(TAG, "publishPrivateFret: " + fretRef);
+        Fret fret = mAdapter.getItem(position);
+        FBWrite.publishPrivateFret(FirebaseDatabase.getInstance().getReference(), fret, FretApplication.getUID(),fretRef);
     }
 }

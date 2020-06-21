@@ -12,10 +12,12 @@ public class Fret {
             "RYTHM GUITAR",
             "BASS",
             "UKELELE"
-    };    String  id;
+    };
+    String contentId;
     String  songName;
     String  description;
     String  userId;
+    String  userName;
     int     instrument;
     long    datePublished;
 
@@ -25,11 +27,12 @@ public class Fret {
     @SuppressWarnings("unused")
     public Fret(){}
 
-    public Fret(String id, String songName, String description, String userId, int instrument, long datePublished){
-        this.id = id;
+    public Fret(String contentId, String songName, String description, String userId, String userName, int instrument, long datePublished){
+        this.contentId = contentId;
         this.songName = songName;
         this.description = description;
         this.userId = userId;
+        this.userName = userName;
         this.instrument = instrument;
         this.datePublished = datePublished;
     }
@@ -40,11 +43,14 @@ public class Fret {
     public String getDescription() {
         return description;
     }
-    public String getId() {
-        return id;
+    public String getContentId() {
+        return contentId;
     }
     public String getUserId() {
         return userId;
+    }
+    public String getUserName() {
+        return userName;
     }
     public int getInstrument() {
         return instrument;
@@ -55,8 +61,8 @@ public class Fret {
     public String getInstrumentName(int index) {
         return instrumentName[index];
     }
-    public void setId(String id) {
-        this.id = id;
+    public void setContentId(String contentId) {
+        this.contentId = contentId;
     }
     public void setName(String songName) {
         this.songName = songName;
@@ -66,6 +72,9 @@ public class Fret {
     }
     public void setUserId(String userId) {
         this.userId = userId;
+    }
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
     public void setDatePublished(long datePublished) {
         this.datePublished = datePublished;
