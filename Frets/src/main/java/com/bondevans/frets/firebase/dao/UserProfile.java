@@ -1,7 +1,14 @@
 package com.bondevans.frets.firebase.dao;
+
+import com.bondevans.frets.utils.Log;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 @SuppressWarnings("unused")
 
 public class UserProfile {
+    private static final String TAG = UserProfile.class.getSimpleName();
     public static String childName = UserProfile.class.getSimpleName().toLowerCase();
     String  username;
     String  email;
@@ -69,5 +76,15 @@ public class UserProfile {
     }
     public boolean isUpdated(){
         return updated;
+    }
+
+    public static String getUsername(String userProfileJson) {
+        try {
+            JSONObject jsonObject = new JSONObject(userProfileJson);
+            return jsonObject.getString("username");
+        } catch (JSONException e) {
+            Log.e(TAG, e.getMessage());
+        }
+        return "";
     }
 }
