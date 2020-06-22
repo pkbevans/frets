@@ -22,7 +22,7 @@ public class MidiFile {
     private static final int FILE_HEADER_LENGTH = 14;
     private static final int BUF_LEN = 8192;
     private static final int TRACK_HEADER_LENGTH = 8;
-    private static final String UNKNOWN_TRACKNAME = "<UNKNOWN>";
+    private static final String UNKNOWN_TRACKNAME = "UNKNOWN";
     private static final int DEFAULT_TEMPO = 120;
     private static final int BEND_MIN_TICKS = 40;
     private static final int DEFAULT_TIMESIG = 4;
@@ -325,7 +325,13 @@ public class MidiFile {
                 Log.d(TAG, "Adding track: " + trackName);
                 if(track==0) {
                     // If this is the first track then assume that we have got the song title
-                    this.songTitle = trackName;
+                    if( trackName.equalsIgnoreCase("untitled") ||
+                            trackName.equalsIgnoreCase(UNKNOWN_TRACKNAME) ||
+                            trackName.isEmpty()){
+                        this.songTitle = stripSuffix(mMidiFile);
+                    } else {
+                        this.songTitle = trackName;
+                    }
                 }
                 mTracks.add(new MidiTrack(trackName, track));
                 if(track==0){
@@ -350,6 +356,12 @@ public class MidiFile {
         }
     }
 
+    private String stripSuffix(File file){
+        String fileName = file.getName();
+        if (fileName.indexOf(".") > 0)
+            fileName = fileName.substring(0, fileName.lastIndexOf("."));
+        return fileName;
+    }
     /**
      * Searches for a Trackname meta-event in the given InputStream
      *

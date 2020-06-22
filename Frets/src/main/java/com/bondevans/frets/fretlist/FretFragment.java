@@ -179,11 +179,12 @@ public class FretFragment extends Fragment {
                 // If the Action bar is currently being shown, and this item is highlighted then
                 // then a click just UN-highlights the item
                 String fretref = mAdapter.getRef(position).getKey();
-                Item i = new Item(fretref, position);
-                if(mSelectedItems.contains(i)){
-                    v.setBackgroundColor(Color.WHITE);
-                    mSelectedItems.remove(i);
-                    return;
+                for(Item i : mSelectedItems){
+                    if(i.position == position && i.ref.contentEquals(fretref)){
+                        v.setBackgroundColor(Color.WHITE);
+                        mSelectedItems.remove(i);
+                        return;
+                    }
                 }
                 // Show progress bar
                 progressDialog.show();
