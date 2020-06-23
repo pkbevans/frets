@@ -1,12 +1,10 @@
 package com.bondevans.frets.user;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
+import android.media.ThumbnailUtils;
 import android.net.Uri;
 
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +14,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bondevans.frets.ImageUtils;
 import com.bondevans.frets.R;
 import com.bondevans.frets.firebase.FBWrite;
 import com.bondevans.frets.firebase.dao.UserProfile;
@@ -32,6 +31,7 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
@@ -39,7 +39,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import androidx.annotation.NonNull;
-import androidx.exifinterface.media.ExifInterface;
 import androidx.fragment.app.Fragment;
 
 public class UserProfileFragment extends Fragment {
@@ -59,6 +58,7 @@ public class UserProfileFragment extends Fragment {
     private StorageReference mStorageRef;
     private boolean mPhotoUpdated = false;
     private File mPhotoFile;
+    private Bitmap mThumbNail;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -88,6 +88,9 @@ public class UserProfileFragment extends Fragment {
                 // Only upload pic if they have added a new one.
                 if(mPhotoUpdated) {
                     uploadProfilePic(mPhotoFile, mUid);
+                    uploadThumbnail(mUid);
+                    // Copy thumbnail to cache
+                    ImageUtils.writeThumbnailToCache(mUid,mThumbNail);
                 }
                 getActivity().finish();
             }
@@ -159,9 +162,7 @@ public class UserProfileFragment extends Fragment {
                 .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                     @Override
                     public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                        // Get a URL to the uploaded content
                         Log.d(TAG, "HELLO uploaded file: "+taskSnapshot.toString());
-//                        Uri downloadUrl = taskSnapshot.getDownloadUrl();
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -173,29 +174,45 @@ public class UserProfileFragment extends Fragment {
                 });
     }
 
-    private void downloadProfilePic(String uid){
-        StorageReference profilePicRef = mStorageRef.child("profilePictures").child(uid);
+    private void uploadThumbnail(String uid){
+        StorageReference profilePicRef = mStorageRef.child("profileThumbnail").child(uid);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        mThumbNail.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+        byte[] data = baos.toByteArray();
 
-        File localFile;
+        UploadTask uploadTask = profilePicRef.putBytes(data);
+        uploadTask.addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception exception) {
+                // Handle unsuccessful uploads
+                Log.d(TAG, "HELLO uploaded thumbnail FAILED: "+exception.getMessage());
+            }
+        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                Log.d(TAG, "HELLO uploaded thumbnail");
+                // taskSnapshot.getMetadata() contains file metadata such as size, content-type, etc.
+                // ...
+            }
+        });
+    }
+
+    private void downloadProfilePic(final String uid){
+        StorageReference profilePicRef = mStorageRef.child("profilePictures").child(uid);
         try {
-            localFile = File.createTempFile("images", "jpg");
+            mPhotoFile = File.createTempFile("images", "jpg");
         } catch (IOException e) {
             e.printStackTrace();
             Log.d(TAG, "HELLO ERROR: "+e.getLocalizedMessage());
             return;
         }
 
-        final File finalLocalFile = localFile;
-        profilePicRef.getFile(localFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+        profilePicRef.getFile(mPhotoFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
             @Override
             public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
                 // Local temp file has been created
-                try {
-                    Bitmap imageBitmap = MediaStore.Images.Media.getBitmap(getActivity().getContentResolver(), Uri.fromFile(finalLocalFile));
-                    mProfilePic.setImageBitmap(checkOrientation(finalLocalFile.getPath(), imageBitmap));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                Log.d(TAG, "Profile Pic Downloaded: "+mPhotoFile.getPath());
+                setExistingProfilePic();
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
@@ -204,54 +221,18 @@ public class UserProfileFragment extends Fragment {
             }
         });
     }
-    void setProfilePic(File photoFile) {
+    void setNewProfilePic(File photoFile) {
         mPhotoFile = photoFile;
+        Bitmap imageBitmap = ImageUtils.checkOrientation(mPhotoFile);
         Log.d(TAG, "HELLO - SetProfilePic: "+photoFile.getPath());
-        Bitmap imageBitmap;
-        imageBitmap = BitmapFactory.decodeFile(photoFile.getPath());
-        mProfilePic.setImageBitmap(checkOrientation(photoFile.getPath(), imageBitmap));
+        mProfilePic.setImageBitmap(imageBitmap);
+        mThumbNail = ThumbnailUtils.extractThumbnail(imageBitmap, 100, 100);
         mPhotoUpdated=true;
     }
 
-    Bitmap checkOrientation(String photoPath, Bitmap bitmap){
-        Log.d(TAG, "HELLO - checkOrientation: "+photoPath);
-        ExifInterface ei = null;
-        try {
-            ei = new ExifInterface(photoPath);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION,
-            ExifInterface.ORIENTATION_UNDEFINED);
-
-        Bitmap rotatedBitmap;
-        switch(orientation) {
-            case ExifInterface.ORIENTATION_ROTATE_90:
-                Log.d(TAG, "HELLO - checkOrientation: 90");
-                rotatedBitmap = rotateImage(bitmap, 90);
-                break;
-            case ExifInterface.ORIENTATION_ROTATE_180:
-                Log.d(TAG, "HELLO - checkOrientation: 180");
-                rotatedBitmap = rotateImage(bitmap, 180);
-                break;
-            case ExifInterface.ORIENTATION_ROTATE_270:
-                Log.d(TAG, "HELLO - checkOrientation: 270");
-                rotatedBitmap = rotateImage(bitmap, 270);
-                break;
-            case ExifInterface.ORIENTATION_NORMAL:
-                Log.d(TAG, "HELLO - checkOrientation: NORMAL");
-            default:
-                Log.d(TAG, "HELLO - checkOrientation: UNDEFINED");
-                rotatedBitmap = bitmap;
-        }
-        return rotatedBitmap;
-    }
-
-    public static Bitmap rotateImage(Bitmap source, float angle) {
-        Log.d(TAG, "HELLO rotateImage:"+angle);
-        Matrix matrix = new Matrix();
-        matrix.postRotate(angle);
-        return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(),
-                matrix, true);
+    private void setExistingProfilePic(){
+        // PIc will be in mPhotoFile
+        Bitmap imageBitmap = ImageUtils.checkOrientation(mPhotoFile);
+        mProfilePic.setImageBitmap(imageBitmap);
     }
 }

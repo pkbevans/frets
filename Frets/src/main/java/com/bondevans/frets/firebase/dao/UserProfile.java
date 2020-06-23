@@ -1,6 +1,7 @@
 package com.bondevans.frets.firebase.dao;
 
 import com.bondevans.frets.utils.Log;
+import com.google.firebase.database.Exclude;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -74,6 +75,7 @@ public class UserProfile {
     public void setDateJoined(long dateJoined) {
         this.dateJoined = dateJoined;
     }
+    @Exclude
     public boolean isUpdated(){
         return updated;
     }

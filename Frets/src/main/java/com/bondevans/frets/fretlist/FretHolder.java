@@ -1,9 +1,12 @@
 package com.bondevans.frets.fretlist;
 
-import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bondevans.frets.ImageUtils;
 import com.bondevans.frets.R;
 import com.bondevans.frets.app.FretApplication;
 import com.bondevans.frets.firebase.dao.Fret;
@@ -11,11 +14,16 @@ import com.bondevans.frets.firebase.dao.UserProfile;
 import com.bondevans.frets.utils.FileLoader;
 import com.bondevans.frets.utils.FileWriterTask;
 import com.bondevans.frets.utils.Log;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FileDownloadTask;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.io.File;
 import java.text.DateFormat;
@@ -35,9 +43,10 @@ public class FretHolder extends RecyclerView.ViewHolder implements View.OnClickL
     private final TextView mUser;
     private final TextView mInstrument;
     private final TextView mDateCreated;
+    private ImageView mThumbnail;
     private final FretRecyclerViewClickListener mListener;
     final DateFormat simpleDF = new SimpleDateFormat("dd MMM yyyy");
-    final File cacheDir = new File(FretApplication.getAppContext().getExternalCacheDir(), "users/" );
+    final File cacheDir = new File(FretApplication.getAppContext().getExternalCacheDir(),"" );
 
     //Define a constructor taking a View as its parameter
     public FretHolder(@NonNull View itemView, FretRecyclerViewClickListener listener) {
@@ -49,6 +58,7 @@ public class FretHolder extends RecyclerView.ViewHolder implements View.OnClickL
         mUser = itemView.findViewById(R.id.user_name);
         mInstrument = itemView.findViewById(R.id.instrument);
         mDateCreated = itemView.findViewById(R.id.date_created);
+        mThumbnail = itemView.findViewById(R.id.thumbnail);
         // Click Listener
         mListener = listener;
         itemView.setOnClickListener(this);
@@ -60,6 +70,7 @@ public class FretHolder extends RecyclerView.ViewHolder implements View.OnClickL
         setName(fret.getName());
         setDescription(fret.getDescription());
         setUser(getUser(fret.getUserId()));
+        setThumbnail(getThumbnail(fret.getUserId()));
         setInstrument(fret.getInstrumentName(fret.getInstrument()));
         String d = formatDate(fret.getDatePublished());
         Log.d(TAG, "date:"+d);
@@ -81,6 +92,42 @@ public class FretHolder extends RecyclerView.ViewHolder implements View.OnClickL
             }
         }
     }
+    private Bitmap getThumbnail(final String uId) {
+        File cacheFile = new File(cacheDir, uId + ImageUtils.THUMBNAIL_SUFFIX );
+        Log.d(TAG, "HELLO cachefile:"+cacheFile.getPath());
+        if (cacheFile.exists()) {
+            try {
+                Log.d(TAG, "HELLO thumbnail cachefile exists");
+                return BitmapFactory.decodeFile(cacheFile.getPath());
+            } catch (Exception e) {
+                e.printStackTrace();
+                Log.e(TAG, e.getMessage());
+                return null;
+            }
+        } else {
+            Log.d(TAG, "HELLO thumbnail cachefile doesn't exist");
+            downloadThumbnailPic(uId);
+        }
+        return null;
+    }
+
+    private void downloadThumbnailPic(String uId){
+        StorageReference profilePicRef = FirebaseStorage.getInstance().getReference().child("profileThumbnail").child(uId);
+        final File cacheFile = new File(cacheDir, uId + ImageUtils.THUMBNAIL_SUFFIX );
+        profilePicRef.getFile(cacheFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                // Local temp file has been created
+                Log.d(TAG, "Thumbnail downloaded: "+cacheFile.getPath());
+                setThumbnail(ImageUtils.checkOrientation(cacheFile));
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception exception) {
+                // Handle any errors
+            }
+        });
+    }
 
     private String getUsernameFromCache(String uid) {
         File cacheFile = new File(cacheDir, uid );
@@ -100,33 +147,31 @@ public class FretHolder extends RecyclerView.ViewHolder implements View.OnClickL
             return "";
         }
     }
+    private void downloadProfile(final String uId) {
+        // Get the Profile from the server
+        DatabaseReference profileRef = FirebaseDatabase.getInstance().getReference().child("users").child(uId).child("userProfile");
+        profileRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Log.d(TAG, "HELLO GOT PROFILE:" + dataSnapshot.toString());
+                // Write profile (JSON) out to cache
+                writeFileToCache(dataSnapshot.toString(), uId);
+            }
 
-    private String downloadProfile(final String uId) {
-            // Get the Profile from the server
-            DatabaseReference profileRef = FirebaseDatabase.getInstance().getReference().child("users").child(uId).child("userProfile");
-            profileRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    Log.d(TAG, "HELLO GOT PROFILE:" + dataSnapshot.toString());
-                    // Write profile (JSON) out to cache
-                    writeFileToCache(dataSnapshot.toString(), uId);
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError databaseError) {
-                    Log.d(TAG, "OOPS " + databaseError.getMessage());
-                }
-            });
-        return "";
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.d(TAG, "OOPS " + databaseError.getMessage());
+            }
+        });
+        return;
     }
     private void writeFileToCache(String json, String uId) {
-        Context context = FretApplication.getAppContext();
         final File cacheFile = new File(cacheDir, uId );
         FileWriterTask fileWriterTask = new FileWriterTask(cacheFile, json);
         fileWriterTask.setFileWrittenListener(new FileWriterTask.FileWrittenListener() {
             @Override
             public void OnFileWritten() {
-                Log.d(TAG, "HELLO UserProfile written to cache: " + cacheFile.getPath());
+                Log.d(TAG, "HELLO file written to cache: " + cacheFile.getPath());
             }
 
             @Override
@@ -159,7 +204,9 @@ public class FretHolder extends RecyclerView.ViewHolder implements View.OnClickL
         mName.setText(name);
     }
     private void setDescription(@Nullable String text) {
-        mDescription.setText(text);
+        if(!text.isEmpty()) {
+            mDescription.setText("(" + text + ")");
+        }
     }
     private void setUser(@Nullable String text) {
         mUser.setText(text);
@@ -169,6 +216,11 @@ public class FretHolder extends RecyclerView.ViewHolder implements View.OnClickL
     }
     private void setDateCreated(@Nullable String text) {
         mDateCreated.setText(text);
+    }
+    private void setThumbnail(Bitmap bitmap){
+        if(bitmap != null) {
+            mThumbnail.setImageBitmap(bitmap);
+        }
     }
 
     @Override

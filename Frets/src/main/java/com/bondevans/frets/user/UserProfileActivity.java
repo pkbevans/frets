@@ -104,7 +104,7 @@ public class UserProfileActivity extends AppCompatActivity {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             // Intent will be null, but file picture will be where we told it to be
             Log.d(TAG, "HELLO got picture.: "+mCurrentPhotoPath);
-            fragment.setProfilePic(new File(mCurrentPhotoPath));
+            fragment.setNewProfilePic(new File(mCurrentPhotoPath));
         }
     }
 
