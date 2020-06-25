@@ -88,6 +88,7 @@ public class UserProfileFragment extends Fragment {
                 // Only upload pic if they have added a new one.
                 if(mPhotoUpdated) {
                     uploadProfilePic(mPhotoFile, mUid);
+                    mThumbNail = ImageUtils.getCircularBitmap(mThumbNail);
                     uploadThumbnail(mUid);
                     // Copy thumbnail to cache
                     ImageUtils.writeThumbnailToCache(mUid,mThumbNail);

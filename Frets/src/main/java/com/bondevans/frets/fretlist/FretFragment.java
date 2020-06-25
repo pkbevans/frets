@@ -20,6 +20,8 @@ import com.bondevans.frets.firebase.FBWrite;
 import com.bondevans.frets.firebase.dao.Fret;
 import com.bondevans.frets.firebase.dao.FretContents;
 import com.bondevans.frets.fretviewer.FretViewActivity;
+import com.bondevans.frets.user.UserProfileActivity;
+import com.bondevans.frets.user.UserProfileFragment;
 import com.bondevans.frets.utils.FileWriterTask;
 import com.bondevans.frets.utils.Log;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
@@ -218,8 +220,20 @@ public class FretFragment extends Fragment {
                     });
                 }
                 // Write out a click on this song
-                FretApplication app = (FretApplication) getActivity().getApplicationContext();
-                FBWrite.usage(mDbRef.getRoot(), app.getUID(), fret.getContentId());
+                FBWrite.usage(mDbRef.getRoot(), FretApplication.getUID(), fret.getContentId());
+            }
+
+            @Override
+            public void onThumbnailClick(View view, int position) {
+                Fret fret = mAdapter.getItem(position);
+                Intent intent = new Intent(getActivity(), UserProfileActivity.class);
+                intent.putExtra(UserProfileFragment.INTENT_UID, fret.getUserId());
+                intent.putExtra(UserProfileFragment.INTENT_EDITABLE, false);
+                try {
+                    startActivity(intent);
+                } catch (ActivityNotFoundException e) {
+                    Log.e(TAG, "NO ACTIVITY FOUND: "+UserProfileActivity.class.getSimpleName());
+                }
             }
 
             @Override

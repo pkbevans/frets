@@ -2,6 +2,7 @@ package com.bondevans.frets.fretlist;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -13,7 +14,6 @@ import com.bondevans.frets.firebase.dao.Fret;
 import com.bondevans.frets.firebase.dao.UserProfile;
 import com.bondevans.frets.utils.FileLoader;
 import com.bondevans.frets.utils.FileWriterTask;
-import com.bondevans.frets.utils.Log;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
@@ -63,6 +63,12 @@ public class FretHolder extends RecyclerView.ViewHolder implements View.OnClickL
         mListener = listener;
         itemView.setOnClickListener(this);
         itemView.setOnLongClickListener(this);
+        mThumbnail.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mListener.onThumbnailClick(v, getAdapterPosition());
+            }
+        });
     }
 
     public void bind(@NonNull Fret fret) {
@@ -153,9 +159,9 @@ public class FretHolder extends RecyclerView.ViewHolder implements View.OnClickL
         profileRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                Log.d(TAG, "HELLO GOT PROFILE:" + dataSnapshot.toString());
-                // Write profile (JSON) out to cache
-                writeFileToCache(dataSnapshot.toString(), uId);
+                UserProfile userProfile = dataSnapshot.getValue(UserProfile.class);
+                // Write profile (JSON) out to cache TODO update list
+                writeProfileToCache(userProfile.toString(), uId);
             }
 
             @Override
@@ -165,7 +171,7 @@ public class FretHolder extends RecyclerView.ViewHolder implements View.OnClickL
         });
         return;
     }
-    private void writeFileToCache(String json, String uId) {
+    private void writeProfileToCache(String json, String uId) {
         final File cacheFile = new File(cacheDir, uId );
         FileWriterTask fileWriterTask = new FileWriterTask(cacheFile, json);
         fileWriterTask.setFileWrittenListener(new FileWriterTask.FileWrittenListener() {

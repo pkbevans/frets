@@ -85,8 +85,20 @@ public class UserProfile {
             JSONObject jsonObject = new JSONObject(userProfileJson);
             return jsonObject.getString("username");
         } catch (JSONException e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, "HELLO JSON ERROR" + e.getMessage());
         }
         return "";
+    }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "username='" + username + '\'' +
+                ", email='" + email + '\'' +
+                ", bio='" + bio + '\'' +
+                ", website='" + website + '\'' +
+                ", dateJoined=" + dateJoined +
+                ", updated=" + updated +
+                '}';
     }
 }

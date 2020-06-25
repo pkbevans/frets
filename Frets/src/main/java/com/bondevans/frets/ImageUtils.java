@@ -74,14 +74,14 @@ public class ImageUtils {
     public static void writeThumbnailToCache(String uid, Bitmap bmp){
         File cacheFile = new File(cacheDir,uid+THUMBNAIL_SUFFIX);
         try (FileOutputStream out = new FileOutputStream(cacheFile.getPath())) {
-            getCircularBitmap(bmp).compress(Bitmap.CompressFormat.PNG, 100, out); // bmp is your Bitmap instance
+            bmp.compress(Bitmap.CompressFormat.PNG, 100, out); // bmp is your Bitmap instance
             // PNG is a lossless format, the compression factor (100) is ignored
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private static Bitmap getCircularBitmap(Bitmap srcBitmap) {
+    public static Bitmap getCircularBitmap(Bitmap srcBitmap) {
         // Calculate the circular bitmap width with border
         int squareBitmapWidth = Math.min(srcBitmap.getWidth(), srcBitmap.getHeight());
         // Initialize a new instance of Bitmap
