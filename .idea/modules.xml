@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/Frets/Frets.iml" filepath="$PROJECT_DIR$/Frets/Frets.iml" group="frets/Frets" />
-      <module fileurl="file://$PROJECT_DIR$/frets.iml" filepath="$PROJECT_DIR$/frets.iml" group="frets" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Frets/Frets.iml" filepath="$PROJECT_DIR$/.idea/modules/Frets/Frets.iml" group="frets/Frets" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/frets.iml" filepath="$PROJECT_DIR$/.idea/modules/frets.iml" group="frets" />
     </modules>
   </component>
 </project>

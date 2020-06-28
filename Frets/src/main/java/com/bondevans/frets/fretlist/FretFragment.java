@@ -12,6 +12,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bondevans.frets.R;
@@ -49,7 +50,7 @@ import static android.app.usage.UsageEvents.Event.NONE;
 /**
  * A fragment representing a list of Items.
  */
-public class FretFragment extends Fragment {
+public class FretFragment extends Fragment implements FretListActivity.QueryUpdateListener {
     private static final String TAG = FretFragment.class.getSimpleName();
     private static final String ARG_COLUMN_COUNT = "column-count";
     FretRecyclerViewAdapter mAdapter;
@@ -60,6 +61,11 @@ public class FretFragment extends Fragment {
     private int mListType;
     private Query mQuery;
     private ArrayList<Item> mSelectedItems = new ArrayList<>();
+    private FirebaseRecyclerOptions<Fret> mOptions;
+    private FretRecyclerViewClickListener mListener;
+    private RecyclerView mRecyclerView;
+    private TextView mEmptyText;
+
     private ActionMode.Callback mActionModeCallbacks = new ActionMode.Callback() {
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
@@ -105,7 +111,30 @@ public class FretFragment extends Fragment {
             mAdapter.notifyDataSetChanged();
         }
     };
-    RecyclerView mRecyclerView;
+
+    @Override
+    public void onQueryUpdate(String search) {
+        Log.d(TAG, "HELLO OnQueryUpdate: "+search);
+
+        Query query = mQuery.startAt(search.toUpperCase()).endAt(search.toUpperCase() + "\uf8ff");
+        FirebaseRecyclerOptions<Fret> options = new FirebaseRecyclerOptions.Builder<Fret>()
+                .setQuery(query, Fret.class)
+                .build();
+
+        mAdapter.updateOptions(options);
+    }
+
+    @Override
+    public void onAttach(Context activity) {
+        super.onAttach(activity);
+        ((FretListActivity) activity).registerDataUpdateListener(this);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        ((FretListActivity) getActivity()).unregisterDataUpdateListener(this);
+    }
 
     private class Item {
         String ref;
@@ -158,24 +187,7 @@ public class FretFragment extends Fragment {
         if (getArguments() != null) {
             int columnCount = getArguments().getInt(ARG_COLUMN_COUNT);
         }
-        // Setup the progress dialog that is displayed later
-        progressDialog = new ProgressDialog(getActivity());
-        progressDialog.setMessage(getString(R.string.buffering_msg));
-        progressDialog.setCancelable(false);
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        Log.d(TAG, "HELLO onCreateView");
-        View view = inflater.inflate(R.layout.fretfragment_layout, container, false);
-
-        FirebaseRecyclerOptions<Fret> options =
-                new FirebaseRecyclerOptions.Builder<Fret>()
-                        .setQuery(mQuery, Fret.class)
-                        .build();
-
-        FretRecyclerViewClickListener listener = new FretRecyclerViewClickListener() {
+        mListener = new FretRecyclerViewClickListener() {
             @Override
             public void onClick(View v, int position) {
                 // If the Action bar is currently being shown, and this item is highlighted then
@@ -247,20 +259,46 @@ public class FretFragment extends Fragment {
                     mSelectedItems.add(new Item(fretRef, position));
                 }
             }
-        };
 
-        mAdapter = new FretRecyclerViewAdapter(options, listener);
-        if (view instanceof RecyclerView) {
+            @Override
+            public void onDataChanged() {
+                Log.d(TAG, "HELLO onDataChanged: "+mListType+":" +mAdapter.getItemCount());
+                if(mAdapter.getItemCount() == 0){
+                    mEmptyText.setVisibility(View.VISIBLE);
+                } else {
+                    mEmptyText.setVisibility(View.INVISIBLE);
+                }
+            }
+        };
+        // Setup the progress dialog that is displayed later
+        progressDialog = new ProgressDialog(getActivity());
+        progressDialog.setMessage(getString(R.string.buffering_msg));
+        progressDialog.setCancelable(false);
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        Log.d(TAG, "HELLO onCreateView");
+        View view = inflater.inflate(R.layout.fretfragment_layout, container, false);
+
+        mOptions = new FirebaseRecyclerOptions.Builder<Fret>()
+                        .setQuery(mQuery, Fret.class)
+                        .build();
+
+        mAdapter = new FretRecyclerViewAdapter(mOptions, mListener);
+        mRecyclerView = (RecyclerView) view.findViewById(R.id.recycler_view);
+        mEmptyText = (TextView) view.findViewById(R.id.empty_text);
+        mEmptyText.setVisibility(View.INVISIBLE);
+        if (mRecyclerView != null) {
             Context context = view.getContext();
-            RecyclerView recyclerView = (RecyclerView) view;
-            recyclerView.setLayoutManager(new LinearLayoutManager(context));
-            recyclerView.setAdapter(mAdapter);
+            mRecyclerView.setLayoutManager(new LinearLayoutManager(context));
+            mRecyclerView.setAdapter(mAdapter);
             DividerItemDecoration did = new DividerItemDecoration(view.getContext(),
                     DividerItemDecoration.VERTICAL);
             did.setDrawable(getContext().getResources().getDrawable(R.drawable.fret));
-            recyclerView.addItemDecoration(did);
+            mRecyclerView.addItemDecoration(did);
         }
-        mRecyclerView = (RecyclerView) view;
         return view;
     }
 

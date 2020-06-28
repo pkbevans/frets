@@ -6,7 +6,7 @@
     <string name="sdcard">/sdcard</string>
     <string name="external_card">ext_card/</string>
     <string name="share_file">Share…</string>
-    <string name="search_hint">Search for something</string>
+    <string name="search_hint">Search by Song name</string>
     <string name="up">Up</string>
     <string name="search_files">Search</string>
     <string name="refresh">Refresh</string>
@@ -239,5 +239,7 @@
     <string name="bio">Biography:</string>
     <string name="User">User:</string>
     <string name="name_required">Please give your Fret a name</string>
+    <string name="search_title">Search Frets</string>
+    <string name="empty_fretlist">No Frets yet.</string>
 
 </resources>

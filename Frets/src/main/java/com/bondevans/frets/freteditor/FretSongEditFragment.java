@@ -196,6 +196,28 @@ public class FretSongEditFragment extends ListFragment {
                     notifyDataSetChanged();
                 }
             });
+            if(fretTracks.get(position).isClickTrack()){
+                //  Dont show the click track
+                holder.trackName.setVisibility(View.INVISIBLE);
+                holder.events.setVisibility(View.INVISIBLE);
+                holder.instrument.setVisibility(View.INVISIBLE);
+                holder.soloButton.setVisibility(View.INVISIBLE);
+                holder.soloText.setVisibility(View.INVISIBLE);
+                holder.drumTrack.setVisibility(View.INVISIBLE);
+                holder.deleteButton.setVisibility(View.INVISIBLE);
+                holder.selectButton.setVisibility(View.INVISIBLE);
+                return convertView;
+            } else {
+                holder.trackName.setVisibility(View.VISIBLE);
+                holder.events.setVisibility(View.VISIBLE);
+                holder.instrument.setVisibility(View.VISIBLE);
+                holder.soloButton.setVisibility(View.VISIBLE);
+                holder.soloText.setVisibility(View.VISIBLE);
+                holder.drumTrack.setVisibility(View.VISIBLE);
+                holder.deleteButton.setVisibility(View.VISIBLE);
+                holder.selectButton.setVisibility(View.VISIBLE);
+            }
+
             if(isDrum) {
                 holder.instrument.setEnabled(false);
             }
@@ -237,7 +259,7 @@ public class FretSongEditFragment extends ListFragment {
             });
 
             holder.deleteButton.setTag(position);
-            holder.deleteButton.setEnabled(!fretTracks.get(position).isClickTrack());
+//            holder.deleteButton.setEnabled(!fretTracks.get(position).isClickTrack());
             holder.deleteButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -248,7 +270,7 @@ public class FretSongEditFragment extends ListFragment {
                 }
             });
             holder.selectButton.setTag(position);
-            holder.selectButton.setEnabled(!fretTracks.get(position).isClickTrack());
+//            holder.selectButton.setEnabled(!fretTracks.get(position).isClickTrack());
             holder.selectButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {

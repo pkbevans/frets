@@ -13,8 +13,8 @@ public class Fret {
             "BASS",
             "UKELELE"
     };
-    String contentId;
-    String  songName;
+    String  contentId;
+    String  songName;   // Stored as UPPERCASE to help Search capability and to create conformity
     String  description;
     String  userId;
     String  userName;
@@ -29,7 +29,7 @@ public class Fret {
 
     public Fret(String contentId, String songName, String description, String userId, String userName, int instrument, long datePublished){
         this.contentId = contentId;
-        this.songName = songName;
+        this.songName = songName.toUpperCase();
         this.description = description;
         this.userId = userId;
         this.userName = userName;
@@ -65,7 +65,7 @@ public class Fret {
         this.contentId = contentId;
     }
     public void setName(String songName) {
-        this.songName = songName;
+        this.songName = songName.toUpperCase();
     }
     public void setDescription(String description) {
         this.description = description;
