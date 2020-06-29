@@ -2,6 +2,7 @@ package com.bondevans.frets.fretview;
 
 //import com.bondevans.fretboard.utils.Log;
 
+import com.bondevans.frets.instruments.FretInstrument;
 import com.bondevans.frets.utils.Log;
 
 import java.util.ArrayList;
@@ -25,6 +26,7 @@ public class FretTrack extends FretBase {
     private boolean drumTrack;  // Is this a Drum track? (If it is then MidiInstrument is n/a)
     private boolean clickTrack;  // Is this a Click track? (If it is then MidiInstrument is n/a)
     private int clickTrackSize;
+    private boolean merged;
     // INTERNAL PROPERTIES - NOT WRITTEN OUT IN/READ IN FROM TOSTRING()
     private int totalTicks;     // Essentially the Total time of the track
     List<Integer>clickEvents;    // Only used by FretViewer
@@ -49,6 +51,7 @@ public class FretTrack extends FretBase {
         this.totalTicks = totalTicks;
         this.clickTrack = false;
         this.clickTrackSize = 0;
+        this.merged = false;
     }
 
     /**
@@ -63,6 +66,7 @@ public class FretTrack extends FretBase {
         this.drumTrack = getTagInt(track, ATTR_DRUM_TRACK)==1;
         this.clickTrack = getTagInt(track, ATTR_CLICK_TRACK)==1;
         this.clickTrackSize = getTagInt(track, ATTR_CLICK_TRACKSIZE);
+        this.merged =  getTagInt(track, ATTR_MERGED)==1;
         loadFretEvents(track);
     }
 
@@ -98,6 +102,7 @@ public class FretTrack extends FretBase {
                 + attr(ATTR_DRUM_TRACK, drumTrack)
                 + attr(ATTR_CLICK_TRACK, clickTrack)
                 + attr(ATTR_CLICK_TRACKSIZE, clickTrackSize)
+                + attr(ATTR_MERGED, merged)
         );
         for (FretEvent event : fretEvents) {
             sb.append(event.toString());
@@ -121,6 +126,14 @@ public class FretTrack extends FretBase {
 
     public boolean isDrumTrack() {
         return drumTrack;
+    }
+
+    public boolean isMerged() {
+        return merged;
+    }
+
+    public void setMerged(boolean merged) {
+        this.merged = merged;
     }
 
     public void setDrumTrack(boolean isChecked) {
@@ -200,6 +213,20 @@ public class FretTrack extends FretBase {
     }
     public int getClickEventByClickNumber(int clickNumber){
         return clickEvents.get(clickNumber);
+    }
+    public void setInitialFretPositions(FretInstrument.Instrument instrument){
+        FretPosition fretPosition = new FretPosition(instrument);
+        // read through all events in the track and set FretPositions for each
+        for( FretEvent fretEvent: fretEvents){
+            fretPosition.getFretPositions(fretEvent.fretNotes);
+        }
+    }
+    public int getEventSizeForTrack(int track){
+        int i=0;
+        for(FretEvent fretEvent: fretEvents){
+            if(fretEvent.track == track)++i;
+        }
+        return i;
     }
 }
 

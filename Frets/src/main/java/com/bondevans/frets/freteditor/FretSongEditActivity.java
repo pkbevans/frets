@@ -347,6 +347,7 @@ public class FretSongEditActivity extends AppCompatActivity implements
             }
             ++track;
         }
+        getSong().getTrack(getSong().getSoloTrack()).setMerged(true);
         getSong().getTrack(getSong().getSoloTrack()).dump("END");
         // TODO  (REMOVE) Write out the merged track - for debugging purposes only
         try {

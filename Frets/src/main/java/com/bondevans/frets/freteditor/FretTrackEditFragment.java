@@ -41,6 +41,7 @@ public class FretTrackEditFragment extends Fragment {
     private TextView mEventText;
     private OnSendMidiListener mOnSendMidiListener;
     private boolean mInstrumentSet=false;
+    private int mTracksize;
 
     @Override
     public void onAttach(Context context) {
@@ -153,7 +154,8 @@ public class FretTrackEditFragment extends Fragment {
             }
         }
         while ( !mFretTrack.fretEvents.get(mCurrentEvent).hasOnNotes() ||
-                mFretTrack.fretEvents.get(mCurrentEvent).track!=mSoloTrack);
+                (mFretTrack.isMerged() &&
+                mFretTrack.fretEvents.get(mCurrentEvent).track!=mSoloTrack));
 
         mFretEditView.setNotes(mFretTrack.fretEvents.get(mCurrentEvent));
         mFretEditView.invalidate();
@@ -168,7 +170,7 @@ public class FretTrackEditFragment extends Fragment {
     }
 
     private void setEventText(){
-        mEventText.setText(getString(R.string.event_count,(mCurrentEvent+1),mFretTrack.fretEvents.size()));
+        mEventText.setText(getString(R.string.event_count,(mCurrentEvent+1), mTracksize));
     }
     /**
      * Set the <code>FretTrack</code>
@@ -179,6 +181,7 @@ public class FretTrackEditFragment extends Fragment {
         Log.d(TAG, "setFretTrack");
         mFretTrack = fretTrack;
         mSoloTrack = track;
+        mTracksize = mFretTrack.getEventSizeForTrack(mSoloTrack);
         mTrackName.setText(mFretTrack.getName());
         mCurrentEvent = 0;
         mFretEditView.setNotes(mFretTrack.fretEvents.get(mCurrentEvent));

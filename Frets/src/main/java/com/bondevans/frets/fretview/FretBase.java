@@ -29,6 +29,7 @@ class FretBase {
     static final String ATTR_DRUM_TRACK = "dr";
     static final String ATTR_CLICK_TRACK = "ct";
     static final String ATTR_CLICK_TRACKSIZE = "cts";
+    static final String ATTR_MERGED = "me";
 
 
     /**

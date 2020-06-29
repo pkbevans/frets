@@ -259,7 +259,6 @@ public class FretSongEditFragment extends ListFragment {
             });
 
             holder.deleteButton.setTag(position);
-//            holder.deleteButton.setEnabled(!fretTracks.get(position).isClickTrack());
             holder.deleteButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -270,7 +269,6 @@ public class FretSongEditFragment extends ListFragment {
                 }
             });
             holder.selectButton.setTag(position);
-//            holder.selectButton.setEnabled(!fretTracks.get(position).isClickTrack());
             holder.selectButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {

@@ -27,7 +27,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/frets_background"
-            android:inputType="textCapWords" />
+            android:inputType="textCapWords"
+            android:paddingLeft="12dp" />
     </LinearLayout>
 
     <HorizontalScrollView
