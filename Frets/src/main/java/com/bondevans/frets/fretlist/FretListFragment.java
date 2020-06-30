@@ -50,14 +50,14 @@ import static android.app.usage.UsageEvents.Event.NONE;
 /**
  * A fragment representing a list of Items.
  */
-public class FretFragment extends Fragment implements FretListActivity.QueryUpdateListener {
-    private static final String TAG = FretFragment.class.getSimpleName();
+public class FretListFragment extends Fragment implements FretListActivity.QueryUpdateListener {
+    private static final String TAG = FretListFragment.class.getSimpleName();
     private static final String ARG_COLUMN_COUNT = "column-count";
     FretRecyclerViewAdapter mAdapter;
     FretApplication mApp;
     DatabaseReference mDbRef;
     private ProgressDialog progressDialog;
-    private PageViewModel pageViewModel;
+    private FretListViewModel fretListViewModel;
     private int mListType;
     private Query mQuery;
     private ArrayList<Item> mSelectedItems = new ArrayList<>();
@@ -150,12 +150,12 @@ public class FretFragment extends Fragment implements FretListActivity.QueryUpda
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    public FretFragment() {
+    public FretListFragment() {
     }
 
     @SuppressWarnings("unused")
-    public static FretFragment newInstance(int index, int type) {
-        FretFragment fragment = new FretFragment();
+    public static FretListFragment newInstance(int index, int type) {
+        FretListFragment fragment = new FretListFragment();
         Bundle bundle = new Bundle();
         bundle.putInt(FretListActivity.ARG_FRETLIST_NUMBER, index);
         bundle.putInt(FretListActivity.ARG_FRETLIST_TYPE, type);
@@ -167,13 +167,13 @@ public class FretFragment extends Fragment implements FretListActivity.QueryUpda
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "HELLO onCreate");
-        pageViewModel = new ViewModelProvider(this).get(PageViewModel.class);
+        fretListViewModel = new ViewModelProvider(this).get(FretListViewModel.class);
         int index = 1;
         if (getArguments() != null) {
             index = getArguments().getInt(FretListActivity.ARG_FRETLIST_NUMBER);
             mListType = getArguments().getInt(FretListActivity.ARG_FRETLIST_TYPE);
         }
-        pageViewModel.setIndex(index);
+        fretListViewModel.setIndex(index);
         mApp = (FretApplication)getActivity().getApplicationContext();
         mDbRef = FirebaseDatabase.getInstance().getReference();
         if(mListType == FretListActivity.FRETLIST_TYPE_PUBLIC) {
@@ -227,7 +227,7 @@ public class FretFragment extends Fragment implements FretListActivity.QueryUpda
                         public void onCancelled(@NonNull DatabaseError databaseError) {
                             progressDialog.hide();
                             Log.d(TAG, "OOPS " + databaseError.getMessage());
-                            Toast.makeText(FretFragment.this.getActivity(), databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(FretListFragment.this.getActivity(), databaseError.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     });
                 }

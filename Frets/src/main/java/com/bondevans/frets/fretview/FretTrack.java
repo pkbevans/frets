@@ -1,7 +1,7 @@
 package com.bondevans.frets.fretview;
 
-//import com.bondevans.fretboard.utils.Log;
-
+import com.bondevans.frets.instruments.FretBassGuitarStandard;
+import com.bondevans.frets.instruments.FretGuitarStandard;
 import com.bondevans.frets.instruments.FretInstrument;
 import com.bondevans.frets.utils.Log;
 
@@ -124,6 +124,24 @@ public class FretTrack extends FretBase {
         this.midiInstrument = instrument;
     }
 
+    public int getFretInstrument() {
+        return fretInstrument;
+    }
+
+    public void setFretInstrument(int fretInstrument) {
+        if(this.fretInstrument != fretInstrument) {
+            this.fretInstrument = fretInstrument;
+            // Need to set initial FretPostitions if we change the instrument
+            if(fretInstrument == FretInstrument.INTRUMENT_GUITAR) {
+                setInitialFretPositions(new FretGuitarStandard());
+            } else if(fretInstrument == FretInstrument.INTRUMENT_BASS) {
+                setInitialFretPositions(new FretBassGuitarStandard());
+            } else {
+                Log.e(TAG, "ERROR - UNKNOWN Instrument");
+            }
+        }
+    }
+
     public boolean isDrumTrack() {
         return drumTrack;
     }
@@ -214,7 +232,7 @@ public class FretTrack extends FretBase {
     public int getClickEventByClickNumber(int clickNumber){
         return clickEvents.get(clickNumber);
     }
-    public void setInitialFretPositions(FretInstrument.Instrument instrument){
+        public void setInitialFretPositions(FretInstrument.Instrument instrument){
         FretPosition fretPosition = new FretPosition(instrument);
         // read through all events in the track and set FretPositions for each
         for( FretEvent fretEvent: fretEvents){

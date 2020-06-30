@@ -10,7 +10,7 @@ import com.bondevans.frets.fretview.FretNote;
 import com.bondevans.frets.fretview.FretPosition;
 import com.bondevans.frets.fretview.FretSong;
 import com.bondevans.frets.fretview.FretTrack;
-import com.bondevans.frets.instruments.FretGuitarStandard;
+import com.bondevans.frets.instruments.FretInstrument;
 import com.bondevans.frets.utils.FileWriter;
 
 import java.io.File;
@@ -104,6 +104,18 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
     private FretTrack loadTrack(String name, int track) throws IOException, EmptyTrackException {
         List<FretEvent> fretEvents;
         Log.d(TAG, "Loading track: " + name+ " (" + track+")");
+        // See if we can work out what sort of instrument to assign to this track
+        boolean isDrums = false;
+        int midiSound = 0;
+        int fretInstrument = FretInstrument.INTRUMENT_GUITAR;
+        if(name.toLowerCase().matches(".*"+"drum"+".*")){
+            isDrums=true;
+        }else if(name.toLowerCase().matches(".*"+"bass"+".*")){
+            midiSound=33;
+            fretInstrument = FretInstrument.INTRUMENT_BASS;
+        }else if(name.toLowerCase().matches(".*"+"guitar"+".*")){
+            midiSound=29;
+        }
         // convert MIDI file into list of fretboard events
         List<MidiNoteEvent> midiNoteEvents = new ArrayList<>();
         try {
@@ -119,7 +131,7 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
         Log.d(TAG, "Loading Fret Events");
         fretEvents = new ArrayList<>();
         boolean first = true;
-        FretPosition fp = new FretPosition(new FretGuitarStandard());
+        FretPosition fp = new FretPosition(fretInstrument);
         List<FretNote> fretNotes = new ArrayList<>();
         int deltaTime = 0;
         int tempo = 0;
@@ -165,16 +177,7 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
             throw new EmptyTrackException("Empty");
         }
         Log.d(TAG, "Got [" + fretEvents.size() + "] FretEvents");
-        // See if we can work out what sort of instrument to assign to this track
-        boolean isDrums = false;
-        int midiSound = 0;
-        if(name.toLowerCase().matches(".*"+"drum"+".*")){
-            isDrums=true;
-        }else if(name.toLowerCase().matches(".*"+"bass"+".*")){
-            midiSound=33;
-        }else if(name.toLowerCase().matches(".*"+"guitar"+".*")){
-            midiSound=29;
-        }
-        return new FretTrack(name, fretEvents, midiSound, DEFAULT_FRET_INSTRUMENT, isDrums, totalTicks);
+
+        return new FretTrack(name, fretEvents, midiSound, fretInstrument, isDrums, totalTicks);
     }
 }

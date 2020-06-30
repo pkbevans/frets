@@ -30,7 +30,7 @@ public class FretListActivity extends AppCompatActivity {
     static final String ARG_FRETLIST_TYPE = "fretlist_type";
     static final int FRETLIST_TYPE_PUBLIC = 1;
     static final int FRETLIST_TYPE_PRIVATE = 2;
-    private List<QueryUpdateListener> mListeners;
+    private List<QueryUpdateListener> mListeners = new ArrayList<>();
 
     public interface QueryUpdateListener {
         void onQueryUpdate(String search);
@@ -48,7 +48,6 @@ public class FretListActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate");
-        mListeners = new ArrayList<>();
         setContentView(R.layout.fretlist_activity);
         FretListPagerAdapter fretListPagerAdapter = new FretListPagerAdapter(this, getSupportFragmentManager());
         ViewPager viewPager = findViewById(R.id.view_pager);

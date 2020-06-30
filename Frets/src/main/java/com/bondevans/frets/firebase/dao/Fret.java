@@ -1,18 +1,11 @@
 package com.bondevans.frets.firebase.dao;
+
+import com.bondevans.frets.instruments.FretInstrument;
+
 @SuppressWarnings("unused")
 
 public class Fret {
     public static String childName = Fret.class.getSimpleName().toLowerCase();
-    public static int LEAD_GUITAR = 0;
-    public static int RYTHM_GUITAR = 1;
-    public static int BASS = 2;
-    public static int UKELELE = 3;
-    private String [] instrumentName={
-            "LEAD GUITAR",
-            "RYTHM GUITAR",
-            "BASS",
-            "UKELELE"
-    };
     String  contentId;
     String  songName;   // Stored as UPPERCASE to help Search capability and to create conformity
     String  description;
@@ -59,7 +52,7 @@ public class Fret {
         return datePublished;
     }
     public String getInstrumentName(int index) {
-        return instrumentName[index];
+        return FretInstrument.instrumentNames[index];
     }
     public void setContentId(String contentId) {
         this.contentId = contentId;

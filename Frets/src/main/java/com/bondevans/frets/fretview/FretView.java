@@ -8,9 +8,11 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 
 import com.bondevans.frets.R;
+import com.bondevans.frets.instruments.FretInstrument;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +21,7 @@ import java.util.List;
  * FretView displays a fretboard and a set of notes
  */
 public class FretView extends View {
-    //    private static final String TAG = FretView.class.getSimpleName();
+    private static final String TAG = FretView.class.getSimpleName();
     private static final double FRET_NUMBER_TEXT_DIVISOR = 1.75;
     public static final int ZERO_PITCH_BEND = 8192;
     public static final int MAX_BEND = 10;
@@ -48,6 +50,7 @@ public class FretView extends View {
 
     public FretView(Context context) {
         super(context);
+        Log.d(TAG, "HELLO constructor 1");
         initialiseView();
     }
 
@@ -56,14 +59,24 @@ public class FretView extends View {
      */
     public FretView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        Log.d(TAG, "HELLO constructor2");
         initialiseView();
     }
 
+    public void setFretInstrument(FretInstrument.Instrument instrument ){
+        Log.d(TAG, "HELLO setFretInstrument");
+        mStrings = instrument.numStrings();
+        mFrets = instrument.numFrets();
+        mStringText = instrument.STRING_NAMES();
+        mInitialised=false;
+        initialiseView();
+    }
     /**
      * All initialisation stuff
      */
     protected void initialiseView() {
-        // FretTrackView shomuld call super.initialiseView()
+        Log.d(TAG, "HELLO initialiseView");
+        // FretTrackView should call super.initialiseView()
         setBackgroundResource(R.drawable.wood2);
         mFretMarkerBM = BitmapFactory.decodeResource(getResources(), R.drawable.fret_marker);
         mOldNotes = (List<FretNote>[]) new List[5];
@@ -74,7 +87,9 @@ public class FretView extends View {
      * Initialise the redraw.
      */
     private void initialiseStuff() {
+        Log.d(TAG, "HELLO initialiseStuff 1");
         if (!mInitialised) {
+            Log.d(TAG, "HELLO initialiseStuff 2");
             // Set up a Paint for the strings and frets
             mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             mPaint.setColor(Color.BLACK);
@@ -100,6 +115,7 @@ public class FretView extends View {
 
     @Override
     protected void onDraw(Canvas g) {
+        Log.d(TAG, "HELLO onDraw");
         initialiseStuff();
         drawBackground(g);
         drawFrets(g);
@@ -156,7 +172,7 @@ public class FretView extends View {
         // Allow a bit of space before and after the first fret (the nut) and the last one
         int fretX;
         int textWidth;
-        mPaintText.setTextSize((float) (mStringSpace / FRET_NUMBER_TEXT_DIVISOR));
+            mPaintText.setTextSize((float) (mFretWidth / FRET_NUMBER_TEXT_DIVISOR));
         mPaintText.setColor(Color.GREEN);
         mPaintText.setAlpha(TEXT_ALPHA);
 
@@ -178,17 +194,27 @@ public class FretView extends View {
             }
             // Add fret markers at frets 3, 5, 7, 9, 12, 15, 17, 19
             if (fret == 2 || fret == 4 || fret == 6 || fret == 8 || fret == 14 || fret == 16 || fret == 18) {
-                g.drawBitmap(mFretMarkerBM, null, getFretMarkerRect(fretX, 3), null);
+                g.drawBitmap(mFretMarkerBM, null, getFretMarkerRect(fretX, getHeight()/2), null);
             } else if (fret == 11) {
                 // two on the 12th fret
-                g.drawBitmap(mFretMarkerBM, null, getFretMarkerRect(fretX, 2), null);
-                g.drawBitmap(mFretMarkerBM, null, getFretMarkerRect(fretX, 4), null);
+                g.drawBitmap(mFretMarkerBM, null, getFretMarkerRect(fretX, getHeight()/3), null);
+                g.drawBitmap(mFretMarkerBM, null, getFretMarkerRect(fretX, (getHeight()/3)*2), null);
             }
             ++fret;
         }
     }
 
-    private Rect getFretMarkerRect(int fretX, int string) {
+    private Rect getFretMarkerRect(int fretX, int yMiddle) {
+        // We want a Rect in between current fret and next, centred on the fret board
+        int left, top, right, bottom;
+        left = fretX + (mFretWidth / 4);
+        top = yMiddle - (mFretWidth / 4);
+        right = left + (mFretWidth / 2);
+        bottom = top + (mFretWidth / 2);
+        return new Rect(left, top, right, bottom);
+    }
+
+    private Rect getFretMarkerRectOld(int fretX, int string) {
         // We want a Rect in between current fret and next, centred on the fret board
         int left, top, right, bottom;
         left = fretX + (mFretWidth / 4);

@@ -18,7 +18,9 @@ import com.bondevans.frets.fretview.FretNote;
 import com.bondevans.frets.fretview.FretPosition;
 import com.bondevans.frets.fretview.FretTrack;
 import com.bondevans.frets.fretview.FretView;
+import com.bondevans.frets.instruments.FretBassGuitarStandard;
 import com.bondevans.frets.instruments.FretGuitarStandard;
+import com.bondevans.frets.instruments.FretInstrument;
 import com.bondevans.frets.midiService.MidiService.OnSendMidiListener;
 
 import java.util.ArrayList;
@@ -63,7 +65,6 @@ public class FretTrackEditFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);  //Doesn't work for fragments added to the backstack
         Log.d(TAG, "onCreate");
-        mFretPosition = new FretPosition(new FretGuitarStandard());
     }
 
     @Override
@@ -180,10 +181,18 @@ public class FretTrackEditFragment extends Fragment {
     public void setFretTrack(FretTrack fretTrack, int track) {
         Log.d(TAG, "setFretTrack");
         mFretTrack = fretTrack;
+        mFretPosition = new FretPosition(mFretTrack.getFretInstrument());
         mSoloTrack = track;
         mTracksize = mFretTrack.getEventSizeForTrack(mSoloTrack);
         mTrackName.setText(mFretTrack.getName());
         mCurrentEvent = 0;
+        FretInstrument.Instrument instrument;
+        if(mFretTrack.getFretInstrument() == FretInstrument.INTRUMENT_GUITAR) {
+            instrument = new FretGuitarStandard();
+        } else{
+            instrument = new FretBassGuitarStandard();
+        }
+        mFretEditView.setFretInstrument(instrument);
         mFretEditView.setNotes(mFretTrack.fretEvents.get(mCurrentEvent));
         mFretEditView.invalidate();
         setEventText();

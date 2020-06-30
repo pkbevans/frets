@@ -2,6 +2,8 @@ package com.bondevans.frets.fretview;
 
 import android.util.Log;
 
+import com.bondevans.frets.instruments.FretBassGuitarStandard;
+import com.bondevans.frets.instruments.FretGuitarStandard;
 import com.bondevans.frets.instruments.FretInstrument;
 
 import java.util.List;
@@ -20,6 +22,25 @@ public class FretPosition {
      */
     public FretPosition(FretInstrument.Instrument instrument) {
         Log.d(TAG, "Constructor");
+        this.mNumStrings = instrument.numStrings();
+        this.mNumFrets = instrument.numFrets();
+        this.mTuning = instrument.TUNING();
+        // Initialise arrays
+        this.mStringAvailable = new boolean[mNumStrings];
+    }
+
+    public FretPosition(int fretInstrument) {
+        FretInstrument.Instrument instrument;
+        switch(fretInstrument){
+            case 0:
+                instrument = new FretGuitarStandard();
+                break;
+            case 1:
+                instrument = new FretBassGuitarStandard();
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + fretInstrument);
+        }
         this.mNumStrings = instrument.numStrings();
         this.mNumFrets = instrument.numFrets();
         this.mTuning = instrument.TUNING();

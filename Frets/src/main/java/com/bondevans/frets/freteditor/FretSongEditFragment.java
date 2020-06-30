@@ -140,6 +140,7 @@ public class FretSongEditFragment extends ListFragment {
         private final Context context;
         private final ArrayList<FretTrack> fretTracks;
         ArrayAdapter instrumentAdapter;
+        ArrayAdapter fretInstrumentAdapter;
         int selectedPosition;
 
         public FretTrackAdapter(Context context, ArrayList<FretTrack> values) {
@@ -148,8 +149,11 @@ public class FretSongEditFragment extends ListFragment {
             this.fretTracks = values;
             instrumentAdapter = new ArrayAdapter<>
                     (FretSongEditFragment.this.getActivity(), simple_spinner_item, getActivity().getResources().getStringArray(R.array.midi_instrument_names));
-
             instrumentAdapter.setDropDownViewResource
+                    (android.R.layout.simple_spinner_dropdown_item);
+            fretInstrumentAdapter = new ArrayAdapter<>
+                    (FretSongEditFragment.this.getActivity(), simple_spinner_item, getActivity().getResources().getStringArray(R.array.fret_instrument_names));
+            fretInstrumentAdapter.setDropDownViewResource
                     (android.R.layout.simple_spinner_dropdown_item);
         }
 
@@ -166,13 +170,13 @@ public class FretSongEditFragment extends ListFragment {
                 holder = new ViewHolder();
 
                 holder.trackName = (TextView) convertView.findViewById(R.id.track_name);
-                holder.events = (TextView) convertView.findViewById(R.id.events);
                 holder.soloText = (TextView) convertView.findViewById(R.id.solo_text);
                 holder.instrument = (Spinner) convertView.findViewById(R.id.instrument_spinner);
+                holder.fretInstrument = (Spinner) convertView.findViewById(R.id.fretinstrument_spinner);
                 holder.soloButton = (RadioButton) convertView.findViewById(R.id.soloButton);
                 holder.drumTrack = (CheckBox) convertView.findViewById(R.id.isDrumTrack);
                 holder.deleteButton = (ImageButton) convertView.findViewById(R.id.deleteButton);
-                holder.selectButton = (ImageButton) convertView.findViewById(R.id.selectButton);
+                holder.editButton = (ImageButton) convertView.findViewById(R.id.selectButton);
                 convertView.setTag(holder);
             }
             else{
@@ -181,7 +185,6 @@ public class FretSongEditFragment extends ListFragment {
                 holder = (ViewHolder) convertView.getTag();
             }
             holder.trackName.setText(fretTracks.get(position).getName());
-            holder.events.setText(String.format(getString(R.string.fret_events), fretTracks.get(position).fretEvents.size()));
 
             boolean isDrum = fretTracks.get(position).isDrumTrack();
             holder.drumTrack.setChecked(isDrum);
@@ -199,26 +202,28 @@ public class FretSongEditFragment extends ListFragment {
             if(fretTracks.get(position).isClickTrack()){
                 //  Dont show the click track
                 holder.trackName.setVisibility(View.INVISIBLE);
-                holder.events.setVisibility(View.INVISIBLE);
                 holder.instrument.setVisibility(View.INVISIBLE);
+                holder.fretInstrument.setVisibility(View.INVISIBLE);
                 holder.soloButton.setVisibility(View.INVISIBLE);
                 holder.soloText.setVisibility(View.INVISIBLE);
                 holder.drumTrack.setVisibility(View.INVISIBLE);
                 holder.deleteButton.setVisibility(View.INVISIBLE);
-                holder.selectButton.setVisibility(View.INVISIBLE);
+                holder.editButton.setVisibility(View.INVISIBLE);
                 return convertView;
             } else {
                 holder.trackName.setVisibility(View.VISIBLE);
-                holder.events.setVisibility(View.VISIBLE);
                 holder.instrument.setVisibility(View.VISIBLE);
+                holder.fretInstrument.setVisibility(View.VISIBLE);
                 holder.soloButton.setVisibility(View.VISIBLE);
                 holder.soloText.setVisibility(View.VISIBLE);
                 holder.drumTrack.setVisibility(View.VISIBLE);
                 holder.deleteButton.setVisibility(View.VISIBLE);
-                holder.selectButton.setVisibility(View.VISIBLE);
+                holder.editButton.setVisibility(View.VISIBLE);
             }
 
             if(isDrum) {
+                holder.instrument.setEnabled(false);
+                holder.fretInstrument.setEnabled(false);
                 holder.instrument.setEnabled(false);
             }
             else{
@@ -242,6 +247,29 @@ public class FretSongEditFragment extends ListFragment {
                     @Override
                     public void onNothingSelected(AdapterView<?> parent) {
                         Log.d(TAG, "Instrument spinner: nothing selected");
+                    }
+                });
+                //
+                holder.fretInstrument.setEnabled(true);
+                holder.fretInstrument.setAdapter(fretInstrumentAdapter);
+                // Spinner item selection Listener
+                holder.fretInstrument.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                        if(view != null) {
+                            final int track = getListView().getPositionForView((View) view.getParent());
+                            Log.d(TAG, "Fret Instrument spinner: " + position + " id: " + id + " track:" + track);
+                            if (fretTracks.get(track).getFretInstrument() != position) {
+                                fretTracks.get(track).setFretInstrument(position);
+                                Log.d(TAG, "Instrument updated");
+                                mIsEdited = true;
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+                        Log.d(TAG, "Fret Instrument spinner: nothing selected");
                     }
                 });
             }
@@ -268,8 +296,9 @@ public class FretSongEditFragment extends ListFragment {
                     notifyDataSetChanged();
                 }
             });
-            holder.selectButton.setTag(position);
-            holder.selectButton.setOnClickListener(new View.OnClickListener() {
+            holder.editButton.setEnabled(position == mFretSong.getSoloTrack()?true:false);
+            holder.editButton.setTag(position);
+            holder.editButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     selectedPosition = (Integer) view.getTag();
@@ -278,19 +307,20 @@ public class FretSongEditFragment extends ListFragment {
             });
             Log.d(TAG, "Setting Instrument: " + fretTracks.get(position).getMidiInstrument());
             holder.instrument.setSelection(fretTracks.get(position).getMidiInstrument());
+            holder.fretInstrument.setSelection(fretTracks.get(position).getFretInstrument());
 
             return convertView;
         }
 
         class ViewHolder {
             TextView trackName;
-            TextView events;
             Spinner instrument;
+            Spinner fretInstrument;
             RadioButton soloButton;
             TextView soloText;
             CheckBox drumTrack;
             ImageButton deleteButton;
-            ImageButton selectButton;
+            ImageButton editButton;
         }
     }
 

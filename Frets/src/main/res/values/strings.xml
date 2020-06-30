@@ -221,6 +221,11 @@
         <item>Applause</item>
         <item>Gunshot</item>
     </string-array>
+    <string-array name="fret_instrument_names">
+        <item>Guitar</item>
+        <item>Bass</item>
+<!--        <item>Ukelele</item>-->
+    </string-array>
     <string name="title_activity_main">MainActivity</string>
     <string name="my_frets_tab_text">My Frets</string>
     <string name="public_frets_tab_text">Public Frets</string>
@@ -241,5 +246,7 @@
     <string name="name_required">Please give your Fret a name</string>
     <string name="search_title">Search Frets</string>
     <string name="empty_fretlist">No Frets yet.</string>
+    <string name="instrument_voice">Instrument Voicing:</string>
+    <string name="fret_instrument">Instrument Type:</string>
 
 </resources>

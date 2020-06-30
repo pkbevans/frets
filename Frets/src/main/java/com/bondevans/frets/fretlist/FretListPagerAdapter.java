@@ -9,7 +9,6 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 
 import com.bondevans.frets.R;
-import com.bondevans.frets.utils.Log;
 
 /**
  * A [FragmentPagerAdapter] that returns a fragment corresponding to
@@ -36,10 +35,10 @@ public class FretListPagerAdapter extends FragmentPagerAdapter {
         switch(position){
             case 0:
                 type = FretListActivity.FRETLIST_TYPE_PUBLIC;
-                return FretFragment.newInstance(position + 1, type);
+                return FretListFragment.newInstance(position + 1, type);
             case 1:
                 type = FretListActivity.FRETLIST_TYPE_PRIVATE;
-                return FretFragment.newInstance(position + 1, type);
+                return FretListFragment.newInstance(position + 1, type);
         }
         return null;
     }
