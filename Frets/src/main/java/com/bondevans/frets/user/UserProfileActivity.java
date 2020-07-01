@@ -22,13 +22,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.FileProvider;
 
-import static com.bondevans.frets.user.UserProfileFragment.*;
+import static com.bondevans.frets.user.UserProfileFragment.INTENT_EDITABLE;
+import static com.bondevans.frets.user.UserProfileFragment.INTENT_UID;
 
 public class UserProfileActivity extends AppCompatActivity {
 
     static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final String TAG = UserProfileActivity.class.getSimpleName();
-    private UserProfileFragment fragment;
+    private UserProfileFragment mFragment;
     private ProgressBar progressBar;
     String mCurrentPhotoPath;
 
@@ -45,11 +46,10 @@ public class UserProfileActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
-                selectProfilePicture();
+                captureProfilePicture();
             }
         });
 
-        fragment = (UserProfileFragment) getSupportFragmentManager().findFragmentById(R.id.fragment2);
         setSupportActionBar(toolbar);                   // Setting toolbar as the ActionBar with setSupportActionBar() call
         getSupportActionBar().setDisplayHomeAsUpEnabled(false);
         getSupportActionBar().setDisplayShowTitleEnabled(true);
@@ -62,8 +62,10 @@ public class UserProfileActivity extends AppCompatActivity {
             String uid = intent.getStringExtra(INTENT_UID);
             Boolean editable = intent.getBooleanExtra(INTENT_EDITABLE, false);
             Log.d(TAG, "Got User ID: "+uid);
-            // set UID in fragment
-            fragment.loadUserProfile(uid, editable);
+            mFragment = (UserProfileFragment) UserProfileFragment.newInstance(uid, editable);
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.container, mFragment)
+                    .commitNow();
         }
         else{
             Log.d(TAG, "CONFIG CHANGE");
@@ -71,7 +73,7 @@ public class UserProfileActivity extends AppCompatActivity {
         }
     }
     Uri mPhotoURI;
-    private void selectProfilePicture() {
+    private void captureProfilePicture() {
         File photoFile;
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         // Ensure that there's a camera activity to handle the intent
@@ -104,7 +106,7 @@ public class UserProfileActivity extends AppCompatActivity {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             // Intent will be null, but file picture will be where we told it to be
             Log.d(TAG, "HELLO got picture.: "+mCurrentPhotoPath);
-            fragment.setNewProfilePic(new File(mCurrentPhotoPath));
+            mFragment.setNewProfilePic(new File(mCurrentPhotoPath));
         }
     }
 

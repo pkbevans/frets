@@ -2,13 +2,13 @@ package com.bondevans.frets.fretlist;
 
 import android.content.Context;
 
+import com.bondevans.frets.R;
+
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
-
-import com.bondevans.frets.R;
 
 /**
  * A [FragmentPagerAdapter] that returns a fragment corresponding to
@@ -21,9 +21,8 @@ public class FretListPagerAdapter extends FragmentPagerAdapter {
     private static final String TAG = FretListPagerAdapter.class.getSimpleName();
     private final Context mContext;
 
-    // TODO - update FragmentStateAdapter and viewPager2 to avoid deprecated classes
     FretListPagerAdapter(Context context, FragmentManager fm) {
-        super(fm);
+        super(fm, FragmentPagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
         mContext = context;
     }
 

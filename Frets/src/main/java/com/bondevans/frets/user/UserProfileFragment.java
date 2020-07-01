@@ -39,13 +39,16 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 public class UserProfileFragment extends Fragment {
     private static final String TAG = UserProfileFragment.class.getSimpleName();
     public static final String INTENT_UID = "INTENT_UID";
     public static final String INTENT_EDITABLE = "INTENT_EDITABLE";
-    private UserProfile mUserProfile;
+    private static final String ARG_UID = "uid";
+    private static final String ARG_EDITABLE = "editable";
     private ImageView mProfilePic;
     private EditText mUsername;
     private TextView mEmail;
@@ -59,30 +62,61 @@ public class UserProfileFragment extends Fragment {
     private boolean mPhotoUpdated = false;
     private File mPhotoFile;
     private Bitmap mThumbNail;
+    private UserProfileViewModel mViewModel;
+    private boolean mEditable;
+
+    public static Fragment newInstance(String uid, Boolean editable) {
+        UserProfileFragment userProfileFragment = new UserProfileFragment();
+        Bundle bundle = new Bundle();
+        bundle.putString(ARG_UID, uid);
+        bundle.putBoolean(ARG_EDITABLE, editable);
+        userProfileFragment.setArguments(bundle);
+        return userProfileFragment;
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        Log.d(TAG, "HELLO onActivityCreated");
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "HELLO onCreate");
         mSimpleDF = new SimpleDateFormat("dd MMM yyyy");
         mStorageRef = FirebaseStorage.getInstance().getReference();
+        mViewModel = new ViewModelProvider(this).get(UserProfileViewModel.class);
+        if (getArguments() != null) {
+            mUid = getArguments().getString(ARG_UID);
+            mEditable = getArguments().getBoolean(ARG_EDITABLE);
+            if(mViewModel.getUserProfile() == null) {
+                loadUserProfile(mUid, mEditable);
+            }
+        }
+        if(savedInstanceState != null){
+            Log.d(TAG, "HELLO GOT savedInstanceState"+savedInstanceState.toString());
+        }
     }
     @Override
     public View onCreateView(
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
         // Inflate the layout for this fragment
+        Log.d(TAG, "HELLO onCreateView");
         return inflater.inflate(R.layout.user_profile_layout, container, false);
     }
 
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        Log.d(TAG, "HELLO onViewCreated");
 
         mSaveButton = view.findViewById(R.id.save_button);
         mSaveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 // Update the profile, if changed
-                if(mUserProfile.isUpdated()) {
+                if(mViewModel.getUserProfile().isUpdated()) {
                     updateUserProfile();
                 }
                 // Only upload pic if they have added a new one.
@@ -102,19 +136,22 @@ public class UserProfileFragment extends Fragment {
         mBio = view.findViewById(R.id.bio);
         mWebsite = view.findViewById(R.id.website);
         mDateJoined = view.findViewById(R.id.date_joined);
+        if(mViewModel.getUserProfile()!=null){
+            setUi(mViewModel.getUserProfile(), mEditable);
+        }
     }
 
     private void updateUserProfile() {
         Log.d(TAG, "HELLO - saving User Profile to Firebase");
 
-        mUserProfile.setUsername(mUsername.getText().toString());
-        mUserProfile.setBio(mBio.getText().toString());
-        mUserProfile.setWebsite(mWebsite.getText().toString());
+        mViewModel.getUserProfile().setUsername(mUsername.getText().toString());
+        mViewModel.getUserProfile().setBio(mBio.getText().toString());
+        mViewModel.getUserProfile().setWebsite(mWebsite.getText().toString());
 
-        FBWrite.updateUser(FirebaseDatabase.getInstance().getReference(), mUserProfile,mUid);
+        FBWrite.updateUser(FirebaseDatabase.getInstance().getReference(), mViewModel.getUserProfile(),mUid);
     }
 
-    void loadUserProfile(String uId, final Boolean editable){
+    private void loadUserProfile(String uId, final Boolean editable){
         mUid = uId;
         // Get the Profile from the server
         DatabaseReference profileRef = FirebaseDatabase.getInstance().getReference().child("users").child(uId).child("userProfile");
@@ -123,9 +160,9 @@ public class UserProfileFragment extends Fragment {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Log.d(TAG, "HELLO CHILD:" + dataSnapshot.toString());
                 // load into a class, then set UI values
-                mUserProfile = dataSnapshot.getValue(UserProfile.class);
-                Log.d(TAG, "HELLO bio:" + mUserProfile.getBio());
-                setUi(mUserProfile, editable);
+                mViewModel.setUserProfile(dataSnapshot.getValue(UserProfile.class));
+                Log.d(TAG, "HELLO bio:" + mViewModel.getUserProfile().getBio());
+                setUi(mViewModel.getUserProfile(), editable);
             }
 
             @Override
@@ -134,7 +171,7 @@ public class UserProfileFragment extends Fragment {
                 Toast.makeText(UserProfileFragment.this.getActivity(), databaseError.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
-        // Get the profile pic
+        // ALso get the profile pic
         downloadProfilePic(uId);
     }
 
@@ -154,6 +191,11 @@ public class UserProfileFragment extends Fragment {
             mUsername.setEnabled(false);
             mSaveButton.setVisibility(View.INVISIBLE);
         }
+        if(mViewModel.getProfileBitmap()!=null){
+            Log.d(TAG, "HELLO Already got bitmap");
+            mProfilePic.setImageBitmap(mViewModel.getProfileBitmap());
+        }
+
     }
     private void uploadProfilePic(File file, String uid){
         Log.d(TAG, "HELLO uploading file: "+file.getPath());
@@ -224,16 +266,16 @@ public class UserProfileFragment extends Fragment {
     }
     void setNewProfilePic(File photoFile) {
         mPhotoFile = photoFile;
-        Bitmap imageBitmap = ImageUtils.checkOrientation(mPhotoFile);
+        mViewModel.setProfileBitmap(ImageUtils.checkOrientation(mPhotoFile));
         Log.d(TAG, "HELLO - SetProfilePic: "+photoFile.getPath());
-        mProfilePic.setImageBitmap(imageBitmap);
-        mThumbNail = ThumbnailUtils.extractThumbnail(imageBitmap, 100, 100);
+        mProfilePic.setImageBitmap(mViewModel.getProfileBitmap());
+        mThumbNail = ThumbnailUtils.extractThumbnail(mViewModel.getProfileBitmap(), 100, 100);
         mPhotoUpdated=true;
     }
 
     private void setExistingProfilePic(){
         // PIc will be in mPhotoFile
-        Bitmap imageBitmap = ImageUtils.checkOrientation(mPhotoFile);
-        mProfilePic.setImageBitmap(imageBitmap);
+        mViewModel.setProfileBitmap(ImageUtils.checkOrientation(mPhotoFile));
+        mProfilePic.setImageBitmap(mViewModel.getProfileBitmap());
     }
 }

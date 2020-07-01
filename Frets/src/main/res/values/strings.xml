@@ -224,7 +224,7 @@
     <string-array name="fret_instrument_names">
         <item>Guitar</item>
         <item>Bass</item>
-<!--        <item>Ukelele</item>-->
+        <!--        <item>Ukelele</item>-->
     </string-array>
     <string name="title_activity_main">MainActivity</string>
     <string name="my_frets_tab_text">My Frets</string>
