@@ -53,7 +53,8 @@ public class UserProfileFragment extends Fragment {
     private EditText mUsername;
     private TextView mEmail;
     private EditText mBio;
-    private EditText mWebsite;
+    private EditText mWebsiteEdit;
+    private TextView mWebsiteText;
     private TextView mDateJoined;
     DateFormat mSimpleDF;
     private Button mSaveButton;
@@ -133,8 +134,15 @@ public class UserProfileFragment extends Fragment {
         mProfilePic = view.findViewById(R.id.profile_pic);
         mUsername = view.findViewById(R.id.username);
         mEmail = view.findViewById(R.id.user_email);
+        TextView emailLabel = view.findViewById(R.id.email_label);
+        if(!mEditable){
+            // Only show email to the owner
+            mEmail.setVisibility(View.GONE);
+            emailLabel.setVisibility(View.GONE);
+        }
         mBio = view.findViewById(R.id.bio);
-        mWebsite = view.findViewById(R.id.website);
+        mWebsiteEdit = view.findViewById(R.id.website_edit);
+        mWebsiteText = view.findViewById(R.id.website_text);
         mDateJoined = view.findViewById(R.id.date_joined);
         if(mViewModel.getUserProfile()!=null){
             setUi(mViewModel.getUserProfile(), mEditable);
@@ -146,7 +154,7 @@ public class UserProfileFragment extends Fragment {
 
         mViewModel.getUserProfile().setUsername(mUsername.getText().toString());
         mViewModel.getUserProfile().setBio(mBio.getText().toString());
-        mViewModel.getUserProfile().setWebsite(mWebsite.getText().toString());
+        mViewModel.getUserProfile().setWebsite(mWebsiteEdit.getText().toString());
 
         FBWrite.updateUser(FirebaseDatabase.getInstance().getReference(), mViewModel.getUserProfile(),mUid);
     }
@@ -182,12 +190,17 @@ public class UserProfileFragment extends Fragment {
         text = userProfile.getBio().isEmpty()?"Bio":userProfile.getBio();
         mBio.setText(userProfile.getBio());
         text = userProfile.getWebsite().isEmpty()?"Website":userProfile.getWebsite();
-        mWebsite.setText(userProfile.getWebsite());
+        mWebsiteEdit.setText(userProfile.getWebsite());
+        mWebsiteText.setText(userProfile.getWebsite());
         mDateJoined.setText(mSimpleDF.format(new Date(userProfile.getDateJoined())));
-        if(!editable){
+        if(editable) {
+            mWebsiteEdit.setVisibility(View.VISIBLE);
+            mWebsiteText.setVisibility(View.INVISIBLE);
+        }else{
             mUsername.setEnabled(false);
             mBio.setEnabled(false);
-            mWebsite.setEnabled(false);
+            mWebsiteEdit.setVisibility(View.INVISIBLE);
+            mWebsiteText.setVisibility(View.VISIBLE);
             mUsername.setEnabled(false);
             mSaveButton.setVisibility(View.INVISIBLE);
         }

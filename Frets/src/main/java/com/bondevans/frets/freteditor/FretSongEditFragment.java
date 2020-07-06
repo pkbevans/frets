@@ -162,27 +162,38 @@ public class FretSongEditFragment extends ListFragment {
             Log.d(TAG, "HELLO - getView: "+position);
             ViewHolder holder;
             if( convertView == null) {
-                LayoutInflater inflater = (LayoutInflater) context
-                        .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                convertView = inflater.inflate(R.layout.fretsongedit_item, parent, false);
-                // Creates a ViewHolder and store references to the child views
-                // we want to bind data to.
                 holder = new ViewHolder();
+                if(fretTracks.get(position).isClickTrack()) {
+                    LayoutInflater inflater = (LayoutInflater) context
+                            .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                    convertView = inflater.inflate(R.layout.fretsongedit_clickitem, parent, false);
+                    convertView.setTag(holder);
+                    return convertView;
+                } else {
+                    LayoutInflater inflater = (LayoutInflater) context
+                            .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                    convertView = inflater.inflate(R.layout.fretsongedit_item, parent, false);
+                    // Creates a ViewHolder and store references to the child views
+                    // we want to bind data to.
 
-                holder.trackName = (TextView) convertView.findViewById(R.id.track_name);
-                holder.soloText = (TextView) convertView.findViewById(R.id.solo_text);
-                holder.instrument = (Spinner) convertView.findViewById(R.id.instrument_spinner);
-                holder.fretInstrument = (Spinner) convertView.findViewById(R.id.fretinstrument_spinner);
-                holder.soloButton = (RadioButton) convertView.findViewById(R.id.soloButton);
-                holder.drumTrack = (CheckBox) convertView.findViewById(R.id.isDrumTrack);
-                holder.deleteButton = (ImageButton) convertView.findViewById(R.id.deleteButton);
-                holder.editButton = (ImageButton) convertView.findViewById(R.id.selectButton);
-                convertView.setTag(holder);
+                    holder.trackName = (TextView) convertView.findViewById(R.id.track_name);
+                    holder.soloText = (TextView) convertView.findViewById(R.id.solo_text);
+                    holder.instrument = (Spinner) convertView.findViewById(R.id.instrument_spinner);
+                    holder.fretInstrument = (Spinner) convertView.findViewById(R.id.fretinstrument_spinner);
+                    holder.soloButton = (RadioButton) convertView.findViewById(R.id.soloButton);
+                    holder.drumTrack = (CheckBox) convertView.findViewById(R.id.isDrumTrack);
+                    holder.deleteButton = (ImageButton) convertView.findViewById(R.id.deleteButton);
+                    holder.editButton = (ImageButton) convertView.findViewById(R.id.selectButton);
+                    convertView.setTag(holder);
+                }
             }
             else{
                 // Get the ViewHolder back to get fast access to the TextView
                 // and the ImageView.
                 holder = (ViewHolder) convertView.getTag();
+                if(fretTracks.get(position).isClickTrack()) {
+                    return convertView;
+                }
             }
             holder.trackName.setText(fretTracks.get(position).getName());
 
@@ -199,27 +210,6 @@ public class FretSongEditFragment extends ListFragment {
                     notifyDataSetChanged();
                 }
             });
-            if(fretTracks.get(position).isClickTrack()){
-                //  Dont show the click track
-                holder.trackName.setVisibility(View.INVISIBLE);
-                holder.instrument.setVisibility(View.INVISIBLE);
-                holder.fretInstrument.setVisibility(View.INVISIBLE);
-                holder.soloButton.setVisibility(View.INVISIBLE);
-                holder.soloText.setVisibility(View.INVISIBLE);
-                holder.drumTrack.setVisibility(View.INVISIBLE);
-                holder.deleteButton.setVisibility(View.INVISIBLE);
-                holder.editButton.setVisibility(View.INVISIBLE);
-                return convertView;
-            } else {
-                holder.trackName.setVisibility(View.VISIBLE);
-                holder.instrument.setVisibility(View.VISIBLE);
-                holder.fretInstrument.setVisibility(View.VISIBLE);
-                holder.soloButton.setVisibility(View.VISIBLE);
-                holder.soloText.setVisibility(View.VISIBLE);
-                holder.drumTrack.setVisibility(View.VISIBLE);
-                holder.deleteButton.setVisibility(View.VISIBLE);
-                holder.editButton.setVisibility(View.VISIBLE);
-            }
 
             if(isDrum) {
                 holder.instrument.setEnabled(false);

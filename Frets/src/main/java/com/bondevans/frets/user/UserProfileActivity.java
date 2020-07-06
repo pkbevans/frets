@@ -40,16 +40,6 @@ public class UserProfileActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.tool_bar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-                captureProfilePicture();
-            }
-        });
-
         setSupportActionBar(toolbar);                   // Setting toolbar as the ActionBar with setSupportActionBar() call
         getSupportActionBar().setDisplayHomeAsUpEnabled(false);
         getSupportActionBar().setDisplayShowTitleEnabled(true);
@@ -66,6 +56,19 @@ public class UserProfileActivity extends AppCompatActivity {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.container, mFragment)
                     .commitNow();
+            FloatingActionButton fab = findViewById(R.id.fab);
+            if(editable) {
+                fab.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                                .setAction("Action", null).show();
+                        captureProfilePicture();
+                    }
+                });
+            } else{
+                fab.setVisibility(View.GONE);
+            }
         }
         else{
             Log.d(TAG, "CONFIG CHANGE");

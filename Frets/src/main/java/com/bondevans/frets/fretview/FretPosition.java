@@ -6,6 +6,7 @@ import com.bondevans.frets.instruments.FretBassGuitarStandard;
 import com.bondevans.frets.instruments.FretGuitarStandard;
 import com.bondevans.frets.instruments.FretInstrument;
 
+import java.util.Collections;
 import java.util.List;
 
 public class FretPosition {
@@ -58,20 +59,15 @@ public class FretPosition {
         if(fretNotes == null){
             return null;
         }
-        List<FretNote> mFretNotes;
-//        Log.d(TAG, "getFretPositions");
-        mFretNotes = fretNotes;
+        Log.d(TAG, "HELLO Notes:"+fretNotes.size());
         // reset mStringAvailable
         for (int i = 0; i < mNumStrings; i++) {
             mStringAvailable[i] = true;
         }
         // Work out string/fret positions for each note
-        FretNote fretNote;
         // Loop round each note in the array - starting with the last (assume it is the highest)
-        // TODO - sort into high-to-low order
-        int i = mFretNotes.size() - 1;
-        while (i >= 0) {
-            fretNote = mFretNotes.get(i);
+        Collections.sort(fretNotes, Collections.reverseOrder());
+        for(FretNote fretNote: fretNotes) {
             // Utterly simplistic - get first position that fits
             // Start with highest note and top string
             for (int j = 0; j < mNumStrings; j++) {
@@ -80,22 +76,17 @@ public class FretPosition {
                         fretNote.string = j;
                         fretNote.fret = fretNote.note - mTuning[j];
                         fretNote.name = setName(fretNote.note);
+                        if(fretNote.on){Log.d(TAG, "HELLO Note:"+fretNote.toString());}
                         if(fretNote.on) {
                             // Only use up a string for ON notes
                             mStringAvailable[j] = false;
                         }
-//                        Log.d(TAG, "Found position for note[" + i + "] [" + fretNote.note + "] string[" +
-//                                mStringNames[fretNote.string] + "] fret [" + fretNote.fret +
-//                                "] name [" + fretNote.name + "]");
-                        // Update FretNote list with updated element
-                        mFretNotes.set(i,fretNote);
                         break;
                     }
                 }
             }
-            --i;
         }
-        return mFretNotes;
+        return fretNotes;
     }
 
     /**
@@ -108,19 +99,18 @@ public class FretPosition {
         if(fretNotes == null){
             return null;
         }
-        List<FretNote> mFretNotes;
-//        Log.d(TAG, "getFretPositions");
-        mFretNotes = fretNotes;
+        //  Don't bother for multiple notes (yet) - Too difficult
+        if(fretNotes.size()>1){
+            return fretNotes;
+        }
         // reset mStringAvailable
         for (int i = 0; i < mNumStrings; i++) {
             mStringAvailable[i] = true;
         }
         // Work out string/fret positions for each note
-        FretNote fretNote;
         // Loop round each note in the array - starting with the last (assume it is the highest)
-        // TODO - sort into high-to-low order
-        for(int i = mFretNotes.size() - 1;i >= 0;i--) {
-            fretNote = mFretNotes.get(i);
+        Collections.sort(fretNotes, Collections.reverseOrder());
+        for(FretNote fretNote: fretNotes) {
             // Start with highest note and top string
             for (int j = 0; j < mNumStrings; j++) {
                 if (mStringAvailable[j]) {
@@ -140,10 +130,8 @@ public class FretPosition {
                     }
                 }
             }
-            // Update FretNote list with updated element
-            mFretNotes.set(i,fretNote);
         }
-        return mFretNotes;
+        return fretNotes;
     }
 
     private final static String[] noteName = {"C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "B", "Bb"};

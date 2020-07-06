@@ -5,7 +5,7 @@ import com.bondevans.frets.midi.MidiFile;
 /**
  * A note on the fretboard
  */
-public class FretNote extends FretBase {
+public class FretNote extends FretBase  implements Comparable<FretNote>{
 //    private static final String TAG = FretNote.class.getSimpleName();
     static final String ELEMENT_NOTE = "nt";
     private static final String NOTE_ELEMENT_OPEN = "<" + ELEMENT_NOTE + ">";
@@ -66,5 +66,10 @@ public class FretNote extends FretBase {
                 attr(ATTR_FRET, fret) +
 //                attr(ATTR_NAME, name) +
                 NOTE_ELEMENT_CLOSE;
+    }
+
+    @Override
+    public int compareTo(FretNote f) {
+        return this.note-f.note;
     }
 }

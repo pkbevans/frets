@@ -232,7 +232,8 @@ public class FretTrack extends FretBase {
     public int getClickEventByClickNumber(int clickNumber){
         return clickEvents.get(clickNumber);
     }
-        public void setInitialFretPositions(FretInstrument.Instrument instrument){
+
+    public void setInitialFretPositions(FretInstrument.Instrument instrument){
         FretPosition fretPosition = new FretPosition(instrument);
         // read through all events in the track and set FretPositions for each
         for( FretEvent fretEvent: fretEvents){
@@ -240,11 +241,15 @@ public class FretTrack extends FretBase {
         }
     }
     public int getEventSizeForTrack(int track){
-        int i=0;
-        for(FretEvent fretEvent: fretEvents){
-            if(fretEvent.track == track)++i;
+        if(merged) {
+            int i = 0;
+            for (FretEvent fretEvent : fretEvents) {
+                if (fretEvent.track == track && fretEvent.hasOnNotes()) ++i;
+            }
+            return i;
+        } else {
+            return fretEvents.size();
         }
-        return i;
     }
 }
 

@@ -28,7 +28,7 @@
         android:layout_marginRight="4dp"
         android:gravity="center_vertical"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/email_label2"
+        app:layout_constraintStart_toEndOf="@+id/email_label"
         app:layout_constraintTop_toBottomOf="@+id/date_joined" />
 
     <TextView
@@ -42,7 +42,7 @@
         android:text="@string/User"
         android:textSize="14sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/email_label2" />
+        app:layout_constraintTop_toBottomOf="@+id/email_label" />
 
     <EditText
         android:id="@+id/username"
@@ -70,14 +70,30 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/user_label" />
 
+    <TextView
+        android:id="@+id/website_text"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="4dp"
+        android:autoLink="web"
+        android:clickable="true"
+        android:gravity="center_vertical"
+        android:inputType="textUri"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/website_label"
+        app:layout_constraintTop_toBottomOf="@+id/username" />
+
     <EditText
-        android:id="@+id/website"
+        android:id="@+id/website_edit"
         android:layout_width="0dp"
         android:layout_height="50dp"
         android:layout_marginTop="4dp"
         android:layout_marginEnd="4dp"
-        android:layout_marginRight="4dp"
         android:inputType="textUri"
+        android:visibility="invisible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/website_label"
         app:layout_constraintTop_toBottomOf="@+id/username" />
@@ -106,7 +122,7 @@
         android:inputType="textMultiLine|text"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/bio_label"
-        app:layout_constraintTop_toBottomOf="@+id/website" />
+        app:layout_constraintTop_toBottomOf="@+id/website_edit" />
 
     <TextView
         android:id="@+id/date_joined"
@@ -144,7 +160,7 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
-        android:id="@+id/email_label2"
+        android:id="@+id/email_label"
         android:layout_width="100dp"
         android:layout_height="30dp"
         android:layout_marginStart="4dp"

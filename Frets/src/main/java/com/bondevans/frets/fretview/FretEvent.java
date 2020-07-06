@@ -22,6 +22,7 @@ public class FretEvent extends FretBase {
     public int track;
     private int totalTicks;
     private int clickEvent;
+    private boolean hasOnNotes;
     // INTERNAL PROPERTIES - NOT WRITTEN OUT IN/READ IN FROM TOSTRING()
 
     /**
@@ -38,6 +39,14 @@ public class FretEvent extends FretBase {
         this.bend = bend;
         this.fretNotes = fretNotes;
         this.totalTicks = totalTicks;
+
+        this.hasOnNotes = false;
+        for(FretNote fretNote: fretNotes){
+            if(fretNote.on){
+                this.hasOnNotes = true;
+                break;
+            }
+        }
     }
 
     /**
@@ -53,6 +62,7 @@ public class FretEvent extends FretBase {
         this.fretNotes =  new ArrayList<>();    // empty list of notes
         this.bend = 0;
         this.tempo = 0;
+        this.hasOnNotes = false;
     }
 
     public FretEvent(String ev) {
@@ -64,6 +74,7 @@ public class FretEvent extends FretBase {
         this.track = getTagInt(ev, ATTR_EV_TRACK);
         this.totalTicks = getTagInt(ev, ATTR_EV_TOTALTICKS);
         this.clickEvent = getTagInt(ev, ATTR_EV_CLICKEVENT);
+        this.hasOnNotes = getTagInt(ev, ATTR_EV_HASONNOTES)==1;
 
         fretNotes = getNotes(ev);
     }
@@ -97,7 +108,8 @@ public class FretEvent extends FretBase {
                 attr(ATTR_TEMPO, tempo) +
                 attr(ATTR_BEND, bend) +
                 attr(ATTR_EV_TOTALTICKS, totalTicks) +
-                attr(ATTR_EV_CLICKEVENT, clickEvent)
+                attr(ATTR_EV_CLICKEVENT, clickEvent) +
+                attr(ATTR_EV_HASONNOTES, hasOnNotes)
         );
         for(FretNote note: fretNotes){
             sb.append(note.toString());
@@ -112,13 +124,7 @@ public class FretEvent extends FretBase {
      * @return True if there are ON notes in this event, else False
      */
     public boolean hasOnNotes() {
-        for (FretNote fretNote : fretNotes) {
-            if (fretNote.on) {
-                return true;
-            }
-        }
-
-        return false;
+        return hasOnNotes;
     }
 
     public int getTicks() {
