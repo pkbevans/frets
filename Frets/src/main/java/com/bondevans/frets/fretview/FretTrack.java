@@ -29,7 +29,8 @@ public class FretTrack extends FretBase {
     private boolean merged;
     // INTERNAL PROPERTIES - NOT WRITTEN OUT IN/READ IN FROM TOSTRING()
     private int totalTicks;     // Essentially the Total time of the track
-    List<Integer>clickEvents;    // Only used by FretViewer
+    private List<Integer>clickEvents;    // Only used by FretViewer
+    private FretPosition fretPosition;
 
     /**
      * Constructor
@@ -131,7 +132,7 @@ public class FretTrack extends FretBase {
     public void setFretInstrument(int fretInstrument) {
         if(this.fretInstrument != fretInstrument) {
             this.fretInstrument = fretInstrument;
-            // Need to set initial FretPostitions if we change the instrument
+            // Need to set initial FretPositions if we change the instrument
             if(fretInstrument == FretInstrument.INTRUMENT_GUITAR) {
                 setInitialFretPositions(new FretGuitarStandard());
             } else if(fretInstrument == FretInstrument.INTRUMENT_BASS) {
@@ -203,7 +204,7 @@ public class FretTrack extends FretBase {
      */
     public void createClickTrack(int longest, int ticksPerQtrNote){
         fretEvents = new ArrayList<>();
-        android.util.Log.d(TAG, "createClickTrackFretEvents:"+longest);
+        Log.d(TAG, "createClickTrackFretEvents:"+longest);
         int totalTicks=0;
         // Add click at start
         int clickEvent=1;
@@ -237,18 +238,61 @@ public class FretTrack extends FretBase {
         FretPosition fretPosition = new FretPosition(instrument);
         // read through all events in the track and set FretPositions for each
         for( FretEvent fretEvent: fretEvents){
-            fretPosition.getFretPositions(fretEvent.fretNotes);
+            fretPosition.setDefaultFretPositions(fretEvent.fretNotes);
         }
     }
     public int getEventSizeForTrack(int track){
+        int i = 0;
         if(merged) {
-            int i = 0;
             for (FretEvent fretEvent : fretEvents) {
                 if (fretEvent.track == track && fretEvent.hasOnNotes()) ++i;
             }
-            return i;
         } else {
-            return fretEvents.size();
+            for (FretEvent fretEvent : fretEvents) {
+                if (fretEvent.hasOnNotes()) ++i;
+            }
+        }
+        return i;
+    }
+    private void setFretPosition(){
+        if(fretInstrument == FretInstrument.INTRUMENT_GUITAR) {
+            fretPosition = new FretPosition(new FretGuitarStandard());
+        }else if(fretInstrument == FretInstrument.INTRUMENT_BASS){
+            fretPosition = new FretPosition(new FretBassGuitarStandard());
+        }
+    }
+
+    public boolean moveNotes(int mCurrentEvent, boolean up){
+        boolean edited = false;
+        if(fretPosition == null){
+            setFretPosition();
+        }
+        // Save current Note(s)
+        List<Integer> saveNotes = fretEvents.get(mCurrentEvent).getOnNotes();
+        int event = mCurrentEvent;
+        // Move the current note(s) and also move the notes in the next event if they are the same
+        while(event<fretEvents.size() &&
+                (saveNotes.equals(fretEvents.get(event).getOnNotes()) ||
+                        // Ignore events that only have off notes
+                        !fretEvents.get(event).hasOnNotes()) ) {
+            // Get event
+            FretEvent fretEvent = fretEvents.get(event);
+            // Get the list of notes at event
+            List<FretNote> notes = fretEvent.fretNotes;
+            if(fretPosition.moveNotes(notes, up)){
+                edited = true;
+            }
+            ++event;
+        }
+        return edited;
+    }
+    public void groupNotesAtFret(int targetFret){
+        if(fretPosition == null){
+            setFretPosition();
+        }
+        // Go through the FretNotes
+        for (FretEvent fretEvent: fretEvents) {
+            fretPosition.setFretPositionsAtSpecifiedFret(fretEvent.fretNotes, targetFret);
         }
     }
 }

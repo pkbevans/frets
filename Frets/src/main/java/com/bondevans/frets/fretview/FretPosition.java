@@ -6,6 +6,7 @@ import com.bondevans.frets.instruments.FretBassGuitarStandard;
 import com.bondevans.frets.instruments.FretGuitarStandard;
 import com.bondevans.frets.instruments.FretInstrument;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -55,15 +56,13 @@ public class FretPosition {
      * @param fretNotes list of fret notes
      * @return updated list of fret notes
      */
-    public List<FretNote> getFretPositions(List<FretNote> fretNotes) {
+    public List<FretNote> setDefaultFretPositions(List<FretNote> fretNotes) {
         if(fretNotes == null){
             return null;
         }
         Log.d(TAG, "HELLO Notes:"+fretNotes.size());
         // reset mStringAvailable
-        for (int i = 0; i < mNumStrings; i++) {
-            mStringAvailable[i] = true;
-        }
+        Arrays.fill(mStringAvailable, true);
         // Work out string/fret positions for each note
         // Loop round each note in the array - starting with the last (assume it is the highest)
         Collections.sort(fretNotes, Collections.reverseOrder());
@@ -90,23 +89,20 @@ public class FretPosition {
     }
 
     /**
-     * Get the <code>FretPostion</code> closest to the specified fret
+     * Set the <code>FretPostion</code> closest to the specified fret
      * @param fretNotes <code>FretNote</code> list
      * @param targetFret Target fret
-     * @return Updated <code>FretNote</code> list
      */
-    public List<FretNote> getFretPositions(List<FretNote> fretNotes, int targetFret) {
+    public void setFretPositionsAtSpecifiedFret(List<FretNote> fretNotes, int targetFret) {
         if(fretNotes == null){
-            return null;
+            return;
         }
         //  Don't bother for multiple notes (yet) - Too difficult
         if(fretNotes.size()>1){
-            return fretNotes;
+            return;
         }
         // reset mStringAvailable
-        for (int i = 0; i < mNumStrings; i++) {
-            mStringAvailable[i] = true;
-        }
+        Arrays.fill(mStringAvailable, true);
         // Work out string/fret positions for each note
         // Loop round each note in the array - starting with the last (assume it is the highest)
         Collections.sort(fretNotes, Collections.reverseOrder());
@@ -131,7 +127,7 @@ public class FretPosition {
                 }
             }
         }
-        return fretNotes;
+        return;
     }
 
     private final static String[] noteName = {"C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "B", "Bb"};
@@ -148,26 +144,47 @@ public class FretPosition {
      * @param fretNote the note
      * @param up       true = UP, false = DOWN
      */
-    public void moveNoteOneString(FretNote fretNote, boolean up) {
-        if ((up && fretNote.string >= (mNumStrings - 1)) || (!up && fretNote.string == 0)) {
+    private boolean moveNoteOneString(FretNote fretNote, boolean up) {
+        if ((up && fretNote.string >= (mNumStrings - 1)) ) {
             // Already on lowest string so cant move up the fret board
             // or already on highest string so cant move down the fretboard
-            Log.d(TAG, "moveNoteOneString1");
-            return;
-        }
-        if (!up && (fretNote.note - mTuning[fretNote.string - 1]) < 0) {
+            Log.d(TAG, "moveNoteOneString already on lowest");
+            return false;
+        } else if(!up && fretNote.string == 0){
+            Log.d(TAG, "moveNoteOneString already on top");
+            return false;
+        } else if (!up && (fretNote.note - mTuning[fretNote.string - 1]) < 0) {
             // Already too close to the nut to move down the fretboard
-            Log.d(TAG, "moveNoteOneString2");
-            return;
-        }
-        if (up && mTuning[fretNote.string + 1] - fretNote.note >= mNumFrets) {
-            // Already too close to the bridge to move up the fretboard
-            Log.d(TAG, "moveNoteOneString3");
-            return;
+            Log.d(TAG, "moveNoteOneString off nut");
+            return false;
+        } else if(up && (fretNote.note - mTuning[fretNote.string + 1] >= mNumFrets)){
+            Log.d(TAG, "moveNoteOneString toohigh");
+            return false;
         }
 
         fretNote.string += (up ? 1 : -1);
         // find new fret position...
         fretNote.fret = fretNote.note - mTuning[fretNote.string];
+        return true;
+    }
+    public boolean moveNotes(List<FretNote> notes, boolean up){
+        List<FretNote> saved = notes;
+        // For each note, get the new position
+        boolean edited = false;
+        for (FretNote fretNote : notes) {
+            // Ignore OFF NOTES
+            if (fretNote.on) {
+                // Get the new positions
+                Log.d(TAG, "moveNotes OLD:" + fretNote.toString());
+                if(!moveNoteOneString(fretNote, up)){
+                    // FAILED TO MOVE - restore notes to previous state and get outta here
+                    notes = saved;
+                    return false;
+                }
+                Log.d(TAG, "moveNotes NEW:" + fretNote.toString());
+            }
+        }
+        // If we get here then all moves succeeded
+        return true;
     }
 }

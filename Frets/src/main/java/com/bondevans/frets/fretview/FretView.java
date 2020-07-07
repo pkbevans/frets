@@ -15,6 +15,7 @@ import com.bondevans.frets.R;
 import com.bondevans.frets.instruments.FretInstrument;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -214,16 +215,6 @@ public class FretView extends View {
         return new Rect(left, top, right, bottom);
     }
 
-    private Rect getFretMarkerRectOld(int fretX, int string) {
-        // We want a Rect in between current fret and next, centred on the fret board
-        int left, top, right, bottom;
-        left = fretX + (mFretWidth / 4);
-        top = (mStringSpace * string) + (mStringSpace / 2) - (mFretWidth / 4);
-        right = left + (mFretWidth / 2);
-        bottom = top + (mFretWidth / 2);
-        return new Rect(left, top, right, bottom);
-    }
-
     /**
      * Draw current Notes
      * Default method does not play midi note. FretTrackView should overwrite but call super
@@ -231,9 +222,7 @@ public class FretView extends View {
      * @param g Canvas
      */
     private void drawNotes(Canvas g) {
-        for (int i = 0; i < mBentStrings.length; i++) {
-            mBentStrings[i] = false;
-        }
+        Arrays.fill(mBentStrings, false);
         if (mFretNotes != null) {
             for (int i = 0; i < mFretNotes.size(); i++) {
                 if (mFretNotes.get(i).on) {

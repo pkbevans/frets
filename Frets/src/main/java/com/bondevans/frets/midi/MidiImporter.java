@@ -143,7 +143,7 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
                 // If we get an event with a delay then get fret positions for the previous set,
                 // reset count to zero and start building the next set.
 //              Log.d(TAG, "Getting positions for [" + count + "] notes");
-                fretNotes = fp.getFretPositions(fretNotes);
+                fretNotes = fp.setDefaultFretPositions(fretNotes);
                 totalTicks+=deltaTime;
                 fretEvents.add(new FretEvent(deltaTime, fretNotes, tempo, bend, totalTicks));
                 // save delay time for later
@@ -170,7 +170,7 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
         // Don't forget the last one - and dont add one if there weren't any events (first=true)
         if (!first) {
 //          Log.d(TAG, "Getting positions for [" + count + "] notes (Last one)");
-            fretEvents.add(new FretEvent(deltaTime, fp.getFretPositions(fretNotes), tempo, bend, totalTicks));
+            fretEvents.add(new FretEvent(deltaTime, fp.setDefaultFretPositions(fretNotes), tempo, bend, totalTicks));
         }
         // If no FretEvents at all then we want to ignore this track (throw an exception)
         if (fretEvents.isEmpty() || !hasNotes) {
