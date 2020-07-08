@@ -15,9 +15,6 @@ import android.widget.TextView;
 import com.bondevans.frets.R;
 import com.bondevans.frets.fretview.FretTrack;
 import com.bondevans.frets.fretview.FretView;
-import com.bondevans.frets.instruments.FretBassGuitarStandard;
-import com.bondevans.frets.instruments.FretGuitarStandard;
-import com.bondevans.frets.instruments.FretInstrument;
 import com.bondevans.frets.midiService.MidiService.OnSendMidiListener;
 
 public class FretTrackEditFragment extends Fragment {
@@ -186,13 +183,7 @@ public class FretTrackEditFragment extends Fragment {
         mTracksize = mFretTrack.getEventSizeForTrack(mSoloTrack);
         mTrackName.setText(mFretTrack.getName());
         mCurrentEvent = 0;
-        FretInstrument.Instrument instrument;
-        if(mFretTrack.getFretInstrument() == FretInstrument.INTRUMENT_GUITAR) {
-            instrument = new FretGuitarStandard();
-        } else{
-            instrument = new FretBassGuitarStandard();
-        }
-        mFretEditView.setFretInstrument(instrument);
+        mFretEditView.setFretInstrument(mFretTrack.getInstrument());
         mFretEditView.setNotes(mFretTrack.fretEvents.get(mCurrentEvent));
         mFretEditView.invalidate();
         setEventText(displayEvent);
@@ -215,25 +206,16 @@ public class FretTrackEditFragment extends Fragment {
         return mEdited;
     }
     private void showGroupNotesAtFretDialog(int fret) {
-
         GroupNotesAtFretDialog groupNotesAtFretDialog = new GroupNotesAtFretDialog();
         groupNotesAtFretDialog.setFret(fret);
         groupNotesAtFretDialog.setOkListener(new GroupNotesAtFretDialog.OkListener() {
             @Override
             public void onOkClicked(int fret) {
-                groupNotesAtFret(fret);
-            }
+                Log.d(TAG, "groupNotesAtFret: "+fret);
+                mFretTrack.groupNotesAtFret(fret);
+                mFretEditView.invalidate();
+                mEdited=true;            }
         });
         groupNotesAtFretDialog.show(getActivity().getSupportFragmentManager(),GROUP_NOTES);
-    }
-
-    /**
-     * @param targetFret
-     */
-    private void groupNotesAtFret(int targetFret) {
-        Log.d(TAG, "groupNotesAtFret: "+targetFret);
-        mFretTrack.groupNotesAtFret(targetFret);
-        mFretEditView.invalidate();
-        mEdited=true;
     }
 }

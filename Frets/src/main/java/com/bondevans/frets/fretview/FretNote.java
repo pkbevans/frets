@@ -57,6 +57,14 @@ public class FretNote extends FretBase  implements Comparable<FretNote>{
         this.on = on.equalsIgnoreCase("1");
     }
 
+    public FretNote(FretNote fretNote) {
+        this.note = fretNote.note;
+        this.on = fretNote.on;
+        this.string = fretNote.string;
+        this.fret = fretNote.fret;
+        this.name = fretNote.name;
+    }
+
     @Override
     public String toString() {
         return NOTE_ELEMENT_OPEN +

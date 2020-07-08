@@ -1,6 +1,6 @@
 package com.bondevans.frets.firebase.dao;
 
-import com.bondevans.frets.instruments.FretInstrument;
+import com.bondevans.frets.instruments.Instrument;
 
 @SuppressWarnings("unused")
 
@@ -52,7 +52,7 @@ public class Fret {
         return datePublished;
     }
     public String getInstrumentName(int index) {
-        return FretInstrument.instrumentNames[index];
+        return Instrument.values()[index].getDescription();
     }
     public void setContentId(String contentId) {
         this.contentId = contentId;

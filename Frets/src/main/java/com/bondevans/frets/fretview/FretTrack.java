@@ -1,8 +1,7 @@
 package com.bondevans.frets.fretview;
 
-import com.bondevans.frets.instruments.FretBassGuitarStandard;
-import com.bondevans.frets.instruments.FretGuitarStandard;
 import com.bondevans.frets.instruments.FretInstrument;
+import com.bondevans.frets.instruments.Instrument;
 import com.bondevans.frets.utils.Log;
 
 import java.util.ArrayList;
@@ -14,6 +13,7 @@ import java.util.regex.Pattern;
  * A collection of Fretevents making up a track
  */
 public class FretTrack extends FretBase {
+    public static final int NO_FRET_INSTRUMENT = 999;
     private static final String TAG = FretTrack.class.getSimpleName();
     private static final String ELEMENT_TRACK = "track";
     private static final String TRACK_ELEMENT_OPEN = "<"+ELEMENT_TRACK+">";
@@ -53,6 +53,11 @@ public class FretTrack extends FretBase {
         this.clickTrack = false;
         this.clickTrackSize = 0;
         this.merged = false;
+        // Set default FretPositions - unless its a no-fret instrument
+        if(this.fretInstrument != NO_FRET_INSTRUMENT) {
+            FretInstrument.Instrument instrument = Instrument.values()[this.fretInstrument].getInstrument();
+            setDefaultFretPositions(instrument);
+        }
     }
 
     /**
@@ -129,17 +134,15 @@ public class FretTrack extends FretBase {
         return fretInstrument;
     }
 
+    public FretInstrument.Instrument getInstrument(){
+        return Instrument.values()[fretInstrument].getInstrument();
+    }
     public void setFretInstrument(int fretInstrument) {
         if(this.fretInstrument != fretInstrument) {
             this.fretInstrument = fretInstrument;
             // Need to set initial FretPositions if we change the instrument
-            if(fretInstrument == FretInstrument.INTRUMENT_GUITAR) {
-                setInitialFretPositions(new FretGuitarStandard());
-            } else if(fretInstrument == FretInstrument.INTRUMENT_BASS) {
-                setInitialFretPositions(new FretBassGuitarStandard());
-            } else {
-                Log.e(TAG, "ERROR - UNKNOWN Instrument");
-            }
+            FretInstrument.Instrument instrument = Instrument.values()[fretInstrument].getInstrument();
+            setDefaultFretPositions(instrument);
         }
     }
 
@@ -234,7 +237,7 @@ public class FretTrack extends FretBase {
         return clickEvents.get(clickNumber);
     }
 
-    public void setInitialFretPositions(FretInstrument.Instrument instrument){
+    private void setDefaultFretPositions(FretInstrument.Instrument instrument){
         FretPosition fretPosition = new FretPosition(instrument);
         // read through all events in the track and set FretPositions for each
         for( FretEvent fretEvent: fretEvents){
@@ -255,11 +258,8 @@ public class FretTrack extends FretBase {
         return i;
     }
     private void setFretPosition(){
-        if(fretInstrument == FretInstrument.INTRUMENT_GUITAR) {
-            fretPosition = new FretPosition(new FretGuitarStandard());
-        }else if(fretInstrument == FretInstrument.INTRUMENT_BASS){
-            fretPosition = new FretPosition(new FretBassGuitarStandard());
-        }
+        FretInstrument.Instrument instrument = Instrument.values()[this.fretInstrument].getInstrument();
+        fretPosition = new FretPosition(instrument);
     }
 
     public boolean moveNotes(int mCurrentEvent, boolean up){

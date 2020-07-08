@@ -14,7 +14,6 @@ import com.bondevans.frets.firebase.dao.UserProfile;
 import com.bondevans.frets.fretlist.FretListActivity;
 import com.bondevans.frets.utils.Log;
 import com.firebase.ui.auth.AuthUI;
-import com.firebase.ui.auth.IdpResponse;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -135,8 +134,6 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "onActivityResult: "+requestCode+":"+resultCode);
 
         if (requestCode == RC_SIGN_IN) {
-            IdpResponse response = IdpResponse.fromResultIntent(data);
-            Log.d(TAG, "HELLO response from intent:"+response.toString());
             if (resultCode == RESULT_OK) {
                 // Successfully signed in
                 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
@@ -148,10 +145,8 @@ public class MainActivity extends AppCompatActivity {
                 // Sign in failed. If response is null the user canceled the
                 // sign-in flow using the back button. Otherwise check
                 // response.getError().getErrorCode() and handle the error.
-                // TODO - what to do if user fails to login?
-                Log.d(TAG, "HELLO onActivityResult: FAILED - TODO");
-                mApp.setUser("Anonymous", new UserProfile("Anonymous", "null@null.com","","",0));
-                launchFretListActivity();
+                Log.d(TAG, "HELLO onActivityResult: FAILED - Closing APP");
+                finish();
             }
         } else if(requestCode == REQUEST_FRETLIST){
             Log.d(TAG, "Lets get outa here");

@@ -43,7 +43,6 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
     private byte[] midiBuffer = new byte[3];
     private static final int MIDI_CHANNEL_DRUMS = 9;
     private FretTrack mFretTrack;
-    private FretEvent mFretEvent;
     private int mTicksPerQtrNote;
     private int mSoloTrack;
     private int mClickTrackSize;
@@ -71,7 +70,7 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
         Log.d(TAG, "onCreateView");
         View myView = inflater.inflate(R.layout.fretview_layout, container, false);
 //        mTrackName = (TextView) myView.findViewById(R.id.track_name);
-        mFretTrackView = (FretTrackView) myView.findViewById(R.id.fretview);
+        mFretTrackView = myView.findViewById(R.id.fretview);
         mFretTrackView.setFretListener(new FretTrackView.FretListener() {
             @Override
             public void OnTempoChanged(int tempo) {
@@ -81,8 +80,8 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
         });
         mFretTrackView.setKeepScreenOn(true);
 
-        mTempoText = (TextView) myView.findViewById(R.id.bpmText);
-        mSeekBar = (SeekBar) myView.findViewById(R.id.seekBar);
+        mTempoText = myView.findViewById(R.id.bpmText);
+        mSeekBar = myView.findViewById(R.id.seekBar);
         mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -99,7 +98,7 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {}
         });
-        playPauseButton = (ImageButton) myView.findViewById(R.id.playPauseButton);
+        playPauseButton = myView.findViewById(R.id.playPauseButton);
         playPauseButton.setVisibility(View.INVISIBLE);
         playPauseButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -225,18 +224,18 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
 //        Log.d(TAG, "current event: "+mCurrentEvent);
         boolean redraw=false;
         do {
-            mFretEvent = mFretTrack.fretEvents.get(mCurrentFretEvent);
-            if (mFretEvent.tempo > 0) {
-                mTempo = mFretEvent.tempo;
+            FretEvent fretEvent = mFretTrack.fretEvents.get(mCurrentFretEvent);
+            if (fretEvent.tempo > 0) {
+                mTempo = fretEvent.tempo;
             }
-            if(mFretEvent.isClickEvent()) {
+            if(fretEvent.isClickEvent()) {
                 // Update progress listener (so it can update the seekbar (or whatever)
-                Log.d(TAG, "HELLO - updateProgress: "+ mFretEvent.getClickEvent());
-                updateProgress(mClickTrackSize, mFretEvent.getClickEvent());
+                Log.d(TAG, "HELLO - updateProgress: "+ fretEvent.getClickEvent());
+                updateProgress(mClickTrackSize, fretEvent.getClickEvent());
             }
-            sendMidiNotes(mFretEvent);
-            if(mFretEvent.track == mSoloTrack) {
-                mFretTrackView.setNotes(mFretEvent);
+            sendMidiNotes(fretEvent);
+            if(fretEvent.track == mSoloTrack) {
+                mFretTrackView.setNotes(fretEvent);
                 // Force redraw
                 redraw = true;
             }
@@ -365,6 +364,7 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
         mFretTrack = frettrack;
         mTempo = tempo;
         mCurrentFretEvent = currentFretEvent;
+        mFretTrackView.setFretInstrument(mFretTrack.getInstrument());
         mFretTrackView.setNotes(mFretTrack.fretEvents.get(mCurrentFretEvent));
         mTicksPerQtrNote = tpqn;
         mPlaying = false;

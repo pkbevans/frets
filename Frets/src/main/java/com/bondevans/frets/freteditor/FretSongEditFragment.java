@@ -19,6 +19,7 @@ import android.widget.TextView;
 import com.bondevans.frets.R;
 import com.bondevans.frets.fretview.FretSong;
 import com.bondevans.frets.fretview.FretTrack;
+import com.bondevans.frets.instruments.Instrument;
 import com.bondevans.frets.utils.Log;
 
 import java.io.File;
@@ -71,8 +72,8 @@ public class FretSongEditFragment extends ListFragment {
                              Bundle savedInstanceState) {
         View contentView = inflater.inflate(R.layout.fretsongedit_layout, container, false);
         Log.d(TAG, "HELLO onCreatView");
-        mSongName = (EditText) contentView.findViewById(R.id.song_name);
-        mKeywords = (EditText) contentView.findViewById(R.id.song_keywords);
+        mSongName = contentView.findViewById(R.id.song_name);
+        mKeywords = contentView.findViewById(R.id.song_keywords);
         return contentView;
     }
 
@@ -133,14 +134,14 @@ public class FretSongEditFragment extends ListFragment {
     }
 
     /*
-     *  TODO - dont allow drum track to be selected as SOlo Track.
-     *  TODO - allow FretInstrument to be selected for solo track
      */
     private class FretTrackAdapter extends ArrayAdapter<FretTrack> {
+        private static final int TYPE_CLICK = 0;
+        private static final int TYPE_INSTRUMENT = 1;
         private final Context context;
         private final ArrayList<FretTrack> fretTracks;
-        ArrayAdapter instrumentAdapter;
-        ArrayAdapter fretInstrumentAdapter;
+        ArrayAdapter<String> instrumentAdapter;
+        ArrayAdapter<Instrument> fretInstrumentAdapter;
         int selectedPosition;
 
         public FretTrackAdapter(Context context, ArrayList<FretTrack> values) {
@@ -152,47 +153,59 @@ public class FretSongEditFragment extends ListFragment {
             instrumentAdapter.setDropDownViewResource
                     (android.R.layout.simple_spinner_dropdown_item);
             fretInstrumentAdapter = new ArrayAdapter<>
-                    (FretSongEditFragment.this.getActivity(), simple_spinner_item, getActivity().getResources().getStringArray(R.array.fret_instrument_names));
+                    (FretSongEditFragment.this.getActivity(), simple_spinner_item, Instrument.values());
             fretInstrumentAdapter.setDropDownViewResource
                     (android.R.layout.simple_spinner_dropdown_item);
         }
 
         @Override
+        public int getViewTypeCount() {
+            return 2;
+        }
+        @Override
+        public int getItemViewType(int position){
+            return fretTracks.get(position).isClickTrack()?TYPE_CLICK:TYPE_INSTRUMENT;
+        }
+
+        @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            Log.d(TAG, "HELLO - getView: "+position);
+            Log.d(TAG, "HELLO - getView: "+position+ "View type: "+ getItemViewType(position));
             ViewHolder holder;
             if( convertView == null) {
                 holder = new ViewHolder();
                 if(fretTracks.get(position).isClickTrack()) {
-                    LayoutInflater inflater = (LayoutInflater) context
-                            .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                    convertView = inflater.inflate(R.layout.fretsongedit_clickitem, parent, false);
-                    convertView.setTag(holder);
-                    return convertView;
+                    Log.d(TAG, "HELLO - getView CLICK :"+position);
+                    return getClickTrackView(position, parent,holder);
                 } else {
+                    Log.d(TAG, "HELLO - getView NOT CLICK: "+position);
                     LayoutInflater inflater = (LayoutInflater) context
                             .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                     convertView = inflater.inflate(R.layout.fretsongedit_item, parent, false);
                     // Creates a ViewHolder and store references to the child views
                     // we want to bind data to.
-
-                    holder.trackName = (TextView) convertView.findViewById(R.id.track_name);
-                    holder.soloText = (TextView) convertView.findViewById(R.id.solo_text);
-                    holder.instrument = (Spinner) convertView.findViewById(R.id.instrument_spinner);
-                    holder.fretInstrument = (Spinner) convertView.findViewById(R.id.fretinstrument_spinner);
-                    holder.soloButton = (RadioButton) convertView.findViewById(R.id.soloButton);
-                    holder.drumTrack = (CheckBox) convertView.findViewById(R.id.isDrumTrack);
-                    holder.deleteButton = (ImageButton) convertView.findViewById(R.id.deleteButton);
-                    holder.editButton = (ImageButton) convertView.findViewById(R.id.selectButton);
+                    holder.trackName = convertView.findViewById(R.id.track_name);
+                    holder.soloText = convertView.findViewById(R.id.solo_text);
+                    holder.instrument = convertView.findViewById(R.id.instrument_spinner);
+                    holder.fretInstrument = convertView.findViewById(R.id.fretinstrument_spinner);
+                    holder.soloButton = convertView.findViewById(R.id.soloButton);
+                    holder.drumTrack = convertView.findViewById(R.id.isDrumTrack);
+                    holder.deleteButton = convertView.findViewById(R.id.deleteButton);
+                    holder.editButton = convertView.findViewById(R.id.selectButton);
+                    holder.isClick = false;
                     convertView.setTag(holder);
                 }
             }
             else{
-                // Get the ViewHolder back to get fast access to the TextView
-                // and the ImageView.
+                // Get the ViewHolder back
                 holder = (ViewHolder) convertView.getTag();
-                if(fretTracks.get(position).isClickTrack()) {
-                    return convertView;
+                if(fretTracks.get(position).isClickTrack()){
+                    if(holder.isClick ) {
+                        return convertView;
+                    } else {
+                        // This may be redundant.....
+                        Log.d(TAG, "HELLO - NEED TO CONVERT!!!: "+position);
+                        return getClickTrackView(position, parent,holder);
+                    }
                 }
             }
             holder.trackName.setText(fretTracks.get(position).getName());
@@ -264,6 +277,7 @@ public class FretSongEditFragment extends ListFragment {
                 });
             }
             holder.soloText.setText(position == mFretSong.getSoloTrack()?FretSongEditFragment.this.getActivity().getString(R.string.solo_track):FretSongEditFragment.this.getActivity().getString(R.string.backing_track));
+            holder.soloButton.setEnabled(!isDrum);  // Dont allow drum track to be selected as SOlo Track.
             holder.soloButton.setChecked(position == mFretSong.getSoloTrack());
             holder.soloButton.setTag(position);
             holder.soloButton.setOnClickListener(new View.OnClickListener() {
@@ -286,7 +300,7 @@ public class FretSongEditFragment extends ListFragment {
                     notifyDataSetChanged();
                 }
             });
-            holder.editButton.setEnabled(position == mFretSong.getSoloTrack()?true:false);
+            holder.editButton.setEnabled(position == mFretSong.getSoloTrack());
             holder.editButton.setTag(position);
             holder.editButton.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -311,6 +325,16 @@ public class FretSongEditFragment extends ListFragment {
             CheckBox drumTrack;
             ImageButton deleteButton;
             ImageButton editButton;
+            boolean isClick;
+        }
+        View getClickTrackView(int position, ViewGroup parent, ViewHolder holder){
+            Log.d(TAG, "HELLO - getView CLICK :"+position);
+            LayoutInflater inflater = (LayoutInflater) context
+                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            View convertView = inflater.inflate(R.layout.fretsongedit_clickitem, parent, false);
+            holder.isClick = true;
+            convertView.setTag(holder);
+            return convertView;
         }
     }
 

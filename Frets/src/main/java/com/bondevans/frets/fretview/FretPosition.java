@@ -2,10 +2,9 @@ package com.bondevans.frets.fretview;
 
 import android.util.Log;
 
-import com.bondevans.frets.instruments.FretBassGuitarStandard;
-import com.bondevans.frets.instruments.FretGuitarStandard;
 import com.bondevans.frets.instruments.FretInstrument;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -24,25 +23,6 @@ public class FretPosition {
      */
     public FretPosition(FretInstrument.Instrument instrument) {
         Log.d(TAG, "Constructor");
-        this.mNumStrings = instrument.numStrings();
-        this.mNumFrets = instrument.numFrets();
-        this.mTuning = instrument.TUNING();
-        // Initialise arrays
-        this.mStringAvailable = new boolean[mNumStrings];
-    }
-
-    public FretPosition(int fretInstrument) {
-        FretInstrument.Instrument instrument;
-        switch(fretInstrument){
-            case 0:
-                instrument = new FretGuitarStandard();
-                break;
-            case 1:
-                instrument = new FretBassGuitarStandard();
-                break;
-            default:
-                throw new IllegalStateException("Unexpected value: " + fretInstrument);
-        }
         this.mNumStrings = instrument.numStrings();
         this.mNumFrets = instrument.numFrets();
         this.mTuning = instrument.TUNING();
@@ -168,9 +148,10 @@ public class FretPosition {
         return true;
     }
     public boolean moveNotes(List<FretNote> notes, boolean up){
-        List<FretNote> saved = notes;
+        // Make a copy of the FretNotes
+        List<FretNote> saved = new ArrayList<>(notes.size());
+        for (FretNote fretNote : notes) saved.add(new FretNote(fretNote));
         // For each note, get the new position
-        boolean edited = false;
         for (FretNote fretNote : notes) {
             // Ignore OFF NOTES
             if (fretNote.on) {
@@ -178,7 +159,7 @@ public class FretPosition {
                 Log.d(TAG, "moveNotes OLD:" + fretNote.toString());
                 if(!moveNoteOneString(fretNote, up)){
                     // FAILED TO MOVE - restore notes to previous state and get outta here
-                    notes = saved;
+                    Collections.copy(notes,saved);
                     return false;
                 }
                 Log.d(TAG, "moveNotes NEW:" + fretNote.toString());

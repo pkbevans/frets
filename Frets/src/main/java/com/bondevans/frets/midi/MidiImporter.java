@@ -7,10 +7,9 @@ import com.bondevans.frets.exception.EmptyTrackException;
 import com.bondevans.frets.exception.FretboardException;
 import com.bondevans.frets.fretview.FretEvent;
 import com.bondevans.frets.fretview.FretNote;
-import com.bondevans.frets.fretview.FretPosition;
 import com.bondevans.frets.fretview.FretSong;
 import com.bondevans.frets.fretview.FretTrack;
-import com.bondevans.frets.instruments.FretInstrument;
+import com.bondevans.frets.instruments.Instrument;
 import com.bondevans.frets.utils.FileWriter;
 
 import java.io.File;
@@ -20,7 +19,6 @@ import java.util.List;
 
 public class MidiImporter extends AsyncTask<Void, Integer, String> {
     private static final String TAG = MidiImporter.class.getSimpleName();
-    private static final int DEFAULT_FRET_INSTRUMENT = 0;
     private final File mOutFile;
     private File mMidiFilePath;
     private MidiFile mMidiFile;
@@ -68,22 +66,19 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
             // Get length in ticks of longest track
             int longest=0;
             for(FretTrack fretTrack: fretSong.getFretTracks()){
-                longest=fretTrack.getTotalTicks()>longest?fretTrack.getTotalTicks():longest;
+                longest= Math.max(fretTrack.getTotalTicks(), longest);
                 Log.d(TAG, "HELLO Longest: "+longest);
             }
             Log.d(TAG, "HELLO1");
             FretTrack clickTrack = new FretTrack("Click Track", null,
-                    0, DEFAULT_FRET_INSTRUMENT, false, longest);
+                    0, FretTrack.NO_FRET_INSTRUMENT, false, longest);
             clickTrack.createClickTrack(longest,fretSong.getTpqn());
             fretSong.addTrack(clickTrack);
             Log.d(TAG, "HELLO2");
             // Now write out to new file in app cache directory
             FileWriter.writeFile(mOutFile, fretSong.toString());
 
-        } catch (FretboardException e) {
-            Log.d(TAG, e.getMessage());
-            return e.getMessage();
-        } catch (IOException e) {
+        } catch (FretboardException | IOException e) {
             Log.d(TAG, e.getMessage());
             return e.getMessage();
         }
@@ -107,14 +102,15 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
         // See if we can work out what sort of instrument to assign to this track
         boolean isDrums = false;
         int midiSound = 0;
-        int fretInstrument = FretInstrument.INTRUMENT_GUITAR;
+        int fretInstrument = FretTrack.NO_FRET_INSTRUMENT;
         if(name.toLowerCase().matches(".*"+"drum"+".*")){
             isDrums=true;
         }else if(name.toLowerCase().matches(".*"+"bass"+".*")){
             midiSound=33;
-            fretInstrument = FretInstrument.INTRUMENT_BASS;
+            fretInstrument = Instrument.BASS_STANDARD_TUNING.getId();
         }else if(name.toLowerCase().matches(".*"+"guitar"+".*")){
             midiSound=29;
+            fretInstrument = Instrument.GUITAR_STANDARD_TUNING.getId();
         }
         // convert MIDI file into list of fretboard events
         List<MidiNoteEvent> midiNoteEvents = new ArrayList<>();
@@ -131,7 +127,6 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
         Log.d(TAG, "Loading Fret Events");
         fretEvents = new ArrayList<>();
         boolean first = true;
-        FretPosition fp = new FretPosition(fretInstrument);
         List<FretNote> fretNotes = new ArrayList<>();
         int deltaTime = 0;
         int tempo = 0;
@@ -142,8 +137,6 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
             if (!first && ev.deltaTime > 0) {
                 // If we get an event with a delay then get fret positions for the previous set,
                 // reset count to zero and start building the next set.
-//              Log.d(TAG, "Getting positions for [" + count + "] notes");
-                fretNotes = fp.setDefaultFretPositions(fretNotes);
                 totalTicks+=deltaTime;
                 fretEvents.add(new FretEvent(deltaTime, fretNotes, tempo, bend, totalTicks));
                 // save delay time for later
@@ -169,8 +162,7 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
         }
         // Don't forget the last one - and dont add one if there weren't any events (first=true)
         if (!first) {
-//          Log.d(TAG, "Getting positions for [" + count + "] notes (Last one)");
-            fretEvents.add(new FretEvent(deltaTime, fp.setDefaultFretPositions(fretNotes), tempo, bend, totalTicks));
+            fretEvents.add(new FretEvent(deltaTime, fretNotes, tempo, bend, totalTicks));
         }
         // If no FretEvents at all then we want to ignore this track (throw an exception)
         if (fretEvents.isEmpty() || !hasNotes) {
