@@ -42,7 +42,7 @@
     <string name="import_midi">Import Midi File…</string>
     <string name="buffering_msg">Loading…</string>
     <string name="invalid_file_type">This is not a Midi file.</string>
-    <string name="keywords">Keywords</string>
+    <string name="description">Description</string>
     <string name="song_name">Song Name</string>
     <string name="song_details">Please enter the Song Details</string>
     <string name="play_button_content_description">Play Button</string>
@@ -233,7 +233,6 @@
     <string name="fretlist_options">Fret Options</string>
     <string name="publish_fret">Publish...</string>
     <string name="new_frets">New Frets</string>
-    <string name="textview">HELLO MUM</string>
     <string name="song_name_label">Song:</string>
     <string name="title_activity_user_profile">User Profile</string>
     <string name="view_profile">Profile</string>
@@ -248,5 +247,6 @@
     <string name="empty_fretlist">No Frets yet.</string>
     <string name="instrument_voice">Instrument Voicing:</string>
     <string name="fret_instrument">Instrument Type:</string>
+    <string name="thumbnail_description">A thumbnail picture of the person who created this Fret</string>
 
 </resources>

@@ -22,7 +22,7 @@ public class FretRecyclerViewAdapter extends FirebaseRecyclerAdapter<Fret, FretH
      * Initialize a {@link RecyclerView.Adapter} that listens to a Firebase query. See
      * {@link FirebaseRecyclerOptions} for configuration options.
      *
-     * @param options
+     * @param options query options
      */
     public FretRecyclerViewAdapter(@NonNull FirebaseRecyclerOptions<Fret> options) {
         super(options);
@@ -38,7 +38,7 @@ public class FretRecyclerViewAdapter extends FirebaseRecyclerAdapter<Fret, FretH
         // Create a new instance of the ViewHolder,
         Log.d(TAG, "HELLO onCreateViewHolder");
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.fretlist_item, parent, false);
+                .inflate(R.layout.fretlist_item_new, parent, false);
         return new FretHolder(view, mListener);
     }
     @Override

@@ -49,7 +49,7 @@
                 android:inputType="textCapWords"
                 android:labelFor="@+id/song_keywords"
                 android:padding="@dimen/frets_padding"
-                android:text="@string/keywords"
+                android:text="@string/description"
                 android:textSize="@dimen/frets_textsize" />
         </LinearLayout>
 
