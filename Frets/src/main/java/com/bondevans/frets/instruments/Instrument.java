@@ -1,10 +1,10 @@
 package com.bondevans.frets.instruments;
 
 public enum Instrument {
-    GUITAR_STANDARD_TUNING(0,"Guitar - EADGBE", new FretGuitarStandard())
-    ,GUITAR_G_TUNING(1,"Guitar - DGDGBD", new FretGuitarGTuned())
-    ,BASS_STANDARD_TUNING(2,"Bass - EAGB", new FretBassGuitarStandard())
-    ,UKELELE_STANDARD_TUNING(3,"Ukelele - GCEA", new FretBassGuitarStandard())
+     GUITAR_STANDARD_TUNING (0,"Guitar - EADGBE", new FretGuitarStandard())
+    ,GUITAR_G_TUNING        (1,"Guitar - DGDGBD", new FretGuitarGTuned())
+    ,BASS_STANDARD_TUNING   (2,"Bass - EAGB", new FretBassGuitarStandard())
+    ,UKELELE_STANDARD_TUNING(3,"Ukelele - GCEA", new FretUkeleleStandard())
     ;
 
     private final int id;

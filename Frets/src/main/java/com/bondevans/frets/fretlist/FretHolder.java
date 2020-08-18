@@ -125,7 +125,8 @@ public class FretHolder extends RecyclerView.ViewHolder implements View.OnClickL
             public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
                 // Local temp file has been created
                 Log.d(TAG, "Thumbnail downloaded: "+cacheFile.getPath());
-                setThumbnail(ImageUtils.checkOrientation(cacheFile));
+//                setThumbnail(ImageUtils.checkOrientation(cacheFile));
+                setThumbnail(BitmapFactory.decodeFile(cacheFile.getPath()));
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override

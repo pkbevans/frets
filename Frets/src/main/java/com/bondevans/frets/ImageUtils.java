@@ -54,7 +54,12 @@ public class ImageUtils {
             default:
                 Log.d(TAG, "HELLO - checkOrientation: UNDEFINED");
         }
-        return rotateImage(BitmapFactory.decodeFile(photo.getPath()), angle);
+        Bitmap bitmap = BitmapFactory.decodeFile(photo.getPath());
+        if(angle == 0){
+            return bitmap;
+        }else {
+            return rotateImage(bitmap, angle);
+        }
     }
 
     private static Bitmap rotateImage(Bitmap source, float angle) {

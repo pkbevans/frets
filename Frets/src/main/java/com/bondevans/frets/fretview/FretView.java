@@ -23,7 +23,7 @@ import java.util.List;
  */
 public class FretView extends View {
     private static final String TAG = FretView.class.getSimpleName();
-    private static final double FRET_NUMBER_TEXT_DIVISOR = 1.75;
+    private static final double FRET_NUMBER_TEXT_DIVISOR = 1.25;
     public static final int ZERO_PITCH_BEND = 8192;
     public static final int MAX_BEND = 10;
     private static final int STRING_TEXT_DIVISOR = 12;
@@ -173,7 +173,7 @@ public class FretView extends View {
         // Allow a bit of space before and after the first fret (the nut) and the last one
         int fretX;
         int textWidth;
-            mPaintText.setTextSize((float) (mFretWidth / FRET_NUMBER_TEXT_DIVISOR));
+        mPaintText.setTextSize((float) (mFretWidth / FRET_NUMBER_TEXT_DIVISOR));
         mPaintText.setColor(Color.GREEN);
         mPaintText.setAlpha(TEXT_ALPHA);
 
@@ -186,12 +186,16 @@ public class FretView extends View {
             } else {
                 g.drawLine(fretX, mStringSpace, fretX, getHeight() - mStringSpace, mPaint);
             }
-            // Set up mPaint for the Fret number text
-            textWidth = (int) mPaintText.measureText("" + (fret + 1));
             // Write fret number (but not zero)
             if (fret > 0) {
-                float y = mStringSpace/2;
-                g.drawText(fret + "", fretX - (mFretWidth / 2) - (textWidth / 2), y, mPaintText);
+                String fretNumber = String.valueOf(fret);
+                // Set up mPaint for the Fret number text
+                textWidth = (int) mPaintText.measureText(fretNumber);
+//                float y = mStringSpace/2;   // Fret Numbers above the fretboard
+                mPaintText.getTextBounds(fretNumber, 0, 1, mRect);
+                int textHeight = mRect.height();
+                float y = (getHeight()/2) + (textHeight/2);
+                g.drawText(fretNumber, fretX - (mFretWidth / 2) - (textWidth / 2), y, mPaintText);
             }
             // Add fret markers at frets 3, 5, 7, 9, 12, 15, 17, 19
             if (fret == 2 || fret == 4 || fret == 6 || fret == 8 || fret == 14 || fret == 16 || fret == 18) {

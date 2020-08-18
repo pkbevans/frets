@@ -5,6 +5,7 @@ import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentManager;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -26,6 +27,7 @@ public class FileBrowserActivity extends AppCompatActivity implements
     private static final String TAG = "FileBrowserActivity";
     private static final int REFRESH_ID = Menu.FIRST + 16;
     private static final int UP_ID = Menu.FIRST + 17;
+    private static final int REQUEST_FRETEDIT = 1234;
     private FileBrowserFragment fileBrowserFragment = null;
     private boolean mUpEnabled = false;
     private Menu mMenu = null;
@@ -157,18 +159,21 @@ public class FileBrowserActivity extends AppCompatActivity implements
         mUpEnabled = enable;
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-    }
-
     private void showFretEdit(File file) {
         Intent intent = new Intent(this, FretSongEditActivity.class);
         intent.setData(Uri.fromFile(file));
         try {
-            startActivity(intent);
+            startActivityForResult(intent, REQUEST_FRETEDIT );
         } catch (ActivityNotFoundException e) {
             Log.e(TAG, "NO ACTIVITY FOUND: "+FretSongEditActivity.class.getSimpleName());
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_FRETEDIT) {
+            finish();
         }
     }
 }

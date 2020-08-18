@@ -1,6 +1,7 @@
 package com.bondevans.frets.user;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
 
@@ -49,6 +50,7 @@ public class UserProfileFragment extends Fragment {
     public static final String INTENT_EDITABLE = "INTENT_EDITABLE";
     private static final String ARG_UID = "uid";
     private static final String ARG_EDITABLE = "editable";
+    private static final int THUMBNAIL_SIZE = 150;
     private ImageView mProfilePic;
     private EditText mUsername;
     private TextView mEmail;
@@ -279,16 +281,17 @@ public class UserProfileFragment extends Fragment {
     }
     void setNewProfilePic(File photoFile) {
         mPhotoFile = photoFile;
-        mViewModel.setProfileBitmap(ImageUtils.checkOrientation(mPhotoFile));
+        mViewModel.setProfileBitmap(BitmapFactory.decodeFile(mPhotoFile.getPath()));
         Log.d(TAG, "HELLO - SetProfilePic: "+photoFile.getPath());
         mProfilePic.setImageBitmap(mViewModel.getProfileBitmap());
-        mThumbNail = ThumbnailUtils.extractThumbnail(mViewModel.getProfileBitmap(), 100, 100);
+        mThumbNail = ThumbnailUtils.extractThumbnail(mViewModel.getProfileBitmap(), THUMBNAIL_SIZE, THUMBNAIL_SIZE);
         mPhotoUpdated=true;
     }
 
     private void setExistingProfilePic(){
         // PIc will be in mPhotoFile
-        mViewModel.setProfileBitmap(ImageUtils.checkOrientation(mPhotoFile));
+//        mViewModel.setProfileBitmap(ImageUtils.checkOrientation(mPhotoFile));
+        mViewModel.setProfileBitmap(BitmapFactory.decodeFile(mPhotoFile.getPath()));
         mProfilePic.setImageBitmap(mViewModel.getProfileBitmap());
     }
 }
