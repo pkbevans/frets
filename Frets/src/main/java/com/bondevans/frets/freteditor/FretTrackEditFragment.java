@@ -8,8 +8,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.HorizontalScrollView;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import com.bondevans.frets.R;
@@ -35,6 +37,7 @@ public class FretTrackEditFragment extends Fragment {
     private boolean mInstrumentSet=false;
     private int mTracksize;
     private int displayEvent = 0;
+    private Switch mFollowNoteSwitch;
 
     @Override
     public void onAttach(Context context) {
@@ -119,6 +122,13 @@ public class FretTrackEditFragment extends Fragment {
         });
 
         mEventText = myView.findViewById(R.id.event);
+        mFollowNoteSwitch = myView.findViewById(R.id.followNoteSwitch);
+
+        mFollowNoteSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                mFretTrack.setFollowNotes(isChecked);
+            }
+        });
         if (savedInstanceState != null) {
             Log.d(TAG, "savedInstanceState != null");
             // Must be orientation change

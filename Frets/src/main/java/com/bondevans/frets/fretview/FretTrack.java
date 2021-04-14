@@ -31,6 +31,7 @@ public class FretTrack extends FretBase {
     private int totalTicks;     // Essentially the Total time of the track
     private List<Integer>clickEvents;    // Only used by FretViewer
     private FretPosition fretPosition;
+    private boolean mFollowNotes;
 
     /**
      * Constructor
@@ -76,7 +77,7 @@ public class FretTrack extends FretBase {
         loadFretEvents(track);
     }
 
-    private static Pattern evPattern = Pattern.compile("<ev[^>]*>(.*?)</ev>",
+    private static final Pattern evPattern = Pattern.compile("<ev[^>]*>(.*?)</ev>",
             Pattern.DOTALL|Pattern.CASE_INSENSITIVE);
 
     private void loadFretEvents(String track) {
@@ -172,6 +173,10 @@ public class FretTrack extends FretBase {
 
     public void removeEvents(){
         fretEvents.clear();
+    }
+
+    public void setFollowNotes(boolean followNotes) {
+        this.mFollowNotes = followNotes;
     }
 
     void setTrackInEvents(int track){
@@ -284,8 +289,45 @@ public class FretTrack extends FretBase {
             }
             ++event;
         }
+        // If edited move all following (subsequent) notes of the same value to the same fret position - only if there
+        // is only one on note though - ignore chords
+        if(mFollowNotes && edited && saveNotes.size() == 1){
+            List<FretNote> fretNotes = fretEvents.get(mCurrentEvent).fretNotes;
+            for(FretNote fretNote: fretNotes){
+                if(fretNote.on) {
+                    setPositionForNote(mCurrentEvent, fretNote.note,fretNote.string, fretNote.fret );
+                }
+            }
+        }
         return edited;
     }
+
+    /**
+     * setPositionForNote - finds all instances of a given note and sets the fret position
+     * for each one to specified string/position
+     * @param note Midi note value
+     * @param string String
+     * @param fret Fret
+     */
+    private void setPositionForNote(int startEvent, int note, int string, int fret){
+        int i=0;
+        for(FretEvent fretEvent: fretEvents) {
+            if(i>startEvent){
+                // only change single on-note events - ignore chords/double stops
+                if(fretEvent.getOnNotes().size()==1) {
+                    for (FretNote fretNote : fretEvent.fretNotes) {
+                        if (fretNote.on && fretNote.note == note) {
+                            Log.d(TAG, "HELLO Updating follow on event: "+ i );
+                            fretNote.string = string;
+                            fretNote.fret = fret;
+                        }
+                    }
+                }
+            }
+            ++i;
+        }
+    }
+
     public void groupNotesAtFret(int targetFret){
         if(fretPosition == null){
             setFretPosition();

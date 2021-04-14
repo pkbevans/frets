@@ -248,5 +248,6 @@
     <string name="instrument_voice">Instrument Voicing:</string>
     <string name="fret_instrument">Instrument Type:</string>
     <string name="thumbnail_description">A thumbnail picture of the person who created this Fret</string>
+    <string name="follow_notes">Follow</string>
 
 </resources>

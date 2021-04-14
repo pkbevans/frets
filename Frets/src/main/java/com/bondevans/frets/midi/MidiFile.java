@@ -24,7 +24,8 @@ public class MidiFile {
     private static final int TRACK_HEADER_LENGTH = 8;
     private static final String UNKNOWN_TRACKNAME = "UNKNOWN";
     private static final int DEFAULT_TEMPO = 120;
-    private static final int BEND_MIN_TICKS = 40;
+    private static final int BEND_MIN_TICKS = 20;
+    private static final int ZERO_BEND_VALUE = 8192;
     private static final int DEFAULT_TIMESIG = 4;
 
     private File mMidiFile;
@@ -60,7 +61,7 @@ public class MidiFile {
      * @return Returns byte buffer containing track mData
      */
     private byte[] loadTrack(int track) throws FretboardException {
-        Log.d(TAG, "setTrack [" + track + "]");
+        Log.d(TAG, "HELLO setTrack [" + track + "]");
         BufferedInputStream in;
         byte[] buffer = new byte[mTrackChunkLength[track]];
         // Work out the offset to the specified track mData
@@ -101,7 +102,7 @@ public class MidiFile {
      * @throws IOException IOException
      */
     void loadNoteEvents(int track, List<MidiNoteEvent> noteEvents) throws FretboardException, IOException {
-        Log.d(TAG, "loadNoteEvents for track:" + track);
+        Log.d(TAG, "HELLO loadNoteEvents for track:" + track);
         InputStream in = new ByteArrayInputStream(loadTrack(track));
         MidiEvent ev = getEvent(in);
         int runningTicks = 0;
@@ -120,18 +121,27 @@ public class MidiFile {
             }
             else if (ev.mNoteEventType == MidiEvent.NOTE_EVENT_TYPE_PITCHBEND) {
                 // Dont add too many consecutive bend events in a short space of time
-                if(noteEvents.size()>0 && noteEvents.get(noteEvents.size()-1).type== MidiNoteEvent.TYPE_BEND &&
-                        (ev.mTicks+runningTicks)<BEND_MIN_TICKS){
+                if (ev.getBend() == ZERO_BEND_VALUE &&  // THis event is a zero bend
+                        noteEvents.size() > 0 && // Not the first event
+                        noteEvents.get(noteEvents.size() - 1).type == MidiNoteEvent.TYPE_BEND &&   // Previous event is a PITCHBEND event
+                        noteEvents.get(noteEvents.size() - 1).bend == ZERO_BEND_VALUE) {
                     // Ignore this bend event - but add the delta on to the next one
-                    Log.d(TAG, "ignoring bend:"+ev.mTicks);
+                    Log.d(TAG, "HELLO ignoring ZERO bend: ticks[" + ev.mTicks + "] running [" + runningTicks + "]");
+                    runningTicks += ev.mTicks;
+                } else if(noteEvents.size() > 0 &&
+                        noteEvents.get(noteEvents.size()-1).type == MidiNoteEvent.TYPE_BEND &&
+                        (ev.mTicks+runningTicks) < BEND_MIN_TICKS){
+                    // Ignore this bend event - but add the delta on to the next one
+                    Log.d(TAG, "HELLO ignoring bend: ticks[" + ev.mTicks + "] running [" + runningTicks + "]");
                     runningTicks += ev.mTicks;
                 }else {
+                    Log.d(TAG, "HELLO adding bend: ticks["+ev.mTicks+"] running ["+runningTicks+"]");
                     noteEvents.add(new MidiNoteEvent(MidiNoteEvent.TYPE_BEND, ev.mTicks + runningTicks, ev.getBend()));
                     runningTicks = 0;
                 }
             }
             else if(ev.mMetaEventType == MidiEvent.META_EVENT_TYPE_SET_TEMPO) {
-                Log.d(TAG, "TEMPO="+ev.getTempo());
+                Log.d(TAG, "HELLO TEMPO="+ev.getTempo());
                 noteEvents.add(new MidiNoteEvent(MidiNoteEvent.TYPE_TEMPO, ev.mTicks + runningTicks, ev.getTempo()));
                 runningTicks=0;
             }
@@ -142,7 +152,7 @@ public class MidiFile {
             }
             ev = getEvent(in);
         }
-        Log.d(TAG, "loadNoteEvents (end) got " + noteEvents.size() + " events for track:" + track);
+        Log.d(TAG, "HELLO loadNoteEvents (end) got " + noteEvents.size() + " events for track:" + track);
     }
 
     /**
@@ -156,32 +166,32 @@ public class MidiFile {
         int channel;
         int ticks = getTimeTicks(in);
         mTotalTicks+=ticks;
-//        Log.d(TAG, "TICKS["+ticks+"]");
+//        Log.d(TAG, "HELLO TICKS["+ticks+"]");
         int type = in.read();
         // What sort of event is it?
         if (type == 0xff) {
-//            Log.d(TAG, "TYPE["+iToHex(type)+"]");
+//            Log.d(TAG, "HELLO TYPE["+iToHex(type)+"]");
             int len;
             // Meta event (or END OF TRACK)
             int metaType = in.read();
             len = getVariableLen(in);
             if (metaType == MidiEvent.META_EVENT_TYPE_END_OF_TRACK) {
-                Log.d(TAG, "END OF TRACK");
+                Log.d(TAG, "HELLO END OF TRACK");
             }
             else if (metaType == MidiEvent.META_EVENT_TYPE_SET_TEMPO) {
-                Log.d(TAG, "SET TEMPO"+ " mLen["+len+"]");
+                Log.d(TAG, "HELLO SET TEMPO"+ " mLen["+len+"]");
             }
             else if (metaType == MidiEvent.META_EVENT_TYPE_SET_TIMESIG) {
-                Log.d(TAG, "SET TIMESIG :"+ " mLen["+len+"]");
+                Log.d(TAG, "HELLO SET TIMESIG :"+ " mLen["+len+"]");
             }
             else
             {
-                Log.d(TAG, "META EVENT=mNoteEventType[" + metaType + "] mLen["+len+"]: "+MidiEvent.metaEventType(metaType));
+                Log.d(TAG, "HELLO META EVENT=mNoteEventType[" + metaType + "] mLen["+len+"]: "+MidiEvent.metaEventType(metaType));
             }
             return new MidiEvent(MidiEvent.TYPE_META_EVENT, metaType, len, in);
         } else if (type == 0xf0) {
-//            Log.d(TAG, "TYPE["+iToHex(type)+"]");
-            Log.d(TAG, "SYSEX - OOPS TODO TODO TODO");
+//            Log.d(TAG, "HELLO TYPE["+iToHex(type)+"]");
+            Log.d(TAG, "HELLO SYSEX - OOPS TODO TODO TODO");
             int len = getVariableLen(in);
             return new MidiEvent(MidiEvent.TYPE_SYSEX_EVENT, 0, len, in);
         } else {
@@ -193,13 +203,13 @@ public class MidiFile {
                 param1 = type;
                 noteEventType = mRunningStatus;
                 channel = mRunningChannel;
-//                Log.d(TAG, "Running status TYPE [" + noteEventType + "]");
+//                Log.d(TAG, "HELLO Running status TYPE [" + noteEventType + "]");
             } else {
                 // mChannel = bottom 4 bits
                 channel = type & 0x0f;
                 param1 = in.read();
             }
-//            Log.d(TAG, "TYPE: "+iToHex(type)+"=>"+noteEventType+channel);
+//            Log.d(TAG, "HELLO TYPE: "+iToHex(type)+"=>"+noteEventType+channel);
 
             switch (noteEventType) {
                 case MidiEvent.NOTE_EVENT_TYPE_NOTE_OFF:
@@ -214,19 +224,19 @@ public class MidiFile {
                 case MidiEvent.NOTE_EVENT_TYPE_PITCHBEND:
                     param2 = in.read();
                     if (noteEventType == MidiEvent.NOTE_EVENT_TYPE_PITCHBEND) {
-                        Log.d(TAG, "PICTHBEND [" + noteEventType + "][" + iToHex(param1) + "][" + iToHex(param2) + "]");
+                        Log.d(TAG, "HELLO PITCHBEND [" + noteEventType + "][" + iToHex(param1) + "][" + iToHex(param2) + "]");
                     } else {
-                        Log.d(TAG, "NOTE_AFTER_TOUCH/CONTROLLER [" + noteEventType + "][" + iToHex(param1) + "][" + iToHex(param2) + "]");
+                        Log.d(TAG, "HELLO NOTE_AFTER_TOUCH/CONTROLLER [" + noteEventType + "][" + iToHex(param1) + "][" + iToHex(param2) + "]");
                     }
                     break;
                 case MidiEvent.NOTE_EVENT_TYPE_PROGRAM_CHANGE:
-                    Log.d(TAG, "PROGRAM_CHANGE [" + noteEventType + "]["+iToHex(param1)+"]");
+                    Log.d(TAG, "HELLO PROGRAM_CHANGE [" + noteEventType + "]["+iToHex(param1)+"]");
                     break;
                 case MidiEvent.NOTE_EVENT_TYPE_CHANNEL_AFTERTOUCH:
-                    Log.d(TAG, "AFTERTOUCH [" + noteEventType + "]["+iToHex(param1)+"]");
+                    Log.d(TAG, "HELLO AFTERTOUCH [" + noteEventType + "]["+iToHex(param1)+"]");
                     break;
                 default:
-                    Log.e(TAG, "OOPS - SOMETHING WENT WRONG [" + noteEventType + "]");
+                    Log.e(TAG, "HELLO OOPS - SOMETHING WENT WRONG [" + noteEventType + "]");
                     break;
             }
             mRunningStatus = noteEventType;
@@ -253,7 +263,7 @@ public class MidiFile {
     }
 
     /**
-     * Get the number of mTicks betfore the midi event - variable length 7bit/byte
+     * Get the number of mTicks before the midi event - variable length 7bit/byte
      * @param in track InputStream
      * @return mTicks
      * @throws IOException in the event of a file read failure
@@ -271,7 +281,7 @@ public class MidiFile {
         }
         ticks = (ticks<<7) | (trackByte & 0x7F);
         sb.append(" ").append(ticks);
-        Log.d(TAG, sb.toString());
+        Log.d(TAG, "HELLO TICKS: "+ sb.toString());
         return ticks;
     }
 
@@ -282,7 +292,7 @@ public class MidiFile {
      * @throws FretboardException if an error occurs
      */
     private void loadHeader(File file) throws FretboardException {
-        Log.d(TAG, "loadHeader");
+        Log.d(TAG, "HELLO loadHeader");
         BufferedInputStream in;
         byte[] buffer = new byte[BUF_LEN];
         int format; //  0=single track, 1=multiple Tracks
@@ -306,7 +316,7 @@ public class MidiFile {
                 Log.e(TAG, "OOPS - time division is frames per sec");
                 throw new FretboardException("OOPS - time division is frames per sec");
             }
-            Log.d(TAG, "format=" + format + " tracks=" + tracks + " ticksPerQtrBeat=" + mTicksPerQtrNote);
+            Log.d(TAG, "HELLO format=" + format + " tracks=" + tracks + " ticksPerQtrBeat=" + mTicksPerQtrNote);
 
             this.mTracks = new ArrayList<>();
             this.mTrackChunkLength = new int[tracks];
@@ -320,9 +330,9 @@ public class MidiFile {
                     throw new FretboardException("Error - Reading track header");
                 }
                 int trackLen = ((buffer[4] & 0xFF) << 24) + ((buffer[5] & 0xFF) << 16) + ((buffer[6] & 0xFF) << 8) + ((buffer[7] & 0xFF));
-                Log.d(TAG, "Track: " + track + " mLen: " + trackLen);
+                Log.d(TAG, "HELLO Track: " + track + " mLen: " + trackLen);
                 String trackName = getTrackName(in);
-                Log.d(TAG, "Adding track: " + trackName);
+                Log.d(TAG, "HELLO Adding track: " + trackName);
                 if(track==0) {
                     // If this is the first track then assume that we have got the song title
                     if( trackName.equalsIgnoreCase("untitled") ||
@@ -351,7 +361,7 @@ public class MidiFile {
             }
             in.close();
         }catch (IOException e) {
-            Log.d(TAG, "IOException: "+e.getMessage());
+            Log.d(TAG, "HELLO IOException: "+e.getMessage());
             throw new FretboardException(e.getMessage());
         }
     }
@@ -370,7 +380,6 @@ public class MidiFile {
      * @throws IOException in the event of a file io error
      */
     private String getTrackName(BufferedInputStream in) throws IOException {
-        Log.d(TAG, "getTrackName");
         // Get the first event
         String ret="";
         in.mark(BUF_LEN);
@@ -388,11 +397,12 @@ public class MidiFile {
             ++count;
         }
         in.reset();
+        Log.d(TAG, "HELLO getTrackName: "+ret);
         return (ret.isEmpty()?UNKNOWN_TRACKNAME: ret);
     }
 
     private int getTempo(BufferedInputStream in) throws IOException {
-        Log.d(TAG, "getTempo");
+        Log.d(TAG, "HELLO getTempo");
         // Get the first event
         int ret=0;
         in.mark(BUF_LEN);
@@ -420,7 +430,7 @@ public class MidiFile {
         return ev.getTimeSig()==0?DEFAULT_TIMESIG:ev.getTimeSig();
     }
     private MidiEvent getMetaEventByType(BufferedInputStream in, int eventType) throws IOException {
-        Log.d(TAG, "getMetaEventByType");
+        Log.d(TAG, "HELLO getMetaEventByType");
         // Get the first event
         in.mark(BUF_LEN);
         MidiEvent ev = getEvent(in);

@@ -186,8 +186,8 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
         Log.d(TAG, "setMidiInstruments");
         for(int track=0; track<mFretSong.tracks();track++){
             FretTrack fretTrack = mFretSong.getTrack(track);
-            if(!fretTrack.isDrumTrack()) {
-                // No instrument for drum track - just channel 10
+            if(!fretTrack.isDrumTrack() && !fretTrack.isClickTrack()) {
+                // No instrument for drum track - just channel 10.  No instrument for click track
                 setMidiInstrument( track, fretTrack.getMidiInstrument());
             }
         }
@@ -220,24 +220,28 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
         }
     }
     private void handleEvent() {
+        // Get current time
+        long begin = System.currentTimeMillis();
         // Send next set of notes to Fretboard View
 //        Log.d(TAG, "current event: "+mCurrentEvent);
         boolean redraw=false;
         do {
             FretEvent fretEvent = mFretTrack.fretEvents.get(mCurrentFretEvent);
+            Log.d(TAG, "HELLO EVENT:[" + fretEvent.track + "]["+ fretEvent.getTicks()+"]["+fretEvent.totalTicks+"]["+fretEvent.bend+"]["+(fretEvent.bend & 0x7F)+"]["+((fretEvent.bend >> 7) & 0x7F)+"]");
             if (fretEvent.tempo > 0) {
                 mTempo = fretEvent.tempo;
             }
             if(fretEvent.isClickEvent()) {
                 // Update progress listener (so it can update the seekbar (or whatever)
-                Log.d(TAG, "HELLO - updateProgress: "+ fretEvent.getClickEvent());
+                Log.d(TAG, "HELLO - updateProgress: "+ fretEvent.getClickEvent() + ":" + fretEvent.totalTicks);
                 updateProgress(mClickTrackSize, fretEvent.getClickEvent());
-            }
-            sendMidiNotes(fretEvent);
-            if(fretEvent.track == mSoloTrack) {
-                mFretTrackView.setNotes(fretEvent);
-                // Force redraw
-                redraw = true;
+            } else {
+                sendMidiNotes(fretEvent);
+                if (fretEvent.track == mSoloTrack) {
+                    mFretTrackView.setNotes(fretEvent);
+                    // Force redraw
+                    redraw = true;
+                }
             }
 
             // Loop round to start
@@ -245,12 +249,12 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
                 mCurrentFretEvent = 0;
             }
         } while (mFretTrack.fretEvents.get(mCurrentFretEvent).deltaTicks==0);
+//        Log.d(TAG, "sleeping: "+mFretTrack.fretEvents.get(mCurrentFretEvent).deltaTicks+" milisecs:"+delayFromTicks(mFretTrack.fretEvents.get(mCurrentFretEvent).deltaTicks));
 
+        mFretEventHandler.sleep(delayFromTicks(begin, mFretTrack.fretEvents.get(mCurrentFretEvent).deltaTicks));
         if(redraw){
             mFretTrackView.invalidate();
         }
-//        Log.d(TAG, "sleeping: "+mFretTrack.fretEvents.get(mCurrentFretEvent).deltaTicks+" milisecs:"+delayFromClicks(mFretTrack.fretEvents.get(mCurrentFretEvent).deltaTicks));
-        mFretEventHandler.sleep(delayFromClicks(mFretTrack.fretEvents.get(mCurrentFretEvent).deltaTicks));
     }
     /**
      * Plays/pauses the current track
@@ -284,6 +288,7 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
             midiBuffer[0] = (byte) (Midi.PITCH_WHEEL | fretEvent.track);
             midiBuffer[1] = (byte) (fretEvent.bend & 0x7F);
             midiBuffer[2] = (byte) ((byte) (fretEvent.bend >> 7) & 0x7F);
+//            Log.d(TAG, "HELLO BEND:["+ fretEvent.getTicks()+"]["+fretEvent.totalTicks+"]["+fretEvent.bend+"]["+(fretEvent.bend & 0x7F)+"]["+((fretEvent.bend >> 7) & 0x7F)+"]");
             sendMidi(midiBuffer);
         }
     }
@@ -345,8 +350,9 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
      * @param deltaTicks The delta time in ticks for this event
      * @return Returns the actual delay in millisecs for this event
      */
-    private long delayFromClicks(int deltaTicks) {
+    private long delayFromTicks(long begin, int deltaTicks) {
         long ret = 0;
+        long end = System.currentTimeMillis();
 
         if (mTicksPerQtrNote > 0 && deltaTicks > 0) {
             // Avoid divide by zero error
@@ -356,6 +362,8 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
             ret = (long) z;
         }
 
+        Log.d(TAG, "HELLO delayFromTicks ["+(end-begin) +"][" + deltaTicks+"]["+mTempo+"][" +mTicksPerQtrNote+"]["+ret+"]");
+        ret = end - begin > ret? 0 : ret - (end - begin) ;
         return ret;
     }
 

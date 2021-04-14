@@ -42,16 +42,19 @@ public class FretView extends View {
     private String[] mStringText = {"E", "B", "G", "D", "A", "E"}; // reverse order because we start at the top
     private int mFretWidth;
     private int mSpaceBeforeNut;
-    private int mStringSpace;
+    private int mFretboardWhiteSpace;
     protected List<FretNote> mFretNotes;
     private List<FretNote>[] mOldNotes;
     protected float mRadius;
     private boolean mInitialised = false;
     private Bitmap mFretMarkerBM;
+    private boolean l2R = true;
+    private int mFretboardHeight;
+    private int mStringSpace;
 
     public FretView(Context context) {
         super(context);
-        Log.d(TAG, "HELLO constructor 1");
+//        Log.d(TAG, "HELLO constructor 1");
         initialiseView();
     }
 
@@ -60,12 +63,12 @@ public class FretView extends View {
      */
     public FretView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        Log.d(TAG, "HELLO constructor2");
+//        Log.d(TAG, "HELLO constructor2");
         initialiseView();
     }
 
     public void setFretInstrument(FretInstrument.Instrument instrument ){
-        Log.d(TAG, "HELLO setFretInstrument");
+//        Log.d(TAG, "HELLO setFretInstrument");
         mStrings = instrument.numStrings();
         mFrets = instrument.numFrets();
         mStringText = instrument.STRING_NAMES();
@@ -76,10 +79,10 @@ public class FretView extends View {
      * All initialisation stuff
      */
     protected void initialiseView() {
-        Log.d(TAG, "HELLO initialiseView");
+//        Log.d(TAG, "HELLO initialiseView");
         // FretTrackView should call super.initialiseView()
         setBackgroundResource(R.drawable.wood2);
-        mFretMarkerBM = BitmapFactory.decodeResource(getResources(), R.drawable.fret_marker);
+        mFretMarkerBM = BitmapFactory.decodeResource(getResources(), R.drawable.fret_marker2);
         mOldNotes = (List<FretNote>[]) new List[5];
         mBentStrings = new boolean[mStrings];
     }
@@ -88,9 +91,9 @@ public class FretView extends View {
      * Initialise the redraw.
      */
     private void initialiseStuff() {
-        Log.d(TAG, "HELLO initialiseStuff 1");
+//        Log.d(TAG, "HELLO initialiseStuff 1");
         if (!mInitialised) {
-            Log.d(TAG, "HELLO initialiseStuff 2");
+//            Log.d(TAG, "HELLO initialiseStuff 2");
             // Set up a Paint for the strings and frets
             mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             mPaint.setColor(Color.BLACK);
@@ -106,7 +109,9 @@ public class FretView extends View {
             mPaintBackground.setColor(Color.WHITE);
 
             // various constants...
-            mStringSpace = getHeight() / (mStrings + 1);
+            mFretboardWhiteSpace = getHeight() / (mStrings + 1);
+            mFretboardHeight = getHeight()-(mFretboardWhiteSpace*2);
+            mStringSpace = mFretboardHeight / mStrings;
             mSpaceBeforeNut = getWidth() / mFrets;
             mFretWidth = (getWidth() - (mSpaceBeforeNut * 2)) / mFrets;
             mRadius = mFretWidth / 4;
@@ -116,22 +121,23 @@ public class FretView extends View {
 
     @Override
     protected void onDraw(Canvas g) {
-        Log.d(TAG, "HELLO onDraw");
+        Log.d(TAG, "HELLO onDraw1");
         initialiseStuff();
         drawBackground(g);
         drawFrets(g);
         drawOldNotes(g);
         drawNotes(g);
         drawStrings(g);
+        Log.d(TAG, "HELLO onDraw2");
     }
 
     Rect mRect = new Rect(); // Avoid creating every call to drawStrings
 
     void drawBackground(Canvas g) {
         // Blank out area above top string and below bottom
-        g.drawRect(0, 0, getWidth(), mStringSpace - 1, mPaintBackground);
+        g.drawRect(0, 0, getWidth(), mFretboardWhiteSpace - 1, mPaintBackground);
         // Blank out area below bottom string
-        g.drawRect(0, (mStrings * mStringSpace) + 1, getWidth(), getHeight(), mPaintBackground);
+        g.drawRect(0, (mStrings * mFretboardWhiteSpace) + 1, getWidth(), getHeight(), mPaintBackground);
     }
 
     /**
@@ -146,10 +152,10 @@ public class FretView extends View {
         mPaintText.setColor(Color.BLUE);
         mPaintText.setAlpha(TEXT_ALPHA);
 
-        // Draw  Strings
+        // Draw  Strings (highest to lowest)
         int string = 0;
         while (string < mStrings) {
-            stringY = (string + 1) * mStringSpace;
+            stringY = getStringY(string);
             if (!mBentStrings[string]) {
                 // Draw string
                 g.drawLine(mSpaceBeforeNut, stringY, getWidth(), stringY, mPaint);
@@ -162,6 +168,13 @@ public class FretView extends View {
         }
     }
 
+    private int getStringY(int string){
+        if(l2R){
+            return mFretboardWhiteSpace + (mStringSpace/2) + (string * mStringSpace);
+        } else {
+            return getHeight() - mFretboardWhiteSpace - (mStringSpace/2) - (string * mStringSpace);
+        }
+    }
     /**
      * Draw the frets on the fretboard
      *
@@ -179,12 +192,16 @@ public class FretView extends View {
 
         while (fret <= mFrets) {
             //Draw vertical line - from top to bottom string
-            fretX = mSpaceBeforeNut + (fret * mFretWidth);
+            if(l2R) {
+                fretX = mSpaceBeforeNut + (fret * mFretWidth);
+            } else {
+                fretX = getWidth()-(mSpaceBeforeNut + (fret * mFretWidth));
+            }
             if (fret == 0) {
                 // If fret=0 - i.e. this is the nut then do a double line
-                g.drawRect(fretX - NUT_WIDTH, mStringSpace, fretX, getHeight() - mStringSpace, mPaint);
+                g.drawRect(fretX - NUT_WIDTH, mFretboardWhiteSpace, fretX, getHeight() - mFretboardWhiteSpace, mPaint);
             } else {
-                g.drawLine(fretX, mStringSpace, fretX, getHeight() - mStringSpace, mPaint);
+                g.drawLine(fretX, mFretboardWhiteSpace, fretX, getHeight() - mFretboardWhiteSpace, mPaint);
             }
             // Write fret number (but not zero)
             if (fret > 0) {
@@ -195,7 +212,11 @@ public class FretView extends View {
                 mPaintText.getTextBounds(fretNumber, 0, 1, mRect);
                 int textHeight = mRect.height();
                 float y = (getHeight()/2) + (textHeight/2);
-                g.drawText(fretNumber, fretX - (mFretWidth / 2) - (textWidth / 2), y, mPaintText);
+                if(l2R) {
+                    g.drawText(fretNumber, fretX - (mFretWidth / 2) - (textWidth / 2), y, mPaintText);
+                }else{
+                    g.drawText(fretNumber, fretX + (mFretWidth / 2) - (textWidth / 2), y, mPaintText);
+                }
             }
             // Add fret markers at frets 3, 5, 7, 9, 12, 15, 17, 19
             if (fret == 2 || fret == 4 || fret == 6 || fret == 8 || fret == 14 || fret == 16 || fret == 18) {
@@ -212,7 +233,12 @@ public class FretView extends View {
     private Rect getFretMarkerRect(int fretX, int yMiddle) {
         // We want a Rect in between current fret and next, centred on the fret board
         int left, top, right, bottom;
-        left = fretX + (mFretWidth / 4);
+
+        if(l2R) {
+            left = fretX + (mFretWidth / 4);
+        } else {
+            left = fretX - (mFretWidth * 3 / 4);
+        }
         top = yMiddle - (mFretWidth / 4);
         right = left + (mFretWidth / 2);
         bottom = top + (mFretWidth / 2);
@@ -240,7 +266,7 @@ public class FretView extends View {
                     if (mFretNotes.get(i).bend > 0) {
                         mBentStrings[mFretNotes.get(i).string] = true;
                         // Draw bent string
-                        int y2 = (mFretNotes.get(i).string + 1) * mStringSpace;
+                        int y2 = getStringY(mFretNotes.get(i).string);
                         // Line from nut to note
                         g.drawLine(mSpaceBeforeNut, y2, x, y, mPaint);
                         // line from not to bridge
@@ -268,17 +294,25 @@ public class FretView extends View {
         // Get the y coord of the given string - allowing for bent strings
         // Turn the midi pitchwheel value into a string-bend value between 0-10
         int bend = note.bend > ZERO_PITCH_BEND ? (note.bend - ZERO_PITCH_BEND) / (ZERO_PITCH_BEND / MAX_BEND) : 0;
-        return ((note.string + 1) * mStringSpace) + (bend * mStringSpace / FretEvent.MAX_BEND);
+        return getStringY(note.string) + (bend * mStringSpace / FretEvent.MAX_BEND);
     }
 
     private float getNoteX(FretNote note) {
         // Get the centre of the given fret
         float ret;
         if (note.fret > 0) {
-            ret = (float) (mSpaceBeforeNut + ((note.fret - 1 + 0.5) * mFretWidth));
+            if(l2R) {
+                ret = (float) (mSpaceBeforeNut + ((note.fret - 1 + 0.5) * mFretWidth));
+            } else {
+                ret = (float)  (getWidth() - mSpaceBeforeNut - ((note.fret - 1 + 0.5) * mFretWidth));
+            }
         } else {
-            // If its an open string then we place a Circle just being the nut
-            ret = (float) mSpaceBeforeNut - mRadius - RANDOM_VALUE;
+            // If its an open string then we place a Circle just behind the nut
+            if(l2R) {
+                ret = (float) mSpaceBeforeNut - mRadius - RANDOM_VALUE;
+            } else {
+                ret = (float) getWidth() - mSpaceBeforeNut + mRadius + RANDOM_VALUE;
+            }
         }
         return ret;
     }
@@ -294,7 +328,7 @@ public class FretView extends View {
         // Apply bend to current notes
         if (mFretNotes != null) {
             for (FretNote fn : mFretNotes) {
-                if (fn.on) {
+                if (fn.on && fretEvent.bend>0) {
                     fn.bend = fretEvent.bend;
                 }
             }

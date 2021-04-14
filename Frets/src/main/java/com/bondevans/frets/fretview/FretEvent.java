@@ -20,7 +20,7 @@ public class FretEvent extends FretBase {
     public int bend;
     public List<FretNote> fretNotes;
     public int track;
-    private int totalTicks;
+    public int totalTicks;
     private int clickEvent;
     private boolean hasOnNotes;
     // INTERNAL PROPERTIES - NOT WRITTEN OUT IN/READ IN FROM TOSTRING()
