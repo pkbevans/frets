@@ -133,7 +133,7 @@ public class FretTrackEditFragment extends Fragment {
             Log.d(TAG, "savedInstanceState != null");
             // Must be orientation change
             mTrackName.setText(mFretTrack.getName());
-            mFretEditView.setNotes(mFretTrack.fretEvents.get(mCurrentEvent));
+            mFretEditView.setNotes(mFretTrack.fretEvents.get(mCurrentEvent).fretNotes,0);
             setEventText(displayEvent);
             mInstrumentSet=false;
         }
@@ -166,7 +166,7 @@ public class FretTrackEditFragment extends Fragment {
                 (mFretTrack.isMerged() &&
                 mFretTrack.fretEvents.get(mCurrentEvent).track!=mSoloTrack));
 
-        mFretEditView.setNotes(mFretTrack.fretEvents.get(mCurrentEvent));
+        mFretEditView.setNotes(mFretTrack.fretEvents.get(mCurrentEvent).fretNotes,0);
         mFretEditView.invalidate();
         setEventText(displayEvent);
         // Play the note(s) as well
@@ -194,7 +194,7 @@ public class FretTrackEditFragment extends Fragment {
         mTrackName.setText(mFretTrack.getName());
         mCurrentEvent = 0;
         mFretEditView.setFretInstrument(mFretTrack.getInstrument());
-        mFretEditView.setNotes(mFretTrack.fretEvents.get(mCurrentEvent));
+        mFretEditView.setNotes(mFretTrack.fretEvents.get(mCurrentEvent).fretNotes, 0);
         mFretEditView.invalidate();
         setEventText(displayEvent);
     }

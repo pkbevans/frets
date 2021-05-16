@@ -249,5 +249,8 @@
     <string name="fret_instrument">Instrument Type:</string>
     <string name="thumbnail_description">A thumbnail picture of the person who created this Fret</string>
     <string name="follow_notes">Follow</string>
+    <string name="synths_text">Synths</string>
+    <string name="select_synth">Synth</string>
+    <string name="synth_error">\"Unable to open synth: \"</string>
 
 </resources>

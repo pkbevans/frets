@@ -25,7 +25,7 @@ import com.bondevans.frets.midi.Midi;
 import org.billthefarmer.mididriver.MidiDriver;
 
 public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStartListener {
-    private static final String TAG = FretViewFragment.class.getSimpleName();
+    private static final String TAG = FretViewFragmentNew.class.getSimpleName();
     private FretTrackView mFretTrackView;
 //    private TextView mTrackName;
     private ImageButton playPauseButton;
@@ -230,15 +230,14 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
             Log.d(TAG, "HELLO EVENT:[" + fretEvent.track + "]["+ fretEvent.getTicks()+"]["+fretEvent.totalTicks+"]["+fretEvent.bend+"]["+(fretEvent.bend & 0x7F)+"]["+((fretEvent.bend >> 7) & 0x7F)+"]");
             if (fretEvent.tempo > 0) {
                 mTempo = fretEvent.tempo;
-            }
-            if(fretEvent.isClickEvent()) {
+            } else if(fretEvent.isClickEvent()) {
                 // Update progress listener (so it can update the seekbar (or whatever)
                 Log.d(TAG, "HELLO - updateProgress: "+ fretEvent.getClickEvent() + ":" + fretEvent.totalTicks);
                 updateProgress(mClickTrackSize, fretEvent.getClickEvent());
             } else {
                 sendMidiNotes(fretEvent);
                 if (fretEvent.track == mSoloTrack) {
-                    mFretTrackView.setNotes(fretEvent);
+                    mFretTrackView.setNotes(fretEvent.fretNotes, 0);
                     // Force redraw
                     redraw = true;
                 }
@@ -373,7 +372,7 @@ public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStart
         mTempo = tempo;
         mCurrentFretEvent = currentFretEvent;
         mFretTrackView.setFretInstrument(mFretTrack.getInstrument());
-        mFretTrackView.setNotes(mFretTrack.fretEvents.get(mCurrentFretEvent));
+        mFretTrackView.setNotes(mFretTrack.fretEvents.get(mCurrentFretEvent).fretNotes,0);
         mTicksPerQtrNote = tpqn;
         mPlaying = false;
         mFretTrackView.invalidate();   // Force redraw

@@ -36,7 +36,7 @@ public class FretRecyclerViewAdapter extends FirebaseRecyclerAdapter<Fret, FretH
     @Override
     public FretHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         // Create a new instance of the ViewHolder,
-        Log.d(TAG, "HELLO onCreateViewHolder");
+//        Log.d(TAG, "HELLO onCreateViewHolder");
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.fretlist_item_new, parent, false);
         return new FretHolder(view, mListener);
@@ -45,7 +45,7 @@ public class FretRecyclerViewAdapter extends FirebaseRecyclerAdapter<Fret, FretH
     public void onDataChanged() {
         // Called each time there is a new data snapshot. You may want to use this method
         // to hide a loading spinner or check for the "no documents" state and update your UI.
-        Log.d(TAG, "HELLO onDataChanged");
+//        Log.d(TAG, "HELLO onDataChanged");
         mListener.onDataChanged();
     }
 
@@ -58,7 +58,7 @@ public class FretRecyclerViewAdapter extends FirebaseRecyclerAdapter<Fret, FretH
     @Override
     protected void onBindViewHolder(FretHolder holder, int position, Fret fret) {
         String keyId = this.getRef(position).getKey();
-        Log.d(TAG, "HELLO onBindViewHolder. position:"+position+ " fret: "+keyId);
+//        Log.d(TAG, "HELLO onBindViewHolder. position:"+position+ " fret: "+keyId);
         // Bind the Fret object to the FretHolder
         holder.bind(fret);
     }

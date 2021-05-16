@@ -51,7 +51,6 @@ public class FretHolder extends RecyclerView.ViewHolder implements View.OnClickL
     //Define a constructor taking a View as its parameter
     public FretHolder(@NonNull View itemView, FretRecyclerViewClickListener listener) {
         super(itemView);
-        Log.d(TAG, "HELLO");
         //Remembered we defined an id attribute to our TextView in fretlist_item.xml
         mName = itemView.findViewById(R.id.name);
         mDescription = itemView.findViewById(R.id.description);
@@ -72,20 +71,20 @@ public class FretHolder extends RecyclerView.ViewHolder implements View.OnClickL
     }
 
     public void bind(@NonNull Fret fret) {
-        Log.d(TAG, "HELLO: " + fret.getName());
+//        Log.d(TAG, "HELLO: " + fret.getName());
         setName(fret.getName());
         setDescription(fret.getDescription());
         setUser(getUser(fret.getUserId()));
         setThumbnail(getThumbnail(fret.getUserId()));
         setInstrument(fret.getInstrumentName(fret.getInstrument()));
         String d = formatDate(fret.getDatePublished());
-        Log.d(TAG, "date:"+d);
+//        Log.d(TAG, "HELLO date:"+d);
         setDateCreated(formatDate(fret.getDatePublished()));
     }
 
     String  getUser(String uid){
         if(uid.equals(FretApplication.getUID())){
-            Log.d(TAG, "HELLO: Current User");
+//            Log.d(TAG, "HELLO: Current User");
             return FretApplication.getUserName();
         } else {
             // See if we have the profile in cache
@@ -100,10 +99,10 @@ public class FretHolder extends RecyclerView.ViewHolder implements View.OnClickL
     }
     private Bitmap getThumbnail(final String uId) {
         File cacheFile = new File(cacheDir, uId + ImageUtils.THUMBNAIL_SUFFIX );
-        Log.d(TAG, "HELLO cachefile:"+cacheFile.getPath());
+//        Log.d(TAG, "HELLO cachefile:"+cacheFile.getPath());
         if (cacheFile.exists()) {
             try {
-                Log.d(TAG, "HELLO thumbnail cachefile exists");
+//                Log.d(TAG, "HELLO thumbnail cachefile exists");
                 return BitmapFactory.decodeFile(cacheFile.getPath());
             } catch (Exception e) {
                 e.printStackTrace();
@@ -138,10 +137,10 @@ public class FretHolder extends RecyclerView.ViewHolder implements View.OnClickL
 
     private String getUsernameFromCache(String uid) {
         File cacheFile = new File(cacheDir, uid );
-        Log.d(TAG, "HELLO cachefile:"+cacheFile.getPath());
+//        Log.d(TAG, "HELLO cachefile:"+cacheFile.getPath());
         if (cacheFile.exists()) {
             try {
-                Log.d(TAG, "HELLO cachefile exists");
+//                Log.d(TAG, "HELLO cachefile exists");
                 String userProfileJson = FileLoader.loadFile(cacheFile);
                 return UserProfile.getUsername(userProfileJson);
             } catch (Exception e) {
@@ -150,7 +149,7 @@ public class FretHolder extends RecyclerView.ViewHolder implements View.OnClickL
                 return "";
             }
         } else {
-            Log.d(TAG, "HELLO cachefile doesn't exist");
+//            Log.d(TAG, "HELLO cachefile doesn't exist");
             return "";
         }
     }
@@ -178,7 +177,7 @@ public class FretHolder extends RecyclerView.ViewHolder implements View.OnClickL
         fileWriterTask.setFileWrittenListener(new FileWriterTask.FileWrittenListener() {
             @Override
             public void OnFileWritten() {
-                Log.d(TAG, "HELLO file written to cache: " + cacheFile.getPath());
+//                Log.d(TAG, "HELLO file written to cache: " + cacheFile.getPath());
             }
 
             @Override
@@ -237,7 +236,7 @@ public class FretHolder extends RecyclerView.ViewHolder implements View.OnClickL
 
     @Override
     public boolean onLongClick(View v) {
-        Log.d(TAG, "HELLO: onLongClick");
+//        Log.d(TAG, "HELLO: onLongClick");
         mListener.onLongClick(v, getAdapterPosition());
         return true;
     }

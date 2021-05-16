@@ -224,6 +224,11 @@ public class FretTrack extends FretBase {
         this.clickTrack=true;
         this.clickTrackSize=fretEvents.size();
     }
+
+    /**
+     * Creates a list of the FretEvent index of each clickevent.  This is so that the FretViewer
+     * can move to the correct FretEvent when the user moves the seekbar
+     */
     public void generateClickEventList(){
         clickEvents = new ArrayList<>();
         int i=0;

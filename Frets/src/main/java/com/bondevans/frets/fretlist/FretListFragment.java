@@ -262,7 +262,7 @@ public class FretListFragment extends Fragment implements FretListActivity.Query
 
             @Override
             public void onDataChanged() {
-                Log.d(TAG, "HELLO onDataChanged: "+mListType+":" +mAdapter.getItemCount());
+//                Log.d(TAG, "HELLO onDataChanged: "+mListType+":" +mAdapter.getItemCount());
                 if(mAdapter.getItemCount() == 0){
                     mEmptyText.setVisibility(View.VISIBLE);
                 } else {
@@ -305,7 +305,7 @@ public class FretListFragment extends Fragment implements FretListActivity.Query
     @Override
     public void onStart() {
         super.onStart();
-        Log.d(TAG, "HELLO onStart");
+//        Log.d(TAG, "HELLO onStart");
         //  Start the adapter
         mAdapter.startListening();
     }
@@ -313,7 +313,7 @@ public class FretListFragment extends Fragment implements FretListActivity.Query
     @Override
     public void onStop() {
         super.onStop();
-        Log.d(TAG, "HELLO onStop");
+//        Log.d(TAG, "HELLO onStop");
         mAdapter.stopListening();
     }
 

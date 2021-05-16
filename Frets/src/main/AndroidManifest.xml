@@ -36,6 +36,7 @@
             android:name=".fretviewer.FretViewActivity"
             android:label="@string/app_name" />
         <activity android:name=".filebrowser.FileBrowserActivity" />
+        <activity android:name=".selectSynth.SelectSynthActivity" />
         <activity android:name=".fretlist.MidiTest" />
         <activity
             android:name=".freteditor.FretSongEditActivity"
@@ -47,6 +48,7 @@
             android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.SEARCH" />
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
             <meta-data

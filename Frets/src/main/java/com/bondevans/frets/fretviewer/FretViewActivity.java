@@ -27,7 +27,7 @@ public class FretViewActivity extends AppCompatActivity {
     private static final String TAG = FretViewActivity.class.getSimpleName();
     private static final int REQUEST_CODE_READ_STORAGE_PERMISSION = 4522;
     private static final int REQUEST_EDIT_FRET = 678;
-    private FretViewFragment fragment;
+    private FretViewFragmentNew fragment;
     private ProgressBar progressBar;
 
     @Override
@@ -35,7 +35,7 @@ public class FretViewActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         checkFileAccessPermission();
         setContentView(R.layout.fretview_activity);
-        fragment = (FretViewFragment) getFragmentManager().findFragmentById(R.id.fragment);
+        fragment = (FretViewFragmentNew) getFragmentManager().findFragmentById(R.id.fragment);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.tool_bar); // Attaching the layout to the toolbar object
         setSupportActionBar(toolbar);                   // Setting toolbar as the ActionBar with setSupportActionBar() call

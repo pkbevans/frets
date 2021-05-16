@@ -158,5 +158,16 @@ public class FretEvent extends FretBase {
     public int getClickEvent() {
         return clickEvent;
     }
+    public String toLogString(){
+        return
+        " ticks:" +deltaTicks+
+        " tempo:" +tempo+
+        " bend:" +bend+
+        " notes:" +fretNotes.size()+
+        " track:"  +track+
+        " totalTicks:" +totalTicks+
+        " clickEvent:" +clickEvent+
+        " " + (hasOnNotes?" HAS-ONNOTES ": " NO-ONNOTES");
+    }
 }
 

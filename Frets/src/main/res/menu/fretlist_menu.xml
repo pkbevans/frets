@@ -20,4 +20,8 @@
         android:title="@string/search_title"
         app:actionViewClass="androidx.appcompat.widget.SearchView"
         app:showAsAction="collapseActionView|ifRoom" />
+    <item
+        android:id="@+id/action_select_synth"
+        android:title="@string/select_synth"
+        app:showAsAction="collapseActionView|ifRoom" />
 </menu>

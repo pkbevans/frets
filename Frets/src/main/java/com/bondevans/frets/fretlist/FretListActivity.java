@@ -4,16 +4,21 @@ import android.app.SearchManager;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.media.midi.MidiManager;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.bondevans.frets.R;
 import com.bondevans.frets.app.FretApplication;
 import com.bondevans.frets.filebrowser.FileBrowserActivity;
+import com.bondevans.frets.selectSynth.SelectSynthActivity;
 import com.bondevans.frets.user.UserProfileActivity;
 import com.bondevans.frets.user.UserProfileFragment;
 import com.bondevans.frets.utils.Log;
+import com.bondevans.frets.utils.Pref;
+import com.bondevans.frets.utils.Synth;
 import com.google.android.material.tabs.TabLayout;
 
 import java.util.ArrayList;
@@ -31,6 +36,7 @@ public class FretListActivity extends AppCompatActivity {
     static final int FRETLIST_TYPE_PUBLIC = 1;
     static final int FRETLIST_TYPE_PRIVATE = 2;
     private List<QueryUpdateListener> mListeners = new ArrayList<>();
+    private FretApplication mApp;
 
     public interface QueryUpdateListener {
         void onQueryUpdate(String search);
@@ -55,9 +61,43 @@ public class FretListActivity extends AppCompatActivity {
         TabLayout tabs = findViewById(R.id.tabs);
         tabs.setupWithViewPager(viewPager);
         handleIntent(getIntent());
+        // Connect to Synth
+        mApp = (FretApplication)getApplicationContext();
+        connectSynth();
         Toolbar toolbar = findViewById(R.id.tool_bar); // Attaching the layout to the toolbar object
         setSupportActionBar(toolbar);                   // Setting toolbar as the ActionBar with setSupportActionBar() call
         getSupportActionBar().setTitle("");             // Empty string - since we are using the logo image
+    }
+
+    private void connectSynth() {
+        // Is synth set in Application
+        if(null == mApp.getMidiDeviceInfo()){
+            Log.d(TAG, "HELLO connectSynth 1");
+            MidiManager midiManager = (MidiManager) getSystemService(MIDI_SERVICE);
+            if (midiManager == null) {
+                Toast.makeText(this, "MidiManager is null!", Toast.LENGTH_LONG)
+                        .show();
+                return;
+            }
+            // See if we've previously connected to a synth
+            String synthDescription = Pref.getPreference(this, Pref.SYNTH);
+            if(synthDescription.isEmpty()){
+                Log.d(TAG, "HELLO connectSynth 2");
+                launchSelectSynthActivity();
+            } else {
+                Log.d(TAG, "HELLO connectSynth 3");
+                ArrayList<Synth.SynthDetails> synths = Synth.getSynths(midiManager);
+                for (Synth.SynthDetails synth: synths) {
+                    Log.d(TAG, "HELLO connectSynth 4");
+                    if(synthDescription.equalsIgnoreCase(synth.getDescription())){
+                        Log.d(TAG, "HELLO connectSynth 5");
+                        Synth.openSynth(mApp, midiManager,synth);
+                    }
+                }
+            }
+        }else{
+            Log.d(TAG, "HELLO Already got synth");
+        }
     }
 
     @Override
@@ -119,6 +159,9 @@ public class FretListActivity extends AppCompatActivity {
             case R.id.action_view_profile:
                 launchProfileActivity();
                 return true;
+            case R.id.action_select_synth:
+                launchSelectSynthActivity();
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -131,6 +174,15 @@ public class FretListActivity extends AppCompatActivity {
             startActivity(intent);
         } catch (ActivityNotFoundException e) {
             Log.e(TAG, "NO ACTIVITY FOUND: "+UserProfileActivity.class.getSimpleName());
+        }
+    }
+
+    private void launchSelectSynthActivity() {
+        Intent intent = new Intent(this, SelectSynthActivity.class);
+        try {
+            startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            Log.e(TAG, "NO ACTIVITY FOUND: "+SelectSynthActivity.class.getSimpleName());
         }
     }
 

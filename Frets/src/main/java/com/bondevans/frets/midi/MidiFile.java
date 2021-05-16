@@ -24,7 +24,7 @@ public class MidiFile {
     private static final int TRACK_HEADER_LENGTH = 8;
     private static final String UNKNOWN_TRACKNAME = "UNKNOWN";
     private static final int DEFAULT_TEMPO = 120;
-    private static final int BEND_MIN_TICKS = 20;
+    private static final int BEND_MIN_TICKS = 0;
     private static final int ZERO_BEND_VALUE = 8192;
     private static final int DEFAULT_TIMESIG = 4;
 
