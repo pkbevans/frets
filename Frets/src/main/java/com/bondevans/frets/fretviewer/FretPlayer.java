@@ -17,9 +17,9 @@ import java.util.concurrent.Executor;
 
 import static java.lang.Thread.sleep;
 
-public class MidiPlayer {
+public class FretPlayer {
 
-    private static final String TAG = MidiPlayer.class.getSimpleName();
+    private static final String TAG = FretPlayer.class.getSimpleName();
     private static final int DEFAULT_TPQN = 480;
     private static final int MIN_BEND_TICKS = 30;
     private final Executor executor;
@@ -35,10 +35,10 @@ public class MidiPlayer {
     private FretTrack mFretTrack;
     private int mSoloTrack;
     private FretEvent prevEvent = new FretEvent(0,0,0);
-    List<MidiNoteBuffer> noteBufferList;
+    List<FretPlayerEvent> mFretPlayerEvents;
     List<FretNote> uiNotes;
     int mCurrentEvent=0;
-    MidiNoteBuffer mMidiNoteBuffer;
+    FretPlayerEvent mFretPlayerEvent;
     int delayMill;
 
     public interface OnUiUpdateRequiredListener {
@@ -46,7 +46,7 @@ public class MidiPlayer {
         void onSoloTrackNoteEvent(List<FretNote> fretNotes, int bend);
         void onTempoChange(int newTempo);
     }
-    public MidiPlayer(OnUiUpdateRequiredListener onUiUpdateRequiredListener,
+    public FretPlayer(OnUiUpdateRequiredListener onUiUpdateRequiredListener,
                       Handler handler,
                       Executor executor,
                       FretSong fretSong) {
@@ -69,13 +69,11 @@ public class MidiPlayer {
         byte[] buffer = new byte[0];
         int channel;
         int bend;
-        int midiEvents;
         int delay;
         int ticks = 0;
-        if(null==noteBufferList) {
-            noteBufferList = new ArrayList<>();
+        if(null== mFretPlayerEvents) {
+            mFretPlayerEvents = new ArrayList<>();
             for (FretEvent fretEvent : mFretTrack.fretEvents) {
-                midiEvents=0;
                 Log.d(TAG, "HELLO Building: "+fretEvent.toLogString());
                 delay = calcDelay(fretEvent.deltaTicks);
                 if (fretEvent.fretNotes.size()> 0 || fretEvent.bend > 0) {
@@ -90,11 +88,8 @@ public class MidiPlayer {
                         buffer[i++] = (byte) fretNote.note;
                         // Velocity - Hardcoded volume for NOTE_ON and zero for NOTE_OFF
                         buffer[i++] = (byte) (fretNote.on ? 0x60 : 0x00);
-//                        i += 3;
                     }
-                    midiEvents=fretEvent.fretNotes.size();
                     if (fretEvent.bend > 0) {
-                        midiEvents++;
                         // Send pitch Bend message (will alter current note playing)
                         buffer[i++] = (byte) (Midi.PITCH_WHEEL | channel);
                         buffer[i++] = (byte) (fretEvent.bend & 0x7F);
@@ -102,9 +97,8 @@ public class MidiPlayer {
                     }
                 }
                 // Filter out some bend events for the UI and any notes NOT on the solo track
-                // Ignore if this is a bender and prev event was a bender, and ticks < MIN_BEND_TICKS
                 if((fretEvent.bend>0 && prevEvent.bend>0 && ticks < MIN_BEND_TICKS) || mSoloTrack != fretEvent.track ){
-                    // ignore
+                    // Ignore if this is a bender and prev event was a bender, and ticks < MIN_BEND_TICKS
                     bend = 0;
                     uiNotes= new ArrayList<>();
                     Log.d(TAG, "HELLO Ig1: " + fretEvent.toLogString());
@@ -115,12 +109,12 @@ public class MidiPlayer {
                     prevEvent = fretEvent;
                     ticks = 0;
                 }
-                noteBufferList.add(new MidiNoteBuffer(fretEvent.getTicks(), delay, buffer, midiEvents, fretEvent.getClickEvent(), fretEvent.track, bend, uiNotes));
+                mFretPlayerEvents.add(new FretPlayerEvent(fretEvent.getTicks(), delay, buffer, fretEvent.getClickEvent(), fretEvent.track, bend, uiNotes));
             }
             // REMOVE
             int x=1;
-            for(MidiNoteBuffer midiNoteBuffer: noteBufferList){
-                Log.d(TAG, "HELLO Built: "+(x++)+" "+midiNoteBuffer.toString());
+            for(FretPlayerEvent fretPlayerEvent : mFretPlayerEvents){
+                Log.d(TAG, "HELLO Built: "+(x++)+" "+ fretPlayerEvent.toString());
             }
             // REMOVE
         }
@@ -135,25 +129,25 @@ public class MidiPlayer {
             executor.execute(() -> {
                 setMidiInstruments();
                 while (mPlaying) {
-                    mMidiNoteBuffer = noteBufferList.get(mCurrentEvent);
+                    mFretPlayerEvent = mFretPlayerEvents.get(mCurrentEvent);
 //                    Log.d(TAG, "HELLO midi event: " + mCurrentEvent + " " + mMidiNoteBuffer.toString());
                     try {
-                        sleep(mMidiNoteBuffer.delay);
+                        sleep(mFretPlayerEvent.delay);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    if (mMidiNoteBuffer.midiBuffer.length > 0) {
-                        midiSend(mMidiNoteBuffer.midiBuffer, mMidiNoteBuffer.midiBuffer.length, System.nanoTime());
+                    if (mFretPlayerEvent.midiBuffer.length > 0) {
+                        midiSend(mFretPlayerEvent.midiBuffer, mFretPlayerEvent.midiBuffer.length, System.nanoTime());
                     }
-                    if (mMidiNoteBuffer.click > 0) {
+                    if (mFretPlayerEvent.click > 0) {
                         // Update progress listener (so it can update the seekbar)
-                        clickEvent(mMidiNoteBuffer.click, mCurrentEvent);
+                        clickEvent(mFretPlayerEvent.click, mCurrentEvent);
                     }
-                    if (mMidiNoteBuffer.uiFretNotes.size() > 0 || mMidiNoteBuffer.bend > 0) {
-                        noteEvent(mMidiNoteBuffer.uiFretNotes, mMidiNoteBuffer.bend);
+                    if (mFretPlayerEvent.uiFretNotes.size() > 0 || mFretPlayerEvent.bend > 0) {
+                        noteEvent(mFretPlayerEvent.uiFretNotes, mFretPlayerEvent.bend);
                     }
                     // Loop round to start
-                    if (++mCurrentEvent >= noteBufferList.size()) {
+                    if (++mCurrentEvent >= mFretPlayerEvents.size()) {
                         mCurrentEvent = 0;
                     }
                 }
@@ -166,8 +160,8 @@ public class MidiPlayer {
     public void setTempo(int tempo) {
         mTempo = tempo;
         // Recalculate delays
-        for(MidiNoteBuffer midiNoteBuffer: noteBufferList){
-            midiNoteBuffer.delay = calcDelay(midiNoteBuffer.ticks);
+        for(FretPlayerEvent fretPlayerEvent : mFretPlayerEvents){
+            fretPlayerEvent.delay = calcDelay(fretPlayerEvent.ticks);
         }
     }
     public void moveTo(int event) {
@@ -230,21 +224,19 @@ public class MidiPlayer {
         event[1] = (byte) instrument;
         midiSend(event, 2, System.nanoTime());
     }
-    static class MidiNoteBuffer {
+    static class FretPlayerEvent {
         long ticks;
         int delay;
-        int midiEvents;
         byte [] midiBuffer;
         int click;
         int track;
         int bend;
         List <FretNote> uiFretNotes;
 
-        public MidiNoteBuffer(long ticks, int delay, byte[] midiBuffer, int midiEvents, int click, int track, int bend, List <FretNote> fretNotes) {
+        public FretPlayerEvent(long ticks, int delay, byte[] midiBuffer, int click, int track, int bend, List <FretNote> fretNotes) {
             this.ticks = ticks;
             this.delay = delay;
             this.midiBuffer = midiBuffer;
-            this.midiEvents = midiEvents;
             this.click = click;
             this.track = track;
             this.bend = bend;
@@ -252,7 +244,7 @@ public class MidiPlayer {
 //            Log.d(TAG, "HELLO Added: "+toString());
         }
         public String toString(){
-            return "ticks:"+ticks+" delay:"+delay+" events:"+ midiEvents +" click:"+click+" track:"+track+" bend:"+bend+" uiFretNotes:"+ uiFretNotes.size();
+            return "ticks:"+ticks+" delay:"+delay+" click:"+click+" track:"+track+" bend:"+bend+" uiFretNotes:"+ uiFretNotes.size();
         }
     }
     private int calcDelay(long deltaTicks) {
