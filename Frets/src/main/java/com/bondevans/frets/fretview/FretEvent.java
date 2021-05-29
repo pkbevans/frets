@@ -86,7 +86,7 @@ public class FretEvent extends FretBase {
         List<FretNote> fretNotes = new ArrayList<>();
         Matcher matcher = notePattern.matcher(ev);
 
-        // look for contents of <ev></ev>
+        // look for contents of <nt></nt>
         while (matcher.find()) {
             String note = matcher.group(1);
 //            Log.d(TAG, "HELLO found <"+FretNote.ELEMENT_NOTE+"> tag: [" + note + "]");

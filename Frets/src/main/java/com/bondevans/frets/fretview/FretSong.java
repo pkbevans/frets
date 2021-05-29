@@ -59,7 +59,7 @@ public class FretSong extends FretBase {
         fretTracks= new ArrayList<>();
         Matcher matcher = trackPattern.matcher(song);
 
-        // look for contents of <ev></ev>
+        // look for contents of <track></track>
         while (matcher.find()) {
             String track = matcher.group(1);
 //            Log.d(TAG, "HELLO found "+FretTrack.ELEMENT_TRACK+" tag: [" + track + "]");

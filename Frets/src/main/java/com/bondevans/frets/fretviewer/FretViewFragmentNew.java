@@ -53,7 +53,7 @@ public class FretViewFragmentNew extends Fragment implements MidiDriver.OnMidiSt
     private MidiManager mMidiManager;
     private MidiReceiver mMidiReceiver;
     private MidiDevice mOpenDevice;
-    private MidiPlayer mMidiPlayer;
+    private FretPlayer mFretPlayer;
     private final boolean mOldMidi=false;
     MidiDeviceInfo mMidiDeviceInfo;
     MidiDeviceInfo.PortInfo mPortInfo;
@@ -93,7 +93,7 @@ public class FretViewFragmentNew extends Fragment implements MidiDriver.OnMidiSt
             @Override
             public void OnTempoChanged(int tempo) {
                 mTempo = tempo;
-                mMidiPlayer.setTempo(tempo);
+                mFretPlayer.setTempo(tempo);
                 mTempoText.setText(String.valueOf(tempo));
             }
         });
@@ -144,7 +144,7 @@ public class FretViewFragmentNew extends Fragment implements MidiDriver.OnMidiSt
         // Generate a list of CLick events
         mFretSong.getTrack(mSoloTrack).generateClickEventList();
         Log.d(TAG, "HELLO: ClickTrackSize"+mClickTrackSize);
-        mMidiPlayer = new MidiPlayer(new MidiPlayer.OnUiUpdateRequiredListener() {
+        mFretPlayer = new FretPlayer(new FretPlayer.OnUiUpdateRequiredListener() {
             @Override
             public void onClickEvent(int clickEvent, int currentEvent) {
                 mCurrentEvent = currentEvent;
@@ -226,7 +226,7 @@ public class FretViewFragmentNew extends Fragment implements MidiDriver.OnMidiSt
         // toggle play/pause
         mPlaying = !mPlaying;
         playPauseButton.setImageDrawable(mPlaying ? pauseDrawable: playDrawable );
-        mMidiPlayer.setPlaying(mPlaying);
+        mFretPlayer.setPlaying(mPlaying);
     }
 
     public void updateProgress(int length, int current) {
@@ -247,7 +247,7 @@ public class FretViewFragmentNew extends Fragment implements MidiDriver.OnMidiSt
         }
         Log.d(TAG, "HELLO move to Event: [" + event + "]");
         mCurrentEvent=event;
-        mMidiPlayer.moveTo(event);
+        mFretPlayer.moveTo(event);
     }
 
     private void loadTrack(MidiReceiver midiReceiver, FretTrack frettrack, int tpqn, int tempo, int currentFretEvent) {
@@ -259,7 +259,7 @@ public class FretViewFragmentNew extends Fragment implements MidiDriver.OnMidiSt
         mPlaying = false;
         mFretTrackView.invalidate();   // Force redraw
         mTempoText.setText(String.valueOf(tempo));
-        mMidiPlayer.setTrack(midiReceiver, frettrack, tpqn, tempo, currentFretEvent, mSoloTrack);
+        mFretPlayer.setTrack(midiReceiver, frettrack, tpqn, tempo, currentFretEvent, mSoloTrack);
         getActivity().runOnUiThread(() -> playPauseButton.setVisibility(View.VISIBLE));
     }
 
