@@ -4,20 +4,18 @@ import com.bondevans.frets.instruments.FretInstrument;
 import com.bondevans.frets.instruments.Instrument;
 import com.bondevans.frets.utils.Log;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 /**
  * A collection of Fretevents making up a track
  */
 public class FretTrack extends FretBase {
     public static final int NO_FRET_INSTRUMENT = 999;
     private static final String TAG = FretTrack.class.getSimpleName();
-    private static final String ELEMENT_TRACK = "track";
-    private static final String TRACK_ELEMENT_OPEN = "<"+ELEMENT_TRACK+">";
-    private static final String TRACK_ELEMENT_CLOSE = "</"+ELEMENT_TRACK+">";
     // External properties - exported/imported to/from xml
     private String name;
     public List<FretEvent> fretEvents;
@@ -60,38 +58,6 @@ public class FretTrack extends FretBase {
             setDefaultFretPositions(instrument);
         }
     }
-
-    /**
-     * Constructor takes an XML-like string containing a complete track
-     * @param track XML representation of the class
-     */
-    public FretTrack(String track) {
-        fretEvents = new ArrayList<>();
-        this.name = getTagString(track, ATTR_NAME);
-        this.midiInstrument = getTagInt(track, ATTR_MIDI_INSTRUMENT);
-        this.fretInstrument = getTagInt(track, ATTR_FRET_INSTRUMENT);
-        this.drumTrack = getTagInt(track, ATTR_DRUM_TRACK)==1;
-        this.clickTrack = getTagInt(track, ATTR_CLICK_TRACK)==1;
-        this.clickTrackSize = getTagInt(track, ATTR_CLICK_TRACKSIZE);
-        this.merged =  getTagInt(track, ATTR_MERGED)==1;
-        loadFretEvents(track);
-    }
-
-    private static final Pattern evPattern = Pattern.compile("<ev[^>]*>(.*?)</ev>",
-            Pattern.DOTALL|Pattern.CASE_INSENSITIVE);
-
-    private void loadFretEvents(String track) {
-        fretEvents = new ArrayList<>();
-        Matcher matcher = evPattern.matcher(track);
-
-        // look for contents of <ev></ev>
-        while (matcher.find()) {
-            String ev = matcher.group(1);
-//            Log.d(TAG, "HELLO found <ev> tag: [" + ev + "]");
-            fretEvents.add(new FretEvent(ev));
-        }
-    }
-
     public String getName() {
         return name;
     }
@@ -102,39 +68,21 @@ public class FretTrack extends FretBase {
      */
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder(TRACK_ELEMENT_OPEN
-                + attr(ATTR_NAME, name)
-                + attr(ATTR_MIDI_INSTRUMENT, midiInstrument)
-                + attr(ATTR_FRET_INSTRUMENT, fretInstrument)
-                + attr(ATTR_DRUM_TRACK, drumTrack)
-                + attr(ATTR_CLICK_TRACK, clickTrack)
-                + attr(ATTR_CLICK_TRACKSIZE, clickTrackSize)
-                + attr(ATTR_MERGED, merged)
-        );
-        for (FretEvent event : fretEvents) {
-            sb.append(event.toString());
-        }
-        sb.append(TRACK_ELEMENT_CLOSE);
-        return sb.toString();
+        return toJsonString();
     }
-
     public void setName(String name) {
         this.name = name;
     }
-
     public int getMidiInstrument() {
         return midiInstrument;
     }
-
     public void setMidiInstrument(int instrument) {
         Log.d(TAG, "Setting Midi Instrument to: "+ instrument);
         this.midiInstrument = instrument;
     }
-
     public int getFretInstrument() {
         return fretInstrument;
     }
-
     public FretInstrument.Instrument getInstrument(){
         return Instrument.values()[fretInstrument].getInstrument();
     }
@@ -146,39 +94,30 @@ public class FretTrack extends FretBase {
             setDefaultFretPositions(instrument);
         }
     }
-
     public boolean isDrumTrack() {
         return drumTrack;
     }
-
     public boolean isMerged() {
         return merged;
     }
-
     public void setMerged(boolean merged) {
         this.merged = merged;
     }
-
     public void setDrumTrack(boolean isChecked) {
         drumTrack = isChecked;
     }
-
     public boolean isClickTrack() {
         return clickTrack;
     }
-
     public int getClickTrackSize(){
         return clickTrackSize;
     }
-
     public void removeEvents(){
         fretEvents.clear();
     }
-
     public void setFollowNotes(boolean followNotes) {
         this.mFollowNotes = followNotes;
     }
-
     void setTrackInEvents(int track){
         for(FretEvent fretEvent: fretEvents){
             fretEvent.track = track;
@@ -191,7 +130,7 @@ public class FretTrack extends FretBase {
         for(int i=0; i<fretEvents.size();i++){
             fe = fretEvents.get(i);
             Log.d(TAG, fe.track + ","+i + "," +fe.getTicks());
-//            for(FretNote fn: fe.fretNotes) {
+//            for(fretNoteOld fn: fe.fretNotes) {
 //                Log.d(TAG, i + "," + fe.track + "," + fn.note+","+(fn.on?"ON":"OFF")+","+fe.getTicks());
 //            }
 //            if(fe.bend>0){
@@ -202,7 +141,6 @@ public class FretTrack extends FretBase {
     public int getTotalTicks() {
         return totalTicks;
     }
-
     /**
      * creates a click track - subsequently used by the FretViewerFragment to display the progress
      * through the song.
@@ -246,7 +184,6 @@ public class FretTrack extends FretBase {
     public int getClickEventByClickNumber(int clickNumber){
         return clickEvents.get(clickNumber);
     }
-
     private void setDefaultFretPositions(FretInstrument.Instrument instrument){
         FretPosition fretPosition = new FretPosition(instrument);
         // read through all events in the track and set FretPositions for each
@@ -271,7 +208,6 @@ public class FretTrack extends FretBase {
         FretInstrument.Instrument instrument = Instrument.values()[this.fretInstrument].getInstrument();
         fretPosition = new FretPosition(instrument);
     }
-
     public boolean moveNotes(int mCurrentEvent, boolean up){
         boolean edited = false;
         if(fretPosition == null){
@@ -342,5 +278,52 @@ public class FretTrack extends FretBase {
             fretPosition.setFretPositionsAtSpecifiedFret(fretEvent.fretNotes, targetFret);
         }
     }
+    public FretTrack(String json) {
+        Log.d(TAG, "JSON Constructor");
+        try {
+            JSONObject jsonObject = new JSONObject(json);
+            name = jsonObject.getString("name");
+            midiInstrument = jsonObject.getInt("midiInstrument");
+            fretInstrument = jsonObject.getInt("fretInstrument");
+            drumTrack = jsonObject.getBoolean("drumTrack");
+            clickTrack = jsonObject.getBoolean("clickTrack");
+            clickTrackSize = jsonObject.getInt("clickTrackSize");
+            merged = jsonObject.getBoolean("merged");
+            // List of FretEvents
+            fretEvents = new ArrayList<>();
+            if(jsonObject.has(JSON_EVENTS)) {
+                JSONArray fretEventArray = jsonObject.getJSONArray(JSON_EVENTS);
+                for (int i = 0; i < fretEventArray.length(); i++) {
+                    fretEvents.add(new FretEvent(fretEventArray.get(i).toString()));
+                }
+            }
+            Log.d(TAG, "HELLO Added from Json: " + toJson());
+        } catch (JSONException e) {
+            Log.e(TAG, "HELLO JSON error: " + e.getMessage());
+        }
+    }
+    public JSONObject toJson() {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("name", name);
+            jsonObject.put("midiInstrument", midiInstrument);
+            jsonObject.put("fretInstrument", fretInstrument);
+            jsonObject.put("drumTrack", drumTrack);
+            jsonObject.put("clickTrack", clickTrack);
+            jsonObject.put("clickTrackSize", clickTrackSize);
+            jsonObject.put("merged", merged);
+            // Array of FretEvents
+            JSONArray fretEvents = new JSONArray();
+            for(FretEvent fretEvent: this.fretEvents){
+                fretEvents.put(fretEvent.toJson());
+            }
+            jsonObject.putOpt(JSON_EVENTS, fretEvents);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return jsonObject;
+    }
+    public String toJsonString(){
+        return toJson().toString();
+    }
 }
-

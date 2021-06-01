@@ -11,13 +11,6 @@ class FretBase {
 //    private static final String TAG = FretBase.class.getSimpleName();
     static final String ATTR_MIDI_INSTRUMENT = "mi";
     static final String ATTR_FRET_INSTRUMENT = "fi";
-    static final String ATTR_DELTATICKS = "dt";
-    static final String ATTR_TEMPO = "te";
-    static final String ATTR_BEND = "be";
-    static final String ATTR_EV_TRACK = "et";
-    static final String ATTR_EV_TOTALTICKS = "tt";
-    static final String ATTR_EV_CLICKEVENT = "ce";
-    static final String ATTR_EV_HASONNOTES = "ho";
     static final String ATTR_NAME = "na";
     static final String ATTR_TPQN = "tpqn";
     static final String ATTR_BPM = "bpm";
@@ -31,7 +24,11 @@ class FretBase {
     static final String ATTR_CLICK_TRACK = "ct";
     static final String ATTR_CLICK_TRACKSIZE = "cts";
     static final String ATTR_MERGED = "me";
-
+    static final String JSON_TRACKS = "tracks";
+    static final String JSON_EVENTS = "events";
+    static final String JSON_NOTES = "notes";
+    static final String JSON_PLAYER_EVENTS = "playerEvents";
+    static final String JSON_UI_NOTES = "uiNotes";
 
     /**
      * Constructor

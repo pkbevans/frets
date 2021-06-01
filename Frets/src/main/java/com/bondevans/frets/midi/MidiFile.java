@@ -110,7 +110,7 @@ public class MidiFile {
 
         while (!ev.isEndOfTrack()) {
             if (ev.isNoteOnOrOff()) {
-                // If velocity is zero then this effectively a FretNote Off message, so we'll store it as such
+                // If velocity is zero then this effectively a fretNote Off message, so we'll store it as such
                 if(ev.mParam2 == 0 && MidiEvent.NOTE_EVENT_TYPE_NOTE_ON == ev.mNoteEventType){
                     ev.mNoteEventType = MidiEvent.NOTE_EVENT_TYPE_NOTE_OFF;
                 }

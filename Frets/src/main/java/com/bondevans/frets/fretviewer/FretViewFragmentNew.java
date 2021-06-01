@@ -259,7 +259,7 @@ public class FretViewFragmentNew extends Fragment implements MidiDriver.OnMidiSt
         mPlaying = false;
         mFretTrackView.invalidate();   // Force redraw
         mTempoText.setText(String.valueOf(tempo));
-        mFretPlayer.setTrack(midiReceiver, frettrack, tpqn, tempo, currentFretEvent, mSoloTrack);
+        mFretPlayer.setTrack(midiReceiver, tpqn, tempo, currentFretEvent);
         getActivity().runOnUiThread(() -> playPauseButton.setVisibility(View.VISIBLE));
     }
 

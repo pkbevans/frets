@@ -20,6 +20,7 @@ import com.bondevans.frets.app.FretApplication;
 import com.bondevans.frets.firebase.FBWrite;
 import com.bondevans.frets.firebase.dao.Fret;
 import com.bondevans.frets.firebase.dao.FretContents;
+import com.bondevans.frets.firebase.dao.UserProfile;
 import com.bondevans.frets.fretviewer.FretViewActivity;
 import com.bondevans.frets.user.UserProfileActivity;
 import com.bondevans.frets.user.UserProfileFragment;
@@ -217,10 +218,10 @@ public class FretListFragment extends Fragment implements FretListActivity.Query
                     songRef.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
-                            String fretContents = dataSnapshot.child("contents").toString();
-                            Log.d(TAG, "HELLO CHILD:" + fretContents);
+                            FretContents fretContents = dataSnapshot.getValue(FretContents.class);
+                            Log.d(TAG, "HELLO CHILD:" + fretContents.getContents());
                             // Write out to cache and then show FretView
-                            writeFileToCache(cacheFile, fretContents, true);
+                            writeFileToCache(cacheFile, fretContents.getContents(), true);
                         }
 
                         @Override

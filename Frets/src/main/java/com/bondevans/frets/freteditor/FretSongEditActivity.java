@@ -157,6 +157,8 @@ public class FretSongEditActivity extends AppCompatActivity implements
         } else if (fretSongEditFragment != null && fretSongEditFragment.isEdited()) {
             // Merge tracks into solo track and remove FretEvents from other tracks
             mergeTracks();
+            // Build the FretPlayerEvent list
+            fretSongEditFragment.getFretSong().buildFretPlayerTrack();
             // Write Fret to FireBase
             FretApplication app = (FretApplication)getApplicationContext();
             FBWrite.addPrivateFret(mFirebaseRef, fretSongEditFragment.getFretSong(), app.getUID());

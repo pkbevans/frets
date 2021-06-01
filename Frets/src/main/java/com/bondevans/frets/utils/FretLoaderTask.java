@@ -34,6 +34,7 @@ public class FretLoaderTask extends AsyncTask<Void, Void, String> {
         try {
             mFretSong = new FretSong(FileLoader.loadFile(songFile));
         } catch (Exception e) {
+            Log.e(TAG, "HELLO FILELOADER error: "+e.getMessage());
             return e.getMessage();
         }
         return "";

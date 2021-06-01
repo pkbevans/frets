@@ -1,15 +1,15 @@
 package com.bondevans.frets.fretview;
 
-import com.bondevans.frets.midi.MidiFile;
+import com.bondevans.frets.utils.Log;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * A note on the fretboard
  */
 public class FretNote extends FretBase  implements Comparable<FretNote>{
-//    private static final String TAG = FretNote.class.getSimpleName();
-    static final String ELEMENT_NOTE = "nt";
-    private static final String NOTE_ELEMENT_OPEN = "<" + ELEMENT_NOTE + ">";
-    private static final String NOTE_ELEMENT_CLOSE = "</" + ELEMENT_NOTE + ">";
+    private static final String TAG = FretNote.class.getSimpleName();
     private static final int NOT_SET = 99;
     public int note;        // Midi note value (Bottom E on standard Guitar is 40)
     public boolean on;      // True = turn note ON, False = turn FretNote off
@@ -33,8 +33,8 @@ public class FretNote extends FretBase  implements Comparable<FretNote>{
         this.string = string;
         this.fret = fret;
         this.name = name;
+        this.bend = 0;
     }
-
     /**
      * Constructor sets note and ON/OFF
      *
@@ -46,38 +46,55 @@ public class FretNote extends FretBase  implements Comparable<FretNote>{
         this.on = on;
         this.string = NOT_SET;
         this.fret = NOT_SET;
+        this.name = "";
+        this.bend = 0;
     }
-
-    public FretNote(String note) {
-        this.note = getTagInt(note, ATTR_NOTE);
-        this.string = getTagInt(note, ATTR_STRING);
-        this.fret = getTagInt(note, ATTR_FRET);
-        this.name = MidiFile.noteName(this.note);
-        String on = getTagString(note, ATTR_ON);
-        this.on = on.equalsIgnoreCase("1");
-    }
-
     public FretNote(FretNote fretNote) {
         this.note = fretNote.note;
         this.on = fretNote.on;
         this.string = fretNote.string;
         this.fret = fretNote.fret;
         this.name = fretNote.name;
+        this.bend = fretNote.bend;
     }
 
     @Override
     public String toString() {
-        return NOTE_ELEMENT_OPEN +
-                attr(ATTR_NOTE, note) +
-                attr(ATTR_ON, on) +
-                attr(ATTR_STRING, string) +
-                attr(ATTR_FRET, fret) +
-//                attr(ATTR_NAME, name) +
-                NOTE_ELEMENT_CLOSE;
+        return toJsonString();
     }
 
     @Override
     public int compareTo(FretNote f) {
         return this.note-f.note;
+    }
+    public FretNote(String jsonString){
+        Log.d(TAG, "JSON Constructor");
+        try {
+            JSONObject jsonObject = new JSONObject(jsonString);
+            note = jsonObject.getInt("note");
+            on = jsonObject.getBoolean("on");
+            string = jsonObject.getInt("string");
+            fret = jsonObject.getInt("fret");
+            name = jsonObject.getString("name");
+        } catch (JSONException e) {
+            Log.e(TAG, "HELLO JSON error: "+e.getMessage());
+        }
+    }
+    public JSONObject toJson() {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("note", note);
+            jsonObject.put("on", on);
+            jsonObject.put("string", string);
+            jsonObject.put("fret", fret);
+            jsonObject.put("bend", bend);
+            jsonObject.put("name", name);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return jsonObject;
+    }
+    public String toJsonString(){
+        return toJson().toString();
     }
 }
