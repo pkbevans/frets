@@ -62,7 +62,7 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
                     Log.d(TAG, "Ignoring Empty track: " + mTracks.get(i).name);
                 }
             }
-            // Add an additional "click" track.  This is a track that simply has an dummy event on every beat
+            // Add an additional "click" track.  This is a track that simply has a dummy event on every beat
             // Get length in ticks of longest track
             int longest=0;
             for(FretTrack fretTrack: fretSong.getFretTracks()){
@@ -73,10 +73,10 @@ public class MidiImporter extends AsyncTask<Void, Integer, String> {
             FretTrack clickTrack = new FretTrack("Click Track", null,
                     0, FretTrack.NO_FRET_INSTRUMENT, false, longest);
             clickTrack.createClickTrack(longest,fretSong.getTpqn());
-            fretSong.addTrack(clickTrack);
+            fretSong.addClickTrack(clickTrack);
             Log.d(TAG, "HELLO2");
             // Now write out to new file in app cache directory
-            FileWriter.writeFile(mOutFile, fretSong.toString());
+            FileWriter.writeFile(mOutFile, fretSong.toJson(true).toString());
 
         } catch (FretboardException | IOException e) {
             Log.d(TAG, e.getMessage());

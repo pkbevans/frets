@@ -258,7 +258,7 @@ public class FretSongEditActivity extends AppCompatActivity implements
         // Instantiate a new fragment.
         fretSongEditFragment.setTrackBeingEdited(track);
         // Write out the track to a temporary file
-        File tmpFile = new File(this.getExternalFilesDir(null), fretSongEditFragment.getFretSong().getName()+"-Track-"+track+ "tmp.xml");
+        File tmpFile = new File(this.getExternalFilesDir(null), fretSongEditFragment.getFretSong().getName()+"-Track-"+track+ "tmp.json");
         fretSongEditFragment.setTrackTmpFile(tmpFile);
         saveTrackToTempFile(tmpFile, track);
         fretSongEditFragment.setEdited(true);
@@ -353,7 +353,7 @@ public class FretSongEditActivity extends AppCompatActivity implements
         getSong().getTrack(getSong().getSoloTrack()).dump("END");
         // TODO  (REMOVE) Write out the merged track - for debugging purposes only
         try {
-            File tmpFile = new File(new File(getIntent().getData().getPath())+".merged.xml");
+            File tmpFile = new File(new File(getIntent().getData().getPath())+".merged.json");
             FileWriter.writeFile(tmpFile, getSong().getTrack(getSong().getSoloTrack()).toString());
         } catch (IOException e) {
             e.printStackTrace();

@@ -206,7 +206,7 @@ public class FretListFragment extends Fragment implements FretListActivity.Query
                 Fret fret = mAdapter.getItem(position);
                 Log.d(TAG, "onListItemClick: " + fret.getName());
                 // See if we've got this song in the cache
-                final File cacheFile = new File(getActivity().getExternalFilesDir(null), fret.getContentId() + ".xml");
+                final File cacheFile = new File(getActivity().getExternalFilesDir(null), fret.getContentId() + ".json");
                 if (cacheFile.exists()) {
                     // Always open FretViewer by passing file reference
                     Log.d(TAG, "Found in cache: " + cacheFile.getName());

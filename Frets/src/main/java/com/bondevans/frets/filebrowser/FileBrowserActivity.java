@@ -107,7 +107,7 @@ public class FileBrowserActivity extends AppCompatActivity implements
             // Import the midi file into an instance of FretSong
             // write out to file in cache (/sdcard/android.com.bondevans.fretplayer....)
             MidiImporter midiImporter = new MidiImporter(file,
-                    new File(getExternalFilesDir(null), file.getName() + ".xml"));
+                    new File(getExternalFilesDir(null), file.getName() + ".json"));
             midiImporter.setFileImportedListener(new MidiImporter.FileImportedListener() {
                 @Override
                 public void OnImportedLoaded(final File file) {

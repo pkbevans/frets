@@ -23,7 +23,6 @@ public class FretTrack extends FretBase {
     private int fretInstrument; //  Which fret Instrument is this track designed for
     private boolean drumTrack;  // Is this a Drum track? (If it is then MidiInstrument is n/a)
     private boolean clickTrack;  // Is this a Click track? (If it is then MidiInstrument is n/a)
-    private int clickTrackSize;
     private boolean merged;
     // INTERNAL PROPERTIES - NOT WRITTEN OUT IN/READ IN FROM TOSTRING()
     private int totalTicks;     // Essentially the Total time of the track
@@ -50,7 +49,6 @@ public class FretTrack extends FretBase {
         }
         this.totalTicks = totalTicks;
         this.clickTrack = false;
-        this.clickTrackSize = 0;
         this.merged = false;
         // Set default FretPositions - unless its a no-fret instrument
         if(this.fretInstrument != NO_FRET_INSTRUMENT) {
@@ -63,12 +61,12 @@ public class FretTrack extends FretBase {
     }
 
     /**
-     * Output contents to XML - used to serialize class
+     * Output contents to JSON - used to serialize class
      * @return String representation of class
      */
     @Override
     public String toString() {
-        return toJsonString();
+        return toJson(true).toString();
     }
     public void setName(String name) {
         this.name = name;
@@ -108,9 +106,6 @@ public class FretTrack extends FretBase {
     }
     public boolean isClickTrack() {
         return clickTrack;
-    }
-    public int getClickTrackSize(){
-        return clickTrackSize;
     }
     public void removeEvents(){
         fretEvents.clear();
@@ -160,15 +155,13 @@ public class FretTrack extends FretBase {
             totalTicks+=ticksPerQtrNote;
         }
         this.clickTrack=true;
-        this.clickTrackSize=fretEvents.size();
     }
 
     /**
      * Creates a list of the FretEvent index of each clickevent.  This is so that the FretViewer
      * can move to the correct FretEvent when the user moves the seekbar
      */
-    public void generateClickEventList(){
-        clickEvents = new ArrayList<>();
+    void generateClickEventList(List<Integer>clickEvents){
         int i=0;
         int remember=0;
         for(FretEvent fretEvent: fretEvents){
@@ -287,7 +280,6 @@ public class FretTrack extends FretBase {
             fretInstrument = jsonObject.getInt("fretInstrument");
             drumTrack = jsonObject.getBoolean("drumTrack");
             clickTrack = jsonObject.getBoolean("clickTrack");
-            clickTrackSize = jsonObject.getInt("clickTrackSize");
             merged = jsonObject.getBoolean("merged");
             // List of FretEvents
             fretEvents = new ArrayList<>();
@@ -297,12 +289,12 @@ public class FretTrack extends FretBase {
                     fretEvents.add(new FretEvent(fretEventArray.get(i).toString()));
                 }
             }
-            Log.d(TAG, "HELLO Added from Json: " + toJson());
+            Log.d(TAG, "HELLO Added from Json: " + toJson(true).toString());
         } catch (JSONException e) {
             Log.e(TAG, "HELLO JSON error: " + e.getMessage());
         }
     }
-    public JSONObject toJson() {
+    public JSONObject toJson(boolean editable) {
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("name", name);
@@ -310,20 +302,18 @@ public class FretTrack extends FretBase {
             jsonObject.put("fretInstrument", fretInstrument);
             jsonObject.put("drumTrack", drumTrack);
             jsonObject.put("clickTrack", clickTrack);
-            jsonObject.put("clickTrackSize", clickTrackSize);
             jsonObject.put("merged", merged);
-            // Array of FretEvents
-            JSONArray fretEvents = new JSONArray();
-            for(FretEvent fretEvent: this.fretEvents){
-                fretEvents.put(fretEvent.toJson());
+            if(editable) {
+                // Array of FretEvents
+                JSONArray fretEvents = new JSONArray();
+                for (FretEvent fretEvent : this.fretEvents) {
+                    fretEvents.put(fretEvent.toJson());
+                }
+                jsonObject.putOpt(JSON_EVENTS, fretEvents);
             }
-            jsonObject.putOpt(JSON_EVENTS, fretEvents);
         } catch (JSONException e) {
             e.printStackTrace();
         }
         return jsonObject;
-    }
-    public String toJsonString(){
-        return toJson().toString();
     }
 }

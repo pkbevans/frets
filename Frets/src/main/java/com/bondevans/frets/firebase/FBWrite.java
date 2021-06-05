@@ -47,7 +47,7 @@ public class FBWrite {
         String fretId = contentsRef.getKey();
         Log.d(TAG, "FretRef=[" + fretId + "]");
         Map<String, String> post1 = new HashMap<>();
-        post1.put("contents", fretSong.toJsonString());
+        post1.put("contents", fretSong.toJson(false).toString());
         contentsRef.setValue(post1);
         // Now store the Song Details entry using id as link to contents
         DatabaseReference detailsRef = firebaseRef.child("users").child(uid).child("frets");

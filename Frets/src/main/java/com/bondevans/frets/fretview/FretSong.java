@@ -20,7 +20,11 @@ public class FretSong extends FretBase {
     private int bpm;
     private int soloTrack;
     private List<FretTrack> fretTracks;
+    private List<Integer> clickEvents;    // Only used by FretViewer
     private String keywords;
+    private boolean editable;
+    private int clickTrackSize;
+    private int clickTrack;
 
     /**
      * Constructor
@@ -35,27 +39,29 @@ public class FretSong extends FretBase {
         this.name = name;
         this.tpqn = tpqn;
         this.bpm = bpm;
-        if(fretTracks != null) {
+        if (fretTracks != null) {
             this.fretTracks = fretTracks;
         }
         this.soloTrack = 0;   // Assume first track is the solo
-        this.keywords=keywords;
+        this.keywords = keywords;
+        this.editable = true;
+        this.clickTrack=0;
     }
 
     /**
-     * Output contents to XML - used to serialize class
+     * Output contents to JSON - used to serialize class
      *
      * @return String representation of class
      */
     @Override
     public String toString() {
-        return toJsonString();
+        return toJson(true).toString();
     }
 
     /**
      * Add a new track to the song. Initialises list if not already done
      *
-     * @param fretTrack tracvk to add
+     * @param fretTrack track to add
      */
     public void addTrack(FretTrack fretTrack) {
         if (fretTracks == null) {
@@ -63,7 +69,14 @@ public class FretSong extends FretBase {
         }
         fretTracks.add(fretTrack);
     }
-
+    public void addClickTrack(FretTrack fretTrack){
+        clickTrack = fretTracks.size();
+        addTrack(fretTrack);
+        clickTrackSize=fretTrack.fretEvents.size();
+    }
+    public int getClickTrackSize() {
+        return clickTrackSize;
+    }
     public String getName() {
         return name;
     }
@@ -163,14 +176,7 @@ public class FretSong extends FretBase {
     }
 
     public int getClickTrack() {
-        int x = 0;
-        for (FretTrack fretTrack : fretTracks) {
-            if (fretTrack.isClickTrack()) {
-                return x;
-            }
-            x++;
-        }
-        return 0;   // Default to 1st track if no click track
+        return clickTrack;
     }
 
     public List<FretPlayerEvent> mFretPlayerEvents;
@@ -244,6 +250,9 @@ public class FretSong extends FretBase {
             bpm = jsonObject.getInt("bpm");
             soloTrack = jsonObject.getInt("soloTrack");
             keywords = jsonObject.getString("keywords");
+            if (jsonObject.has("editable")) {editable = jsonObject.getBoolean("editable");}
+            if (jsonObject.has("clickTrack")) {clickTrack = jsonObject.getInt("clickTrack");}
+            if (jsonObject.has("clickTrackSize")) {clickTrackSize = jsonObject.getInt("clickTrackSize");}
             // List of Tracks
             fretTracks = new ArrayList<>();
             if (jsonObject.has(JSON_TRACKS)) {
@@ -261,14 +270,13 @@ public class FretSong extends FretBase {
                     mFretPlayerEvents.add(new FretPlayerEvent(fretPlayerEventArray.get(i).toString()));
                 }
             }
-            Log.d(TAG, "HELLO Added from Json: " + toJsonString());
+            Log.d(TAG, "HELLO Added from Json: " + toJson(true).toString());
         } catch (JSONException e) {
-//            fretSongOld(json);  // Old style xml
             Log.e(TAG, "HELLO JSON error: " + e.getMessage());
         }
     }
 
-    public JSONObject toJson() {
+    public JSONObject toJson(boolean editable) {
         Log.d(TAG, "HELLO to json");
         JSONObject jsonObject = new JSONObject();
         try {
@@ -277,11 +285,14 @@ public class FretSong extends FretBase {
             jsonObject.put("bpm", bpm);
             jsonObject.put("soloTrack", soloTrack);
             jsonObject.put("keywords", keywords);
+            jsonObject.put("editable", editable);
+            jsonObject.put("clickTrack", clickTrack);
+            jsonObject.put("clickTrackSize", clickTrackSize);
             // Array of FretTracks
             JSONArray fretTracksJson = new JSONArray();
             Log.d(TAG, "HELLO got tracks: " + fretTracks.size());
             for (FretTrack fretTrack : fretTracks) {
-                fretTracksJson.put(fretTrack.toJson());
+                fretTracksJson.put(fretTrack.toJson(editable));
             }
             jsonObject.putOpt(JSON_TRACKS, fretTracksJson);
             if (mFretPlayerEvents != null && mFretPlayerEvents.size() > 0) {
@@ -299,7 +310,12 @@ public class FretSong extends FretBase {
         return jsonObject;
     }
 
-    public String toJsonString() {
-        return toJson().toString();
+    public void getReadyToPublish(boolean editable){
+        generateClickEventList();
+        this.editable = editable;
+    }
+    public void generateClickEventList() {
+        clickEvents = new ArrayList<>();
+        getTrack(soloTrack).generateClickEventList(clickEvents);
     }
 }

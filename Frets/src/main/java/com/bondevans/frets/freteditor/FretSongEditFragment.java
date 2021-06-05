@@ -169,7 +169,7 @@ public class FretSongEditFragment extends ListFragment {
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            Log.d(TAG, "HELLO - getView: "+position+ "View type: "+ getItemViewType(position));
+            Log.d(TAG, "HELLO - getView: "+position+ " View type: "+ getItemViewType(position));
             ViewHolder holder;
             if( convertView == null) {
                 holder = new ViewHolder();
@@ -311,7 +311,7 @@ public class FretSongEditFragment extends ListFragment {
             });
             Log.d(TAG, "Setting Instrument: " + fretTracks.get(position).getMidiInstrument());
             holder.instrument.setSelection(fretTracks.get(position).getMidiInstrument());
-            holder.fretInstrument.setSelection(fretTracks.get(position).getFretInstrument());
+            holder.fretInstrument.setSelection((fretTracks.get(position).getFretInstrument()==FretTrack.NO_FRET_INSTRUMENT?0:fretTracks.get(position).getFretInstrument()));
 
             return convertView;
         }
