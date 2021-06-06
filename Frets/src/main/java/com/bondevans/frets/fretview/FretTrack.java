@@ -174,9 +174,6 @@ public class FretTrack extends FretBase {
             ++i;
         }
     }
-    public int getClickEventByClickNumber(int clickNumber){
-        return clickEvents.get(clickNumber);
-    }
     private void setDefaultFretPositions(FretInstrument.Instrument instrument){
         FretPosition fretPosition = new FretPosition(instrument);
         // read through all events in the track and set FretPositions for each

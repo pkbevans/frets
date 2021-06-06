@@ -36,7 +36,6 @@ public class FretViewFragmentNew extends Fragment implements MidiDriver.OnMidiSt
     private Drawable playDrawable;
     private Drawable pauseDrawable;
     private boolean mPlaying;
-    private int mSoloTrack;
     private MidiDriver mMidiDriver;
     private FretPlayer mFretPlayer;
     private MidiReceiver mMidiReceiver;
@@ -65,7 +64,6 @@ public class FretViewFragmentNew extends Fragment implements MidiDriver.OnMidiSt
                              Bundle savedInstanceState) {
         Log.d(TAG, "onCreateView");
         View myView = inflater.inflate(R.layout.fretview_layout, container, false);
-//        mTrackName = (TextView) myView.findViewById(R.id.track_name);
         mFretTrackView = myView.findViewById(R.id.fretview);
         mFretTrackView.setFretListener(new FretTrackView.FretListener() {
             @Override
@@ -117,9 +115,6 @@ public class FretViewFragmentNew extends Fragment implements MidiDriver.OnMidiSt
         Log.d(TAG, "setFretSong");
         mMidiReceiver = midiReceiver;
         mFretSong = fretSong;
-        mSoloTrack = mFretSong.getSoloTrack();
-        // Generate a list of the Click events - and which FretEvent each one points to
-        mFretSong.generateClickEventList();
         mFretPlayer = new FretPlayer(new FretPlayer.OnUiUpdateRequiredListener() {
             @Override
             public void onClickEvent(int clickEvent, int currentEvent) {
@@ -148,7 +143,7 @@ public class FretViewFragmentNew extends Fragment implements MidiDriver.OnMidiSt
         if(mOldMidi){
             mMidiDriver.stop();
         }
-        // TODO - The app is losing focus so need to stop the player
+        // The app is losing focus so need to stop the player
         if(mPlaying) {
             // Playing so pause
             play();
@@ -210,7 +205,7 @@ public class FretViewFragmentNew extends Fragment implements MidiDriver.OnMidiSt
      *
      */
     private void moveTo(int progress) {
-        int event = mFretSong.getTrack(mSoloTrack).getClickEventByClickNumber(mFretSong.getClickTrackSize() * progress/100);
+        int event = mFretSong.getClickEventByClickNumber(mFretSong.getClickTrackSize() * progress/100);
         if (event < 0) {
             event = 0;
         }
@@ -222,7 +217,7 @@ public class FretViewFragmentNew extends Fragment implements MidiDriver.OnMidiSt
     private void setupPlayer(MidiReceiver midiReceiver, int tpqn, int tempo, int currentFretEvent) {
         Log.d(TAG, "loadTrack");
         mTempo = tempo;
-        mFretTrackView.setFretInstrument(mFretSong.getTrack(mSoloTrack).getInstrument());
+        mFretTrackView.setFretInstrument(mFretSong.getTrack(mFretSong.getSoloTrack()).getInstrument());
         mPlaying = false;
         mFretTrackView.invalidate();   // Force redraw
         mTempoText.setText(String.valueOf(tempo));

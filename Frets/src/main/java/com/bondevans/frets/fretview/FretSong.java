@@ -270,6 +270,15 @@ public class FretSong extends FretBase {
                     mFretPlayerEvents.add(new FretPlayerEvent(fretPlayerEventArray.get(i).toString()));
                 }
             }
+            // List of ClickEvents
+            clickEvents = new ArrayList<>();
+            if (jsonObject.has(JSON_CLICK_EVENTS)) {
+                Log.d(TAG, "HELLO Got click events");
+                JSONArray clickEventArray = jsonObject.getJSONArray(JSON_CLICK_EVENTS);
+                for (int i = 0; i < clickEventArray.length(); i++) {
+                    clickEvents.add(Integer.parseInt(clickEventArray.get(i).toString()));
+                }
+            }
             Log.d(TAG, "HELLO Added from Json: " + toJson(true).toString());
         } catch (JSONException e) {
             Log.e(TAG, "HELLO JSON error: " + e.getMessage());
@@ -304,6 +313,15 @@ public class FretSong extends FretBase {
                 }
                 jsonObject.putOpt(JSON_PLAYER_EVENTS, fretPlayerEvents);
             }
+            if (clickEvents != null && clickEvents.size() > 0) {
+                // Array of clickEvents
+                JSONArray clickEventsJson = new JSONArray();
+                Log.d(TAG, "HELLO got clickEvents: " + clickEvents.size());
+                for (int clickEvent : clickEvents) {
+                    clickEventsJson.put(clickEvent);
+                }
+                jsonObject.putOpt(JSON_CLICK_EVENTS, clickEventsJson);
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -311,11 +329,15 @@ public class FretSong extends FretBase {
     }
 
     public void getReadyToPublish(boolean editable){
+        buildFretPlayerTrack();
         generateClickEventList();
         this.editable = editable;
     }
     public void generateClickEventList() {
         clickEvents = new ArrayList<>();
         getTrack(soloTrack).generateClickEventList(clickEvents);
+    }
+    public int getClickEventByClickNumber(int clickNumber){
+        return clickEvents.get(clickNumber);
     }
 }
