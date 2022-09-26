@@ -27,7 +27,7 @@ public class FretPlayerEvent extends FretBase {
         this.track = track;
         this.bend = bend;
         this.uiFretNotes = fretNotes;
-        Log.d(TAG, "HELLO Added: "+toString());
+//        Log.d(TAG, "HELLO Added: "+toString());
     }
     public String toString(){
         return toJson();

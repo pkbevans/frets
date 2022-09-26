@@ -24,8 +24,8 @@ import java.util.List;
 
 import androidx.core.content.ContextCompat;
 
-public class FretViewFragmentNew extends Fragment implements MidiDriver.OnMidiStartListener {
-    private static final String TAG = FretViewFragmentNew.class.getSimpleName();
+public class FretViewFragment extends Fragment implements MidiDriver.OnMidiStartListener {
+    private static final String TAG = FretViewFragment.class.getSimpleName();
     private FretTrackView mFretTrackView;
     private ImageButton playPauseButton;
     private SeekBar mSeekBar;
@@ -41,7 +41,7 @@ public class FretViewFragmentNew extends Fragment implements MidiDriver.OnMidiSt
     private MidiReceiver mMidiReceiver;
     private final boolean mOldMidi=false;
 
-    public FretViewFragmentNew() {
+    public FretViewFragment() {
     }
 
     @Override

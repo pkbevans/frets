@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static java.lang.Math.atan2;
+import static java.lang.Math.sqrt;
 
 /**
  * FretView displays a fretboard and a set of notes
@@ -206,12 +207,20 @@ public class FretView extends View {
                         stringY = getStringY(mFretNotes.get(i).string); // y coord of unbent string
                         // Line from nut to note
                         degrees = Math.toDegrees(atan2((double)(noteY - stringY), (double)(noteX - 0)));
-                        mMatrix.setTranslate(noteX, noteY);
-                        mMatrix.postRotate((float)degrees+180,noteX, noteY);
+                        // Work out the length of the string from nut to note c2 = a2+b2
+                        // a= notex- mspafebeforeNut
+                        double a = noteX-mSpaceBeforeNut;
+                        double b = noteY-stringY;
+                        double c = sqrt(a*a+ b*b);
+                        float scale = (float)c/mStringBM[mFretNotes.get(i).string].getWidth();
+//                        Log.d(TAG, "HELLO SCALE: "+scale+":"+a+":"+b+":"+c+" bend+"+mFretNotes.get(i).bend);
+                        mMatrix.setScale(scale, 1);
+                        mMatrix.postTranslate(mSpaceBeforeNut, stringY - (mStringBM[mFretNotes.get(i).string].getHeight() / 2));
+                        mMatrix.postRotate((float)degrees,mSpaceBeforeNut, stringY);
                         g.drawBitmap(mStringBM[mFretNotes.get(i).string], mMatrix, null);
                         // line from note to bridge
                         degrees = Math.toDegrees(atan2((double)(stringY - noteY), (double)(getWidth()-noteX)));
-                        mMatrix.setRotate((float)degrees,0, stringY);
+                        mMatrix.setRotate((float)degrees, mSpaceBeforeNut, stringY);
                         mMatrix.postTranslate(noteX, noteY);
                         g.drawBitmap(mStringBM[mFretNotes.get(i).string], mMatrix, null);
                     }

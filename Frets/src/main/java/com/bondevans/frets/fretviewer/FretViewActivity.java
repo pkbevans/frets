@@ -34,7 +34,7 @@ public class FretViewActivity extends AppCompatActivity {
     private static final String TAG = FretViewActivity.class.getSimpleName();
     private static final int REQUEST_CODE_READ_STORAGE_PERMISSION = 4522;
     private static final int REQUEST_EDIT_FRET = 678;
-    private FretViewFragmentNew fragment;
+    private FretViewFragment fragment;
     private ProgressBar progressBar;
     private MidiManager mMidiManager;
     MidiDeviceInfo mMidiDeviceInfo;
@@ -50,7 +50,7 @@ public class FretViewActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         checkFileAccessPermission();
         setContentView(R.layout.fretview_activity);
-        fragment = (FretViewFragmentNew) getFragmentManager().findFragmentById(R.id.fragment);
+        fragment = (FretViewFragment) getFragmentManager().findFragmentById(R.id.fragment);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.tool_bar); // Attaching the layout to the toolbar object
         setSupportActionBar(toolbar);                   // Setting toolbar as the ActionBar with setSupportActionBar() call
@@ -120,10 +120,10 @@ public class FretViewActivity extends AppCompatActivity {
         if (id == android.R.id.home) {
             onBackPressed();
         }
-        else if(id == R.id.action_edit) {
-            showFretEdit();
-            return true;
-        }
+//        else if(id == R.id.action_edit) {
+//            showFretEdit();
+//            return true;
+//        }
         else if(id == R.id.action_settings) {
             return true;
         }
