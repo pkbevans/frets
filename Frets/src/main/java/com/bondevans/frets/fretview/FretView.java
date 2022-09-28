@@ -13,7 +13,6 @@ import android.view.View;
 
 import com.bondevans.frets.R;
 import com.bondevans.frets.instruments.FretInstrument;
-import com.bondevans.frets.utils.Log;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -53,7 +52,7 @@ public class FretView extends View {
     private int mStringSpace;
     private Rect mRect = new Rect(); // Avoid creating every call to drawStrings
     private Matrix mMatrix = new Matrix();
-
+    private Bitmap bentStringBM;
     public FretView(Context context) {
         super(context);
 //        Log.d(TAG, "HELLO constructor 1");
@@ -207,20 +206,22 @@ public class FretView extends View {
                         stringY = getStringY(mFretNotes.get(i).string); // y coord of unbent string
                         // Line from nut to note
                         degrees1 = Math.toDegrees(atan2((double)(noteY - stringY), (double)(noteX - mSpaceBeforeNut)));
-                        // Work out the length of the string from nut to note c2 = a2+b2
-                        // a= notex- mSpaceBeforeNut
-                        double a = noteX-mSpaceBeforeNut;
-                        double b = noteY-stringY;
-                        double c = sqrt(a*a+ b*b);
-                        float scale = (float)c/mStringBM[mFretNotes.get(i).string].getWidth();
-                        mMatrix.setScale(scale, 1);
-                        mMatrix.postRotate((float)degrees1, 0, 0);
+                        mMatrix.setRotate((float)degrees1, 0, 0);
                         mMatrix.postTranslate(mSpaceBeforeNut, stringY - (mStringBM[mFretNotes.get(i).string].getHeight()/2));
-                        g.drawBitmap(mStringBM[mFretNotes.get(i).string], mMatrix, null);
-                        // line from note to bridge
+                        // Work out the length of the string from nut to note c2 = a2+b2
+                        double a = noteX-mSpaceBeforeNut;   // Length from nut to note if string NOT bent
+                        double b = noteY-stringY;           // Distance between unbent and bent position
+                        double c = sqrt(a*a + b*b);          // Length of string between nut and note
+                        int stringLength = (int)c;          // Length of string between nut and note
+                        // Create copy of the string bitmap - truncated to the correct length
+                        bentStringBM = Bitmap.createBitmap(mStringBM[mFretNotes.get(i).string], 0, 0, stringLength, mStringBM[mFretNotes.get(i).string].getHeight());
+                        // Draw the truncated bitmap
+                        g.drawBitmap(bentStringBM, mMatrix, null);
+                        // String from note to bridge
                         degrees2 = Math.toDegrees(atan2((double)(stringY - noteY), (double)(getWidth()-noteX)));
                         mMatrix.setRotate((float)degrees2, 0, 0);
                         mMatrix.postTranslate(noteX, noteY - (mStringBM[mFretNotes.get(i).string].getHeight()/2));
+                        // N.B. Don't need to truncate, since it just draws off the screen
                         g.drawBitmap(mStringBM[mFretNotes.get(i).string], mMatrix, null);
                     }
                     // Draw note
