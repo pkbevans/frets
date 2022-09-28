@@ -47,7 +47,7 @@ public class FretView extends View {
     private List<FretNote>[] mOldNotes;
     protected float mRadius;
     private boolean mInitialised = false;
-    private Bitmap [] mStringBM = new Bitmap[6];
+    private final Bitmap [] mStringBM = new Bitmap[6];
     private final boolean l2R = true;
     private int mStringSpace;
     private Rect mRect = new Rect(); // Avoid creating every call to drawStrings
@@ -211,8 +211,7 @@ public class FretView extends View {
                         // Work out the length of the string from nut to note c2 = a2+b2
                         double a = noteX-mSpaceBeforeNut;   // Length from nut to note if string NOT bent
                         double b = noteY-stringY;           // Distance between unbent and bent position
-                        double c = sqrt(a*a + b*b);          // Length of string between nut and note
-                        int stringLength = (int)c;          // Length of string between nut and note
+                        int stringLength = (int) sqrt(a*a + b*b);          // Length of string between nut and note
                         // Create copy of the string bitmap - truncated to the correct length
                         bentStringBM = Bitmap.createBitmap(mStringBM[mFretNotes.get(i).string], 0, 0, stringLength, mStringBM[mFretNotes.get(i).string].getHeight());
                         // Draw the truncated bitmap
