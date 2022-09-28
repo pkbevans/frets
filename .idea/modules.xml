@@ -4,6 +4,9 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/frets.iml" filepath="$PROJECT_DIR$/.idea/modules/frets.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/Frets/frets.Frets.iml" filepath="$PROJECT_DIR$/.idea/modules/Frets/frets.Frets.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Frets/frets.Frets.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/Frets/frets.Frets.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Frets/frets.Frets.main.iml" filepath="$PROJECT_DIR$/.idea/modules/Frets/frets.Frets.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Frets/frets.Frets.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/Frets/frets.Frets.unitTest.iml" />
     </modules>
   </component>
 </project>

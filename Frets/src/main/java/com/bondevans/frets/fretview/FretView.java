@@ -195,33 +195,32 @@ public class FretView extends View {
     private void drawNotes(Canvas g) {
         float noteY, noteX;
         int stringY;
-        double degrees;
+        double degrees1, degrees2;
         if (mFretNotes != null) {
             for (int i = 0; i < mFretNotes.size(); i++) {
                 if (mFretNotes.get(i).on) {
                     // draw a circle on the relevant string in the middle of the fret
                     noteY = getNoteY(mFretNotes.get(i));  // Centre of note
-                    noteX = getNoteX(mFretNotes.get(i));  // Centre of note
+                    noteX = getNoteX(mFretNotes.get(i));  // Centre of fret
                     if (mFretNotes.get(i).bend > 0) {
                         // Draw the bent string if the note has a bend on it
                         stringY = getStringY(mFretNotes.get(i).string); // y coord of unbent string
                         // Line from nut to note
-                        degrees = Math.toDegrees(atan2((double)(noteY - stringY), (double)(noteX - 0)));
+                        degrees1 = Math.toDegrees(atan2((double)(noteY - stringY), (double)(noteX - mSpaceBeforeNut)));
                         // Work out the length of the string from nut to note c2 = a2+b2
-                        // a= notex- mspafebeforeNut
+                        // a= notex- mSpaceBeforeNut
                         double a = noteX-mSpaceBeforeNut;
                         double b = noteY-stringY;
                         double c = sqrt(a*a+ b*b);
                         float scale = (float)c/mStringBM[mFretNotes.get(i).string].getWidth();
-//                        Log.d(TAG, "HELLO SCALE: "+scale+":"+a+":"+b+":"+c+" bend+"+mFretNotes.get(i).bend);
                         mMatrix.setScale(scale, 1);
-                        mMatrix.postTranslate(mSpaceBeforeNut, stringY - (mStringBM[mFretNotes.get(i).string].getHeight() / 2));
-                        mMatrix.postRotate((float)degrees,mSpaceBeforeNut, stringY);
+                        mMatrix.postRotate((float)degrees1, 0, 0);
+                        mMatrix.postTranslate(mSpaceBeforeNut, stringY - (mStringBM[mFretNotes.get(i).string].getHeight()/2));
                         g.drawBitmap(mStringBM[mFretNotes.get(i).string], mMatrix, null);
                         // line from note to bridge
-                        degrees = Math.toDegrees(atan2((double)(stringY - noteY), (double)(getWidth()-noteX)));
-                        mMatrix.setRotate((float)degrees, mSpaceBeforeNut, stringY);
-                        mMatrix.postTranslate(noteX, noteY);
+                        degrees2 = Math.toDegrees(atan2((double)(stringY - noteY), (double)(getWidth()-noteX)));
+                        mMatrix.setRotate((float)degrees2, 0, 0);
+                        mMatrix.postTranslate(noteX, noteY - (mStringBM[mFretNotes.get(i).string].getHeight()/2));
                         g.drawBitmap(mStringBM[mFretNotes.get(i).string], mMatrix, null);
                     }
                     // Draw note

@@ -168,7 +168,7 @@ public class FretViewActivity extends AppCompatActivity {
             @Override
             public void OnFileLoaded(FretSong fretSong) {
                 if (loaded){
-                    // Synth is also loaded
+                    // Synth is also loaded so we are good to go
                     fragment.setFretSong(mApp, mMidiReceiver, fretSong);
                     getSupportActionBar().setTitle(fretSong.getName());
                     progressBar.setVisibility(View.INVISIBLE);
@@ -213,11 +213,12 @@ public class FretViewActivity extends AppCompatActivity {
                         mMidiReceiver = null;
                         Toast.makeText(FretViewActivity.this, getString(R.string.synth_error)+info, Toast.LENGTH_LONG).show();
                         Log.e(TAG, "HELLO could not open input port: " + info);
+                        // TODO - need to display error to user
                     }else{
                         Log.d(TAG, "HELLO Port opened " + info);
                         mMidiReceiver = inputPort;
                         if (loaded){
-                            // FretSong has been loaded is also loaded
+                            // FretSong has also been loaded so we are good to go
                             fragment.setFretSong(mApp, mMidiReceiver, mFretSong);
                             progressBar.setVisibility(View.INVISIBLE);
                         }else{
